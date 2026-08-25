@@ -28,7 +28,7 @@ kotlin {
 sqldelight {
     databases {
         create("VittDatabase") {
-            packageName.set("ie.shoonya.tracker.db")
+            packageName.set("ie.shoonya.vitt.db")
             // Fail the build if a migration would lose data or leave the schema
             // inconsistent. Financial history is not recoverable from a bad upgrade.
             verifyMigrations.set(true)

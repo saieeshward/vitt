@@ -9,10 +9,10 @@ about how to work in the repo.
 Pre-alpha, Phase 1 complete. Four modules exist: `:shared`, `:composeApp` (KMP
 library holding the shared Compose UI), `:androidApp` and `iosApp/` (thin shells that
 only host it). Display name is **VITT**; the package namespace stays
-`ie.shoonya.tracker`.
+`ie.shoonya.vitt`.
 
 ```
-shared/src/commonMain/kotlin/ie/shoonya/tracker/
+shared/src/commonMain/kotlin/ie/shoonya/vitt/
   capture/   AmountParser, CsvImport
   money/     Money, AmountEntry  — minor-unit integers, never Double
   sync/      Hlc, Iso8601, Event, EventLog, Outbox
@@ -36,8 +36,10 @@ Prefix shell commands with `rtk` (see global instructions).
 
 ## Conventions
 
-- Package namespace is `ie.shoonya.<project>` — a namespace only, never the product
-  name. Do not rename it to match "Tender".
+- Package namespace is `ie.shoonya.vitt`, matching the bundle id and applicationId.
+  `shoonya` is a personal namespace spanning several repos; `vitt` is this project
+  within it. (An earlier revision of this file said the namespace must never match
+  the product name — that was reversed deliberately on 2026-08-26.)
 - Dependencies go through `gradle/libs.versions.toml`. Never hardcode a version in a
   `build.gradle.kts`.
 - New shared logic lands in `commonMain` with tests in `commonTest`. Reach for

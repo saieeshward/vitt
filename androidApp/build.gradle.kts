@@ -8,11 +8,11 @@ plugins {
  * UI from `:composeApp` and owns nothing but the manifest and the entry Activity.
  */
 android {
-    namespace = "ie.shoonya.tracker"
+    namespace = "ie.shoonya.vitt"
     compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "ie.shoonya.tracker"
+        applicationId = "ie.shoonya.vitt"
         minSdk = libs.versions.androidMinSdk.get().toInt()
         targetSdk = libs.versions.androidTargetSdk.get().toInt()
         versionCode = 1

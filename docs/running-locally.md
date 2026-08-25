@@ -33,7 +33,7 @@ xcodebuild -project VITT.xcodeproj -scheme VITT \
 
 xcrun simctl boot "iPhone 17 Pro"
 xcrun simctl install booted "$(find build/Build/Products -name VITT.app | head -1)"
-xcrun simctl launch booted ie.shoonya.tracker
+xcrun simctl launch booted ie.shoonya.vitt
 ```
 
 ## iOS device
