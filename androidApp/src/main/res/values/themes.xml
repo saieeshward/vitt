@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose draws everything, so the platform theme only needs to avoid
+         flashing an action bar before the first frame. -->
+    <style name="Theme.Tender" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

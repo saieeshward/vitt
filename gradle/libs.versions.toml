@@ -9,12 +9,17 @@ datetime = "0.8.0"
 ktor = "3.5.2"
 androidMinSdk = "26"
 androidTargetSdk = "36"
-androidCompileSdk = "36"
+# compileSdk tracks the newest platform (Compose 1.12 requires 37); targetSdk
+# stays at 36, which is what Play requires for new apps from 31 Aug 2026.
+androidCompileSdk = "37"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.9.3" }
-compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose" }
-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose" }
+# The Android shell uses androidx Compose directly; Compose Multiplatform maps
+# onto these same artifacts on Android, so there is no duplication at runtime.
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version = "2026.08.00" }
+androidx-compose-ui = { module = "androidx.compose.ui:ui" }
+androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }

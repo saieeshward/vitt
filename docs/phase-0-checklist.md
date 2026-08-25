@@ -95,3 +95,17 @@ do it. **[code]** automatable.
   path to launch, and it is calendar time you cannot compress.
 - **Google's sideloading developer verification** (2026–27) may require registering
   package names and signing keys for APKs distributed outside Play.
+
+## Added during Phase 1 — iOS device builds
+
+- [ ] **[you] Sign in to Xcode with your Apple ID.** Xcode → Settings → Accounts
+      → **+** → Apple ID. A *free* Apple ID is enough to run on your own device;
+      certificates last 7 days and the app stops launching after that, which is
+      fine for testing. The paid Apple Developer Program is only needed for
+      TestFlight and the store.
+- [ ] **[you] Set the signing team**, either in Xcode (select the Tender target →
+      Signing & Capabilities → Team) or by adding `DEVELOPMENT_TEAM: <TEAMID>` to
+      `iosApp/project.yml` and re-running `xcodegen generate`. Do not commit a
+      team id if the repo is public.
+- [ ] **[you] Trust the developer on the phone** the first time: Settings →
+      General → VPN & Device Management → trust the certificate.

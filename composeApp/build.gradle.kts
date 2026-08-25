@@ -14,7 +14,7 @@ plugins {
  * nothing but host what this module produces.
  */
 kotlin {
-    androidLibrary {
+    android {
         namespace = "ie.shoonya.tracker.ui"
         compileSdk = libs.versions.androidCompileSdk.get().toInt()
         minSdk = libs.versions.androidMinSdk.get().toInt()
