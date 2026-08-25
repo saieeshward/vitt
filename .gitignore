@@ -45,3 +45,8 @@ Thumbs.db
 
 # Gradle wrapper jar is committed intentionally (standard practice)
 !gradle/wrapper/gradle-wrapper.jar
+
+# Local signing config — team ids are personal, keep them out of a public repo
+iosApp/Local.xcconfig
+iosApp/VITT.xcodeproj/
+iosApp/build/

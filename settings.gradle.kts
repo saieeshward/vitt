@@ -1,4 +1,4 @@
-rootProject.name = "tender"
+rootProject.name = "vitt"
 
 pluginManagement {
     repositories {

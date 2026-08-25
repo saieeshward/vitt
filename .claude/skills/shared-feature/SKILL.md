@@ -9,7 +9,7 @@ Order matters. Do these in sequence.
 
 ## 1. Place it
 
-`shared/src/commonMain/kotlin/ie/shoonya/tracker/<area>/`
+`shared/src/commonMain/kotlin/ie/shoonya/vitt/<area>/`
 
 Existing areas: `capture/`, `money/`, `sync/`. Add a new one only when the code
 fits none of them — prefer growing an existing area over inventing a fourth.
@@ -20,7 +20,7 @@ compiles for both targets is always the better answer.
 
 ## 2. Write the test first
 
-`shared/src/commonTest/kotlin/ie/shoonya/tracker/<area>/<Name>Test.kt`
+`shared/src/commonTest/kotlin/ie/shoonya/vitt/<area>/<Name>Test.kt`
 
 Use `kotlin.test`. Match the existing files' style — read a neighbouring test
 before writing a new one.

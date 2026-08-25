@@ -1,6 +1,6 @@
 # Verifying builds
 
-Tender ships from three places, with **two different signing identities**.
+VITT ships from three places, with **two different signing identities**.
 
 | Source | Signed by | Updates from |
 |---|---|---|
@@ -24,7 +24,7 @@ GitHub release key (SHA-256):  <pending>
 ## Checking an APK
 
 ```
-apksigner verify --print-certs Tender-<version>.apk
+apksigner verify --print-certs VITT-<version>.apk
 ```
 
 Compare the SHA-256 against the table above. If it does not match, do not install

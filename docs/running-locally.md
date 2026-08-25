@@ -1,4 +1,4 @@
-# Running Tender locally
+# Running VITT locally
 
 Requires JDK 17+ (21 recommended), the Android SDK, and — for iOS — macOS with
 Xcode and [xcodegen](https://github.com/yonaskolb/XcodeGen).
@@ -26,20 +26,20 @@ The Xcode project is generated, not committed, so regenerate it after changing
 
 ```bash
 cd iosApp && xcodegen generate
-xcodebuild -project Tender.xcodeproj -scheme Tender \
+xcodebuild -project VITT.xcodeproj -scheme VITT \
   -sdk iphonesimulator -configuration Debug \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
 
 xcrun simctl boot "iPhone 17 Pro"
-xcrun simctl install booted "$(find build/Build/Products -name Tender.app | head -1)"
-xcrun simctl launch booted ie.shoonya.tracker
+xcrun simctl install booted "$(find build/Build/Products -name VITT.app | head -1)"
+xcrun simctl launch booted ie.shoonya.vitt
 ```
 
 ## iOS device
 
 Needs an Apple ID signed in to Xcode; see the Phase 0 checklist. Then open
-`iosApp/Tender.xcodeproj`, pick your phone, and press Run.
+`iosApp/VITT.xcodeproj`, pick your phone, and press Run.
 
 ## Toolchain notes
 

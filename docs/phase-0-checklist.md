@@ -10,7 +10,7 @@ do it. **[code]** automatable.
 
 - [ ] **[you] Confirm or replace the app name.** Everything below depends on it —
       trademark, domain, bundle IDs, store listings. Current placeholder is
-      **Tender**, used throughout the repo. Changing it later is cheap in code and
+      **VITT**, used throughout the repo. Changing it later is cheap in code and
       expensive in trademark and store presence.
       - Check: EUIPO and USPTO/IPOI registers, Play and App Store searches, domain
         availability, npm/GitHub name collisions.
@@ -103,7 +103,7 @@ do it. **[code]** automatable.
       certificates last 7 days and the app stops launching after that, which is
       fine for testing. The paid Apple Developer Program is only needed for
       TestFlight and the store.
-- [ ] **[you] Set the signing team**, either in Xcode (select the Tender target →
+- [ ] **[you] Set the signing team**, either in Xcode (select the VITT target →
       Signing & Capabilities → Team) or by adding `DEVELOPMENT_TEAM: <TEAMID>` to
       `iosApp/project.yml` and re-running `xcodegen generate`. Do not commit a
       team id if the repo is public.

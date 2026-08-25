@@ -2,5 +2,5 @@
 <resources>
     <!-- Compose draws everything, so the platform theme only needs to avoid
          flashing an action bar before the first frame. -->
-    <style name="Theme.Tender" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.VITT" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

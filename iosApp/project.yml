@@ -1,9 +1,13 @@
-name: Tender
+name: VITT
 options:
   bundleIdPrefix: ie.shoonya
   deploymentTarget:
     iOS: "15.0"
   createIntermediateGroups: true
+
+configFiles:
+  Debug: Local.xcconfig
+  Release: Local.xcconfig
 
 settings:
   base:
@@ -14,7 +18,7 @@ settings:
     ENABLE_USER_SCRIPT_SANDBOXING: NO
 
 targets:
-  Tender:
+  VITT:
     type: application
     platform: iOS
     sources:
@@ -22,7 +26,7 @@ targets:
     info:
       path: iosApp/Info.plist
       properties:
-        CFBundleDisplayName: Tender
+        CFBundleDisplayName: VITT
         CFBundleShortVersionString: "0.1.0"
         # Compose Multiplatform refuses to start without this: without it iOS
         # caps the app at 60fps on ProMotion displays, and CMP treats a silently
@@ -34,7 +38,7 @@ targets:
           - UIInterfaceOrientationPortrait
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: ie.shoonya.tracker
+        PRODUCT_BUNDLE_IDENTIFIER: ie.shoonya.vitt
         # The Kotlin framework is produced by Gradle into composeApp/build.
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)

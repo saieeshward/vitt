@@ -1,0 +1,6 @@
+// Copy to Local.xcconfig and fill in your own team id, then run `xcodegen generate`.
+//
+// Find it in Xcode → Settings → Accounts → your Apple ID → Manage Certificates,
+// or leave it blank and set the Team in the target's Signing & Capabilities tab.
+// A free Apple ID works for running on your own device; certificates last 7 days.
+DEVELOPMENT_TEAM = YOUR_TEAM_ID

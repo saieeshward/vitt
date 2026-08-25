@@ -1,4 +1,4 @@
-# Tender — working notes for Claude
+# VITT — working notes for Claude
 
 Multi-currency expense tracker. Kotlin Multiplatform, no backend, user's own Google
 Sheet as storage. Read `README.md` for what the product is and why; this file is
@@ -11,7 +11,7 @@ final layout — `:composeApp`, `iosApp/`, `docs/verifying-builds.md` — much o
 not built yet. Trust `settings.gradle.kts` over `README.md` for what modules exist.
 
 ```
-shared/src/commonMain/kotlin/ie/shoonya/tracker/
+shared/src/commonMain/kotlin/ie/shoonya/vitt/
   capture/   AmountParser
   money/     Money            — minor-unit integers, never Double
   sync/      Hlc, Iso8601     — hybrid logical clock for offline merge
@@ -30,7 +30,7 @@ Prefix shell commands with `rtk` (see global instructions).
 ## Conventions
 
 - Package namespace is `ie.shoonya.<project>` — a namespace only, never the product
-  name. Do not rename it to match "Tender".
+  name. Do not rename it to match "VITT".
 - Dependencies go through `gradle/libs.versions.toml`. Never hardcode a version in a
   `build.gradle.kts`.
 - New shared logic lands in `commonMain` with tests in `commonTest`. Reach for

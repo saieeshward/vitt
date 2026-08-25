@@ -14,7 +14,7 @@ struct ComposeView: UIViewControllerRepresentable {
 }
 
 @main
-struct TenderApp: App {
+struct VITTApp: App {
     var body: some Scene {
         WindowGroup {
             ComposeView()

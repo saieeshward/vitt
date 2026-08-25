@@ -28,15 +28,15 @@ attacker-installed software; and social engineering of users.
 
 ## Design notes relevant to security
 
-- Tender has **no server** and **no Tender account**. There is no central store to
+- VITT has **no server** and **no VITT account**. There is no central store to
   breach.
 - OAuth tokens live in the iOS Keychain or Android Keystore, never on a server
   and never in shared preferences.
 - The `drive.file` scope means a compromised token grants access only to the
-  spreadsheet Tender created, not the user's wider Drive.
+  spreadsheet VITT created, not the user's wider Drive.
 - Financial data at rest relies on platform encryption — iOS Data Protection and
   Android File-Based Encryption. The local database is not separately encrypted;
   see [PLAN.md](PLAN.md) §3.1 for the reasoning and the conditions under which
   that should change.
-- Anything a user can see in their own spreadsheet, they can also edit. Tender
+- Anything a user can see in their own spreadsheet, they can also edit. VITT
   treats hand-edits as expected input, not as tampering.
