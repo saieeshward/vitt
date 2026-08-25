@@ -10,7 +10,7 @@ do it. **[code]** automatable.
 
 - [ ] **[you] Confirm or replace the app name.** Everything below depends on it —
       trademark, domain, bundle IDs, store listings. Current placeholder is
-      **Cairn**, used throughout the repo. Changing it later is cheap in code and
+      **Tender**, used throughout the repo. Changing it later is cheap in code and
       expensive in trademark and store presence.
       - Check: EUIPO and USPTO/IPOI registers, Play and App Store searches, domain
         availability, npm/GitHub name collisions.

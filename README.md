@@ -1,4 +1,4 @@
-# Cairn
+# Tender
 
 A free, open-source expense and net-worth tracker for people whose money lives
 in more than one currency.
@@ -14,12 +14,12 @@ in more than one currency.
   does not appear to change because a rate moved. The single exception is a real
   cross-border transfer, which records the rate actually used, because that is a
   fact rather than an estimate.
-- **Your data is a spreadsheet you own.** Cairn stores everything in a Google
+- **Your data is a spreadsheet you own.** Tender stores everything in a Google
   Sheet in your own Drive. You can open it, read it, edit it, export it, or stop
-  using Cairn entirely and keep every row.
+  using Tender entirely and keep every row.
 - **Offline-first.** The app works with no network. Nothing waits on a sync.
-- **No accounts, no server.** Cairn has no backend. There is no Cairn account to
-  create and no Cairn database holding your spending.
+- **No accounts, no server.** Tender has no backend. There is no Tender account to
+  create and no Tender database holding your spending.
 - **No bank logins.** No aggregator, no credential sharing, no OTP walls.
 
 ## How it works
@@ -33,17 +33,17 @@ merely tidy here; it is the only design that is safe. See [PLAN.md](PLAN.md) §2
 
 ## Permissions
 
-Cairn requests exactly two OAuth scopes:
+Tender requests exactly two OAuth scopes:
 
 | Scope | Why |
 |---|---|
-| `drive.file` | Create and edit **only** the spreadsheet Cairn made, or one you explicitly pick. Cairn cannot see anything else in your Drive. |
+| `drive.file` | Create and edit **only** the spreadsheet Tender made, or one you explicitly pick. Tender cannot see anything else in your Drive. |
 | `openid email profile` | Identify which Google account the spreadsheet belongs to. |
 
-Cairn does **not** request `drive` or `spreadsheets`, which would grant access to
+Tender does **not** request `drive` or `spreadsheets`, which would grant access to
 your whole Drive or all of your spreadsheets.
 
-Cairn does **not** read your SMS or your notifications.
+Tender does **not** read your SMS or your notifications.
 
 ## Platforms
 

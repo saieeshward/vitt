@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability
-    url: https://github.com/OWNER/cairn/security/advisories/new
+    url: https://github.com/OWNER/tender/security/advisories/new
     about: Report privately. Never open a public issue for a security problem.
   - name: Question or idea
-    url: https://github.com/OWNER/cairn/discussions
+    url: https://github.com/OWNER/tender/discussions
     about: For anything that is not a specific bug or a concrete feature request.
