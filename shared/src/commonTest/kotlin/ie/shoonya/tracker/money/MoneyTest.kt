@@ -1,0 +1,70 @@
+package ie.shoonya.tracker.money
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
+
+class MoneyTest {
+
+    @Test
+    fun `formats minor units as decimal`() {
+        assertEquals("12.50", Money(1250, Currency.EUR).toPlainString())
+        assertEquals("0.05", Money(5, Currency.EUR).toPlainString())
+        assertEquals("-12.50", Money(-1250, Currency.EUR).toPlainString())
+        assertEquals("1000.00", Money(100_000, Currency.EUR).toPlainString())
+    }
+
+    @Test
+    fun `respects currencies with no minor unit`() {
+        // The classic scaling bug: treating JPY like EUR divides by 100.
+        assertEquals("500", Money(500, Currency.JPY).toPlainString())
+    }
+
+    @Test
+    fun `parses plain decimals`() {
+        assertEquals(Money(1250, Currency.EUR), Money.ofPlain("12.50", Currency.EUR))
+        assertEquals(Money(1250, Currency.EUR), Money.ofPlain("12.5", Currency.EUR))
+        assertEquals(Money(-1250, Currency.EUR), Money.ofPlain("-12.50", Currency.EUR))
+        assertEquals(Money(1200, Currency.EUR), Money.ofPlain("12", Currency.EUR))
+    }
+
+    @Test
+    fun `refuses more precision than the currency has`() {
+        assertFailsWith<IllegalArgumentException> { Money.ofPlain("12.505", Currency.EUR) }
+    }
+
+    @Test
+    fun `refuses to add different currencies`() {
+        val e = assertFailsWith<IllegalArgumentException> {
+            Money(1000, Currency.EUR) + Money(1000, Currency.INR)
+        }
+        assertTrue(e.message!!.contains("Transfer"), "should point at the Transfer type")
+    }
+
+    @Test
+    fun `splitting never creates or destroys money`() {
+        // 10.00 three ways cannot be done exactly; the remainder must still balance.
+        val total = Money(1000, Currency.EUR)
+        val parts = total.splitEvenly(3)
+        assertEquals(3, parts.size)
+        assertEquals(total.minor, parts.sumOf { it.minor })
+        assertEquals(listOf(334L, 333L, 333L), parts.map { it.minor })
+    }
+
+    @Test
+    fun `splitting a negative amount still balances`() {
+        val total = Money(-1000, Currency.EUR)
+        val parts = total.splitEvenly(3)
+        assertEquals(total.minor, parts.sumOf { it.minor })
+    }
+
+    @Test
+    fun `no floating point drift over many additions`() {
+        // 0.1 summed 1000 times is exactly 100.00 in integer minor units, and
+        // famously is not with Double.
+        var acc = Money(0, Currency.EUR)
+        repeat(1000) { acc += Money(10, Currency.EUR) }
+        assertEquals("100.00", acc.toPlainString())
+    }
+}

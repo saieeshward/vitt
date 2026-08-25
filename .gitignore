@@ -42,3 +42,6 @@ fastlane/screenshots/**/*.png
 # OS
 .DS_Store
 Thumbs.db
+
+# Gradle wrapper jar is committed intentionally (standard practice)
+!gradle/wrapper/gradle-wrapper.jar
