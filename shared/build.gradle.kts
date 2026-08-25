@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.sqldelight)
 }
 
@@ -14,10 +15,15 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.contentnegotiation)
+            implementation(libs.ktor.serialization.json)
+            implementation(libs.kotlinx.serialization.json)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.ktor.client.mock)
         }
         jvmMain.dependencies { implementation(libs.sqldelight.driver.jvm) }
         jvmTest.dependencies { implementation(libs.sqldelight.driver.jvm) }
