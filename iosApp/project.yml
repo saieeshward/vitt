@@ -38,7 +38,7 @@ targets:
           - UIInterfaceOrientationPortrait
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: ie.shoonya.vitt
+        PRODUCT_BUNDLE_IDENTIFIER: ie.shoonya.tracker
         # The Kotlin framework is produced by Gradle into composeApp/build.
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)

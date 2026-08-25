@@ -1,4 +1,4 @@
-# VITT — working notes for Claude
+# Tender — working notes for Claude
 
 Multi-currency expense tracker. Kotlin Multiplatform, no backend, user's own Google
 Sheet as storage. Read `README.md` for what the product is and why; this file is
@@ -6,16 +6,23 @@ about how to work in the repo.
 
 ## Repo state (keep this accurate)
 
-Pre-alpha, Phase 0–1. **Only `:shared` exists.** `README.md` documents the intended
-final layout — `:composeApp`, `iosApp/`, `docs/verifying-builds.md` — much of which is
-not built yet. Trust `settings.gradle.kts` over `README.md` for what modules exist.
+Pre-alpha, Phase 1 complete. Four modules exist: `:shared`, `:composeApp` (KMP
+library holding the shared Compose UI), `:androidApp` and `iosApp/` (thin shells that
+only host it). Display name is **VITT**; the package namespace stays
+`ie.shoonya.tracker`.
 
 ```
-shared/src/commonMain/kotlin/ie/shoonya/vitt/
-  capture/   AmountParser
-  money/     Money            — minor-unit integers, never Double
-  sync/      Hlc, Iso8601     — hybrid logical clock for offline merge
+shared/src/commonMain/kotlin/ie/shoonya/tracker/
+  capture/   AmountParser, CsvImport
+  money/     Money, AmountEntry  — minor-unit integers, never Double
+  sync/      Hlc, Iso8601, Event, EventLog, Outbox
+composeApp/src/commonMain/.../ui/   AmountKeypad, SpikeApp
 ```
+
+Build constraints worth knowing before touching Gradle are in
+[docs/running-locally.md](docs/running-locally.md) — AGP 9 cannot apply
+`com.android.application` alongside the KMP plugin, which is why the modules split
+the way they do.
 
 ## Commands
 
@@ -30,7 +37,7 @@ Prefix shell commands with `rtk` (see global instructions).
 ## Conventions
 
 - Package namespace is `ie.shoonya.<project>` — a namespace only, never the product
-  name. Do not rename it to match "VITT".
+  name. Do not rename it to match "Tender".
 - Dependencies go through `gradle/libs.versions.toml`. Never hardcode a version in a
   `build.gradle.kts`.
 - New shared logic lands in `commonMain` with tests in `commonTest`. Reach for

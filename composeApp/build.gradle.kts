@@ -15,7 +15,7 @@ plugins {
  */
 kotlin {
     android {
-        namespace = "ie.shoonya.vitt.ui"
+        namespace = "ie.shoonya.tracker.ui"
         compileSdk = libs.versions.androidCompileSdk.get().toInt()
         minSdk = libs.versions.androidMinSdk.get().toInt()
     }
