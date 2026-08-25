@@ -131,7 +131,7 @@ class CsvImportTest {
     }
 
     @Test
-    fun `rows with problems are surfaced, not dropped`() {
+    fun `rows with problems are surfaced - not dropped`() {
         val csv = """
             Date,Description,Amount
             2026-08-20,Good row,-12.50

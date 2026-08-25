@@ -1,0 +1,49 @@
+-- The append-only event log, mirrored locally.
+--
+-- Every mutation the app has ever made or seen, one row per changed field. This
+-- is the same shape as the Events tab in the user's spreadsheet, so the sheet is
+-- a faithful copy of this table rather than a separate model to reconcile.
+--
+-- The HLC is the primary key, which is what makes replay idempotent: seeing the
+-- same event twice is an INSERT OR IGNORE, not a duplicate.
+CREATE TABLE event (
+    hlc         TEXT NOT NULL PRIMARY KEY,
+    node_id     TEXT NOT NULL,
+    entity      TEXT NOT NULL,
+    entity_id   TEXT NOT NULL,
+    field       TEXT NOT NULL,
+    value       TEXT NOT NULL
+);
+
+-- Folding reads every event for one entity, newest field-wise winner takes all.
+CREATE INDEX event_by_entity ON event(entity, entity_id, field, hlc DESC);
+
+insert:
+INSERT OR IGNORE INTO event(hlc, node_id, entity, entity_id, field, value)
+VALUES (?, ?, ?, ?, ?, ?);
+
+-- Reports whether the row was actually new. Callers need this because derived
+-- state must only be updated when an insert genuinely happened.
+changes:
+SELECT changes();
+
+selectAll:
+SELECT * FROM event ORDER BY hlc;
+
+selectForEntity:
+SELECT * FROM event WHERE entity = ? AND entity_id = ? ORDER BY hlc;
+
+selectSince:
+SELECT * FROM event WHERE hlc > ? ORDER BY hlc;
+
+knownHlcs:
+SELECT hlc FROM event;
+
+exists:
+SELECT EXISTS(SELECT 1 FROM event WHERE hlc = ?);
+
+count:
+SELECT count(*) FROM event;
+
+maxHlc:
+SELECT max(hlc) FROM event;

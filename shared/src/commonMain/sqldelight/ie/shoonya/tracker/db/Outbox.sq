@@ -1,0 +1,63 @@
+-- Events written locally but not yet confirmed present in the sheet.
+--
+-- Ordered by an autoincrementing sequence so a device's own writes reach the
+-- sheet in the order they were made. State lives on the entry rather than the
+-- record, because one transaction can have a synced amount and a pending note
+-- at the same time.
+CREATE TABLE outbox (
+    seq         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    hlc         TEXT NOT NULL UNIQUE,
+    state       TEXT NOT NULL DEFAULT 'PENDING',
+    attempts    INTEGER NOT NULL DEFAULT 0,
+    last_error  TEXT,
+    created_at  INTEGER NOT NULL
+);
+
+CREATE INDEX outbox_by_state ON outbox(state, seq);
+
+enqueue:
+INSERT INTO outbox(hlc, state, attempts, created_at)
+VALUES (?, 'PENDING', 0, ?);
+
+nextBatch:
+SELECT o.seq, o.hlc, o.state, o.attempts, o.last_error, o.created_at,
+       e.node_id, e.entity, e.entity_id, e.field, e.value
+FROM outbox o
+JOIN event e ON e.hlc = o.hlc
+WHERE o.state IN ('PENDING', 'FAILED')
+ORDER BY o.seq
+LIMIT ?;
+
+inFlightCount:
+SELECT count(*) FROM outbox WHERE state = 'IN_FLIGHT';
+
+markState:
+UPDATE outbox SET state = ? WHERE hlc = ?;
+
+markFailed:
+UPDATE outbox SET state = ?, attempts = attempts + 1, last_error = ? WHERE hlc = ?;
+
+-- Returns pending entries superseded by a newer edit to the same field. Only
+-- PENDING may be collapsed: anything in flight might already have landed.
+supersededBy:
+SELECT o.hlc FROM outbox o
+JOIN event e ON e.hlc = o.hlc
+WHERE o.state = 'PENDING'
+  AND e.entity_id = ?
+  AND e.field = ?
+  AND e.hlc < ?;
+
+delete:
+DELETE FROM outbox WHERE hlc = ?;
+
+deleteAcked:
+DELETE FROM outbox WHERE state = 'ACKED';
+
+countByState:
+SELECT state, count(*) AS n FROM outbox GROUP BY state;
+
+selectByState:
+SELECT * FROM outbox WHERE state = ? ORDER BY seq;
+
+reconcileInFlight:
+SELECT hlc FROM outbox WHERE state = 'IN_FLIGHT' ORDER BY seq;

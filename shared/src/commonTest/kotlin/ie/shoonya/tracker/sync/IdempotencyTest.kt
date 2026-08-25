@@ -106,7 +106,7 @@ class IdempotencyTest {
     }
 
     @Test
-    fun `identical hlc seen twice is deduplicated, but two real coffees are not`() {
+    fun `identical hlc seen twice is deduplicated - but two real coffees are not`() {
         val clock = clockAt(nodeA, 1_000)
         val e = expense(clock, "txn-1", -350)
         // The same event twice in one batch is still one event.
@@ -135,7 +135,7 @@ class IdempotencyTest {
     }
 
     @Test
-    fun `same field concurrent edit resolves to the later hlc, both orders`() {
+    fun `same field concurrent edit resolves to the later hlc - both orders`() {
         val a = HlcClock(nodeA, now = { 5_000 })
         val b = HlcClock(nodeB, now = { 6_000 })
         val early = Event(a.issue(), "transaction", "txn-1", "amount", TaggedValue.Num(-1000))

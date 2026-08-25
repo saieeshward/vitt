@@ -1,0 +1,18 @@
+-- Small singleton key/value store for sync bookkeeping: this device's node id,
+-- the spreadsheet file id, the last Drive `version` we observed, the local HLC.
+--
+-- Deliberately not the place for anything the user typed. Everything a user
+-- entered goes through the event log so it can be replayed and merged.
+CREATE TABLE sync_state (
+    key   TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+put:
+INSERT OR REPLACE INTO sync_state(key, value) VALUES (?, ?);
+
+get:
+SELECT value FROM sync_state WHERE key = ?;
+
+delete:
+DELETE FROM sync_state WHERE key = ?;

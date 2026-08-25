@@ -28,7 +28,7 @@ class AmountParserTest {
     }
 
     @Test
-    fun `symbol after amount, continental grouping`() {
+    fun `symbol after amount - continental grouping`() {
         // German/Dutch/Irish-bank formatting: comma is the decimal point here.
         val r = AmountParser.parse("Sie haben 12,50 € bezahlt - debit")
         assertEquals(-1250L, r.amount?.minor)
@@ -114,7 +114,7 @@ class AmountParserTest {
     }
 
     @Test
-    fun `picks the amount next to the currency, not the biggest number`() {
+    fun `picks the amount next to the currency - not the biggest number`() {
         val r = AmountParser.parse("Rs.500 debited at store 987654")
         assertEquals(-50000L, r.amount?.minor)
     }
@@ -140,7 +140,7 @@ class AmountParserTest {
     }
 
     @Test
-    fun `empty and junk input is handled, not crashed`() {
+    fun `empty and junk input is handled - not crashed`() {
         assertNull(AmountParser.parse("").amount)
         assertNull(AmountParser.parse("    ").amount)
         assertNull(AmountParser.parse("hello world").amount)
