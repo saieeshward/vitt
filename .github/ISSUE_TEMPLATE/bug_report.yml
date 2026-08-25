@@ -1,0 +1,69 @@
+name: Bug report
+description: Something behaves incorrectly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never paste real financial data.** Replace amounts, account numbers, and
+        merchant names with fake values that still reproduce the problem.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: ["Android", "iOS", "both"]
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: Cairn version
+      description: Settings → About
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
+      placeholder: "Android 16 / iOS 19.2"
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      placeholder: "Pixel 9 / iPhone 16 Pro"
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area, if known
+      options: ["sync / Google Sheets", "import or share-sheet parsing", "transaction entry", "budgets or charts", "UI or layout", "not sure"]
+  - type: textarea
+    id: sync-state
+    attributes:
+      label: Sync details
+      description: For sync issues — were you offline? Using more than one device? Had you edited the spreadsheet by hand?
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmation
+      options:
+        - label: This contains no real financial data.
+          required: true

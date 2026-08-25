@@ -1,0 +1,44 @@
+# Gradle / Kotlin
+.gradle/
+build/
+!build-logic/
+local.properties
+captures/
+.kotlin/
+kotlin-js-store/
+
+# Xcode / iOS
+xcuserdata/
+*.xcuserstate
+*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+iosApp/Pods/
+iosApp/*.xcodeproj/project.xcworkspace/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+
+# IDE
+.idea/*
+!.idea/codeStyles/
+!.idea/runConfigurations/
+*.iml
+.fleet/
+
+# Secrets — never commit these. See docs/secrets.md
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+keystore.properties
+signing.properties
+play-service-account*.json
+appstore-api-key*.json
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,37 @@
+name: Feature request
+description: Suggest a capability
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check [PLAN.md](../blob/main/PLAN.md) and the "will not be merged"
+        list in [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md) first. Several
+        popular requests — notification reading, blended currency totals,
+        leaderboards — are deliberately excluded, with reasons and sources.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that is currently hard? Describe the situation, not the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you have in mind
+    validations:
+      required: true
+  - type: input
+    id: currencies
+    attributes:
+      label: Relevant currencies or countries
+      description: Helps judge multi-currency implications.
+      placeholder: "EUR (Ireland), INR (India)"
+  - type: checkboxes
+    id: checked
+    attributes:
+      label: Confirmation
+      options:
+        - label: I checked PLAN.md and the exclusions list in CONTRIBUTING.md.
+          required: true
