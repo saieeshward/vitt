@@ -54,6 +54,9 @@ targets:
           - $(inherited)
           - -framework
           - ComposeApp
+          # SQLDelight's native driver calls into the system SQLite but the
+          # Kotlin framework does not carry it, so the app has to link it.
+          - -lsqlite3
         # Selects the right Kotlin output directory for device vs simulator.
         KOTLIN_TARGET[sdk=iphonesimulator*]: iosSimulatorArm64
         KOTLIN_TARGET[sdk=iphoneos*]: iosArm64
