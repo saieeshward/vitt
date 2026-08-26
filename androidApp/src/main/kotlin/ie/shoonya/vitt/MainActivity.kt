@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity() {
                     tokenStore = ie.shoonya.vitt.auth.platformTokenStore(),
                     browser = BrowserAuth(applicationContext),
                     now = { System.currentTimeMillis() },
+                    driver = ie.shoonya.vitt.sync.androidDriver(applicationContext),
                 )
             )
         }

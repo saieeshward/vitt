@@ -7,7 +7,11 @@ import ie.shoonya.vitt.auth.platformTokenStore
 import ie.shoonya.vitt.auth.platformClientId
 import ie.shoonya.vitt.net.platformHttpClient
 import ie.shoonya.vitt.sheets.LiveVerification
+import ie.shoonya.vitt.model.LedgerRepository
 import ie.shoonya.vitt.sheets.SheetsClient
+import ie.shoonya.vitt.sync.DeviceIdentity
+import ie.shoonya.vitt.sync.EventStore
+import ie.shoonya.vitt.sync.installMarker
 
 /**
  * The composition root for everything the UI needs.
@@ -19,8 +23,26 @@ import ie.shoonya.vitt.sheets.SheetsClient
 class VittServices(
     tokenStore: TokenStore = platformTokenStore(),
     browser: BrowserAuth,
-    now: () -> Long,
+    private val now: () -> Long,
+    driver: app.cash.sqldelight.db.SqlDriver,
 ) {
+    /**
+     * The local database, keyed to this device.
+     *
+     * The node id is minted here and re-minted if the database arrived from a
+     * backup, before anything can be written under a borrowed identity.
+     */
+    val store: EventStore = run {
+        val bootstrap = EventStore(driver)
+        val nodeId = DeviceIdentity.forStore(bootstrap, installMarker())
+        EventStore.open(driver, nodeId, now)
+    }
+
+    val ledger: LedgerRepository = LedgerRepository(store, now)
+
+    /** Days since the Unix epoch, in UTC. A date, with no time and no zone. */
+    fun today(): Int = (now() / 86_400_000L).toInt()
+
     private val http = SheetsClient.configure(platformHttpClient())
 
     val auth: AuthManager = AuthManager(

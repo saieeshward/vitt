@@ -14,6 +14,7 @@ fun MainViewController() = ComposeUIViewController {
             tokenStore = ie.shoonya.vitt.auth.platformTokenStore(),
             browser = BrowserAuth(),
             now = { (NSDate().timeIntervalSince1970 * 1000).toLong() },
+            driver = ie.shoonya.vitt.sync.iosDriver(),
         ),
         autoRun = platform.Foundation.NSProcessInfo.processInfo
             .environment["VITT_AUTORUN"] == "1",

@@ -107,3 +107,32 @@ sqldelight {
         }
     }
 }
+
+/**
+ * Fails the build on a comma inside a backticked test name.
+ *
+ * Kotlin/Native rejects them where the JVM accepts them, so the iOS target stops
+ * compiling while `jvmTest` stays green — the suite looks healthy and has
+ * silently halved. This has now happened three times, which is two more than a
+ * convention in a document deserves.
+ */
+val checkTestNames by tasks.registering {
+    val testSources = layout.projectDirectory.dir("src").asFile
+    doLast {
+        val offenders = testSources.walkTopDown()
+            .filter { it.isFile && it.extension == "kt" && it.path.contains("Test") }
+            .flatMap { file ->
+                Regex("fun `([^`]*,[^`]*)`").findAll(file.readText())
+                    .map { "${file.name}: ${it.groupValues[1]}" }
+            }
+            .toList()
+        if (offenders.isNotEmpty()) {
+            error(
+                "Kotlin/Native rejects commas in backticked test names; " +
+                    "use an em dash instead:\n" + offenders.joinToString("\n") { "  $it" }
+            )
+        }
+    }
+}
+
+tasks.named("compileTestKotlinJvm") { dependsOn(checkTestNames) }

@@ -5,6 +5,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import ie.shoonya.vitt.VittServices
+import ie.shoonya.vitt.auth.Crypto
 import ie.shoonya.vitt.ui.theme.Vitt
 import ie.shoonya.vitt.ui.theme.VittTheme
 
