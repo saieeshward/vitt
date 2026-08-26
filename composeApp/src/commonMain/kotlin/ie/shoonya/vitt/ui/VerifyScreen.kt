@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -36,13 +37,37 @@ import kotlinx.coroutines.launch
  * design can be confirmed against Google rather than against a test double.
  */
 @Composable
-fun VerifyScreen(services: VittServices) {
+fun VerifyScreen(services: VittServices, autoRun: Boolean = false) {
     val auth = services.auth
     val scope = rememberCoroutineScope()
     val steps = remember { mutableStateListOf<LiveVerification.Step>() }
     var running by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf(if (auth.isSignedIn) "Signed in." else "Not signed in.") }
     var signedIn by remember { mutableStateOf(auth.isSignedIn) }
+
+    // Lets the checks be driven from a launch environment variable, so a run
+    // against real Google can be executed and captured without a human tapping
+    // a button on a physical device.
+    LaunchedEffect(autoRun) {
+        if (!autoRun || !auth.isSignedIn) return@LaunchedEffect
+        running = true
+        message = "Running checks…"
+        val verification = services.liveVerification()
+        runCatching {
+            verification.run { step ->
+                steps.add(step)
+                println("VITT-CHECK ${if (step.passed) "PASS" else "FAIL"} | ${step.name} | ${step.detail}")
+            }
+        }.onFailure {
+            println("VITT-CHECK ABORTED | ${it.message}")
+            message = "Aborted: ${it.message}"
+        }.onSuccess {
+            val failed = it.count { s -> !s.passed }
+            println("VITT-CHECK DONE | $failed of ${it.size} failed")
+            message = if (failed == 0) "All ${it.size} checks passed." else "$failed of ${it.size} checks failed."
+        }
+        running = false
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),

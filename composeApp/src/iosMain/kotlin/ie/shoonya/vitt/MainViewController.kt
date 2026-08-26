@@ -14,6 +14,8 @@ fun MainViewController() = ComposeUIViewController {
             tokenStore = TokenStore(),
             browser = BrowserAuth(),
             now = { (NSDate().timeIntervalSince1970 * 1000).toLong() },
-        )
+        ),
+        autoRun = platform.Foundation.NSProcessInfo.processInfo
+            .environment["VITT_AUTORUN"] == "1",
     )
 }

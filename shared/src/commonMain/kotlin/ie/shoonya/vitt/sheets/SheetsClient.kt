@@ -131,6 +131,14 @@ class SheetsClient(
             http.get("$DRIVE_BASE/files/$fileId") {
                 auth()
                 parameter("fields", "id,name,version,modifiedTime,trashed")
+                // Without this the platform HTTP cache answers the second poll
+                // from the first one's response — NSURLSession caches GETs by
+                // default — and change detection reports "nothing changed"
+                // forever while happily serving a stale version and an
+                // unchanged modifiedTime. The symptom looks exactly like a
+                // Drive limitation, which is how it cost a debugging cycle.
+                header("Cache-Control", "no-cache")
+                header("Pragma", "no-cache")
             }
         }
 

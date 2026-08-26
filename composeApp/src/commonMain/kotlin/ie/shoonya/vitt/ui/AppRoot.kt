@@ -9,10 +9,10 @@ import ie.shoonya.vitt.ui.theme.Vitt
 import ie.shoonya.vitt.ui.theme.VittTheme
 
 @Composable
-fun AppRoot(services: VittServices) {
+fun AppRoot(services: VittServices, autoRun: Boolean = false) {
     VittTheme {
         Surface(modifier = Modifier.fillMaxSize(), color = Vitt.colors.ground) {
-            VerifyScreen(services)
+            VerifyScreen(services, autoRun = autoRun)
         }
     }
 }
