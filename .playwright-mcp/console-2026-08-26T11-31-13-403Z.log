@@ -1,0 +1,13 @@
+[     881ms] [WARNING] useTranslation: DISMISS is not available @ https://duckduckgo.com/dist/wpm.main.b4af5e7156fc2e7e9114.js:0
+[     883ms] [WARNING] useTranslation: DISMISS is not available @ https://duckduckgo.com/dist/wpm.main.b4af5e7156fc2e7e9114.js:0
+[     885ms] [WARNING] useTranslation: DISMISS is not available @ https://duckduckgo.com/dist/wpm.main.b4af5e7156fc2e7e9114.js:0
+[    5624ms] [ERROR] Failed to load resource: the server responded with a status of 502 () @ https://duckduckgo.com/r/ynab/search.json?q=%22fell%20behind%22%20gave%20up&restrict_sr=1&sort=relevance&t=all&limit=8:0
+[    5647ms] [ERROR] Failed to load resource: the server responded with a status of 502 () @ https://duckduckgo.com/r/ynab/search.json?q=reconcile%20%22doesn%27t%20match%22%20bank%20balance%20frustrated%20quit&restrict_sr=1&sort=relevance&t=all&limit=8:0
+[    5666ms] [ERROR] Failed to load resource: the server responded with a status of 502 () @ https://duckduckgo.com/r/budgeting/search.json?q=%22stopped%20tracking%22%20gave%20up%20manual%20entry&restrict_sr=1&sort=relevance&t=all&limit=8:0
+[    5684ms] [ERROR] Failed to load resource: the server responded with a status of 502 () @ https://duckduckgo.com/r/budgeting/search.json?q=cash%20spending%20untracked%20budget%20failed&restrict_sr=1&sort=relevance&t=all&limit=8:0
+[    5700ms] [ERROR] Failed to load resource: the server responded with a status of 502 () @ https://duckduckgo.com/r/personalfinance/search.json?q=%22gave%20up%22%20budgeting%20app%20%22manually%20enter%22&restrict_sr=1&sort=relevance&t=all&limit=8:0
+[    5718ms] [ERROR] Failed to load resource: the server responded with a status of 502 () @ https://duckduckgo.com/r/plaintextaccounting/search.json?q=abandoned%20ledger%20too%20much%20work&restrict_sr=1&sort=relevance&t=all&limit=8:0
+[   16145ms] [ERROR] Failed to load resource: the server responded with a status of 410 () @ https://duckduckgo.com/r/ynab/search/?q=%22fell%20behind%22%20gave%20up&restrict_sr=1&sort=relevance&t=all:0
+[   16177ms] [ERROR] Failed to load resource: the server responded with a status of 410 () @ https://duckduckgo.com/r/ynab/search/?q=reconcile%20balance%20does%20not%20match%20bank%20gave%20up&restrict_sr=1&sort=relevance&t=all:0
+[   16196ms] [ERROR] Failed to load resource: the server responded with a status of 410 () @ https://duckduckgo.com/r/budgeting/search/?q=%22stopped%20tracking%22%20gave%20up%20manual%20entry&restrict_sr=1&sort=relevance&t=all:0
+[   16220ms] [ERROR] Failed to load resource: the server responded with a status of 410 () @ https://duckduckgo.com/r/personalfinance/search/?q=gave%20up%20budgeting%20app%20manually%20enter%20every%20transaction&restrict_sr=1&sort=relevance&t=all:0

@@ -1,0 +1,34 @@
+- generic [active] [ref=f6e1]:
+  - link "Skip to main content" [ref=f6e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f6e3]:
+    - banner [ref=f6e5]:
+      - generic [ref=f6e7]:
+        - generic [ref=f6e8]:
+          - link [ref=f6e11] [cursor=pointer]:
+            - /url: /hc/en-us
+            - img "Logo" [ref=f6e12]
+          - paragraph [ref=f6e13]:
+            - link "Help Center" [ref=f6e14] [cursor=pointer]:
+              - /url: /hc/en-us
+        - button [ref=f6e18] [cursor=pointer]
+    - main [ref=f6e24]:
+      - generic [ref=f6e26]:
+        - heading "oops" [level=1] [ref=f6e27]
+        - heading "The page you were looking for doesn't exist" [level=2] [ref=f6e28]
+        - paragraph [ref=f6e29]: You may have mistyped the address or the page may have moved
+        - paragraph [ref=f6e30]:
+          - link "Take me back to the home page" [ref=f6e31] [cursor=pointer]:
+            - /url: /hc/en-us
+    - contentinfo [ref=f6e33]:
+      - generic [ref=f6e35]:
+        - paragraph [ref=f6e37]: Copyright © 2025 Monarch Money, Inc. All rights reserved.
+        - generic [ref=f6e38]:
+          - link "" [ref=f6e39] [cursor=pointer]:
+            - /url: https://www.facebook.com/MonarchMoney/
+          - link "" [ref=f6e40] [cursor=pointer]:
+            - /url: https://twitter.com/monarch_money
+          - link "" [ref=f6e41] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/monarch-money/
+          - link "" [ref=f6e42] [cursor=pointer]:
+            - /url: https://www.instagram.com/monarch_money/

@@ -1,0 +1,343 @@
+- main [ref=f32e5]:
+  - text: 󰅖
+  - navigation [ref=f32e6]:
+    - generic [ref=f32e7]:
+      - link [ref=f32e9] [cursor=pointer]:
+        - /url: /
+        - img "Homepage" [ref=f32e10]
+      - menu [ref=f32e12]:
+        - menuitem [ref=f32e13]:
+          - link "Back to YNAB" [ref=f32e14] [cursor=pointer]:
+            - /url: https://app.ynab.com/
+  - article [ref=f32e17]:
+    - generic [ref=f32e18]:
+      - navigation "Breadcrumbs" [ref=f32e20]:
+        - link "Help Center" [ref=f32e21] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f32e22]: 󰅂
+        - link "Accounts and Transactions" [ref=f32e23] [cursor=pointer]:
+          - /url: /en_us/categories/accounts-and-transactions-r1gWB2RT9
+      - generic [ref=f32e25]:
+        - generic [ref=f32e26]: 󰍉
+        - textbox "Search help articles" [ref=f32e27]
+    - generic [ref=f32e30]:
+      - heading "How to Add Transactions in YNAB" [level=2] [ref=f32e31]
+      - generic [ref=f32e32]: "July 10 2026 3:04pm • Est. Read Time: 6 MIN"
+      - generic [ref=f32e34]:
+        - paragraph [ref=f32e35]: Learn how to add transactions, import transactions from your linked bank accounts, and use File-Based Importing in YNAB. Keep your plan up to date by utilizing a mix of these manual entry and importing options.
+        - generic [ref=f32e36]:
+          - heading "In This Article" [level=4] [ref=f32e37]
+          - paragraph [ref=f32e38]:
+            - 'link "Adding Transactions: Mobile Overview" [ref=f32e39] [cursor=pointer]':
+              - /url: "#add"
+          - paragraph [ref=f32e40]:
+            - link "How to Add Transactions (Web, Home Tab, Spending Tab, and Individual Accounts)" [ref=f32e41] [cursor=pointer]:
+              - /url: "#button"
+          - paragraph [ref=f32e42]:
+            - link "How to Add Transactions (Plan Tab)" [ref=f32e43] [cursor=pointer]:
+              - /url: "#plan-tab"
+          - paragraph [ref=f32e44]:
+            - link "Import Transactions" [ref=f32e45] [cursor=pointer]:
+              - /url: "#import"
+          - paragraph [ref=f32e46]:
+            - link "Mix and Match" [ref=f32e47] [cursor=pointer]:
+              - /url: "#mix"
+        - separator [ref=f32e48]
+        - 'heading "Adding Transactions: Mobile Overview" [level=2] [ref=f32e49]'
+        - paragraph [ref=f32e50]: Whether you're at home or on the go, YNAB offers many ways to add transactions. Adding transactions as they occur, even if you use Direct Import, helps ensure you can always trust your plan. Here are a few of the common ways to add transactions...and you don't even have to open YNAB!
+        - list [ref=f32e51]:
+          - listitem [ref=f32e52]:
+            - paragraph [ref=f32e53]:
+              - strong [ref=f32e54]: In-App Button
+              - text: If you're a long-time YNABer, you've noticed that
+              - link "we've replaced the Add Transaction tab with the Spending tab" [ref=f32e55] [cursor=pointer]:
+                - /url: https://support.ynab.com/en_us/spaces-in-the-mobile-app-S1iIZQoqgg
+              - text: . Don't worry,
+              - link "you'll still find an Add Transaction button to tap" [ref=f32e56] [cursor=pointer]:
+                - /url: "#button"
+              - text: at the bottom of the Home, Plan, and Spending tabs. One is also available at the bottom of each account register.
+        - iframe [ref=f32e58]:
+          - generic [ref=f33e4]:
+            - generic: Playing in picture-in-picture
+            - generic:
+              - generic:
+                - button "Play" [ref=f33e12] [cursor=pointer]
+                - generic [ref=f33e16]:
+                  - generic [ref=f33e17]:
+                    - slider "Progress Bar" [ref=f33e18] [cursor=pointer]
+                    - generic [ref=f33e19] [cursor=pointer]
+                    - generic: 00:00
+                    - generic [ref=f33e22] [cursor=pointer]: 00:15
+                  - generic [ref=f33e24]:
+                    - generic [ref=f33e25]:
+                      - generic [ref=f33e26]:
+                        - button
+                      - slider
+                    - generic:
+                      - button:
+                        - generic: CC/subtitles
+                    - generic:
+                      - button:
+                        - generic: Settings
+                    - generic:
+                      - button:
+                        - generic: Transcript
+                    - button "Show controls" [ref=f33e28] [cursor=pointer]
+        - list [ref=f32e59]:
+          - listitem [ref=f32e60]:
+            - paragraph [ref=f32e61]:
+              - strong [ref=f32e62]: Category Long Press
+              - text: If you're on the
+              - emphasis [ref=f32e63]: Plan
+              - text: tab, you can
+              - link [ref=f32e64] [cursor=pointer]:
+                - /url: "#plan-tab"
+                - text: long press a category and tap
+                - emphasis [ref=f32e65]: Add Transaction
+              - text: . This also works from the
+              - emphasis [ref=f32e66]: Home
+              - text: tab for
+              - link "any category you've prioritized and pinned" [ref=f32e67] [cursor=pointer]:
+                - /url: https://support.ynab.com/en_us/spotlight-BkdHBZUokg#top-priorities
+              - text: .
+          - listitem [ref=f32e68]:
+            - paragraph [ref=f32e69]:
+              - strong [ref=f32e70]: Widgets
+              - text: You can
+              - link "set up an Add Transaction widget" [ref=f32e71] [cursor=pointer]:
+                - /url: https://support.ynab.com/en_us/ynab-widget-for-mobile-a-guide-HJPEEQYR9
+              - text: on your Home Screen or For You page and tap it.
+          - listitem [ref=f32e72]:
+            - paragraph [ref=f32e73]:
+              - strong [ref=f32e74]: Shortcuts
+              - text: There are two ways to create shortcuts on iOS depending on where you'd like to access them. You can
+              - link "create a shortcut and add it to your Home Screen" [ref=f32e75] [cursor=pointer]:
+                - /url: https://support.ynab.com/en_us/shortcuts-on-ios-a-guide-Bk_lHa5Aq
+              - text: . These shortcuts can include prefilled information such as the amount, payee, category, and account. If you'd like to
+              - link "add transactions from your iOS lock screen" [ref=f32e76] [cursor=pointer]:
+                - /url: https://support.ynab.com/en_us/shortcuts-on-ios-a-guide-Bk_lHa5Aq#lock
+              - text: ", replace one of the two shortcuts at the bottom of the lock screen with our"
+              - emphasis [ref=f32e77]: Add Transaction
+              - text: shortcut.
+          - listitem [ref=f32e78]:
+            - paragraph [ref=f32e79]:
+              - strong [ref=f32e80]: Siri and Spotlight
+              - text: If you'd rather use search or your voice, iOS 26 allows you to
+              - link "set up Siri and Spotlight" [ref=f32e81] [cursor=pointer]:
+                - /url: https://support.ynab.com/en_us/using-siri-and-spotlight-with-ynab-B1Me9dj5ge
+              - text: to add transactions. Once you've asked or searched for a category balance, you can tap on the result to add a new transaction.
+          - listitem [ref=f32e82]:
+            - paragraph [ref=f32e83]:
+              - strong [ref=f32e84]: The YNAB App Icon
+              - text: You can long press the YNAB app to add a transaction, no matter where you keep it.
+        - paragraph [ref=f32e85]:
+          - link "Back to Top" [ref=f32e86] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f32e87]
+        - heading "How to Add Transactions (Web, Home Tab, Spending Tab, and Individual Accounts)" [level=2] [ref=f32e88]
+        - generic [ref=f32e89]:
+          - tablist [ref=f32e91]:
+            - tab "iOS" [ref=f32e92] [cursor=pointer]
+            - tab "Android" [ref=f32e93] [cursor=pointer]
+            - tab "Web" [ref=f32e94] [cursor=pointer]
+          - tabpanel [ref=f32e96]:
+            - list [ref=f32e97]:
+              - listitem [ref=f32e98]:
+                - paragraph [ref=f32e99]:
+                  - text: Tap the
+                  - emphasis [ref=f32e100]: Transaction
+                  - text: button (plus sign icon) at the bottom of the Home tab, the Spending tab, or your individual account.
+              - listitem [ref=f32e101]:
+                - paragraph [ref=f32e102]:
+                  - text: Enter the amount of the transaction using the number pad and tap
+                  - emphasis [ref=f32e103]: Done
+                  - text: .
+              - listitem [ref=f32e104]:
+                - paragraph [ref=f32e105]:
+                  - text: "Using the drop down menu, indicate the transaction type:"
+                  - emphasis [ref=f32e106]: Spending, Inflow, Credit Card Payment,
+                  - text: or
+                  - emphasis [ref=f32e107]: Transfer
+                  - text: .
+                - list [ref=f32e108]:
+                  - listitem [ref=f32e109]:
+                    - paragraph [ref=f32e110]:
+                      - emphasis [ref=f32e111]: Spending
+                      - text: and
+                      - emphasis [ref=f32e112]: Inflow
+                      - text: transactions allow you to create a payee (who you gave the money to or who paid
+                      - strong [ref=f32e113]: you
+                      - text: money), choose a category, set the bank account, add a flag,
+                      - link "clear the transaction" [ref=f32e114] [cursor=pointer]:
+                        - /url: https://support.ynab.com/getting-started-with-reconciling-accounts-an-overview-Sy3JWx4Js#status
+                      - text: ", or set a repeating schedule."
+                  - listitem [ref=f32e115]:
+                    - paragraph [ref=f32e116]:
+                      - emphasis [ref=f32e117]: Credit Card Payment
+                      - text: and
+                      - emphasis [ref=f32e118]: Transfer
+                      - text: transactions need no payee and no category.
+              - listitem [ref=f32e119]:
+                - paragraph [ref=f32e120]: Confirm that the date and other details are correct.
+              - listitem [ref=f32e121]:
+                - paragraph [ref=f32e122]:
+                  - text: Tap the
+                  - emphasis [ref=f32e123]: Save
+                  - text: button.
+        - paragraph [ref=f32e124]:
+          - link "Back to Top" [ref=f32e125] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f32e126]
+        - heading "How to Add Transactions (Plan Tab)" [level=2] [ref=f32e127]
+        - generic [ref=f32e128]:
+          - tablist [ref=f32e130]:
+            - tab "iOS" [ref=f32e131] [cursor=pointer]
+            - tab "Android" [ref=f32e132] [cursor=pointer]
+          - tabpanel [ref=f32e134]:
+            - list [ref=f32e135]:
+              - listitem [ref=f32e136]:
+                - paragraph [ref=f32e137]:
+                  - text: Tap the
+                  - emphasis [ref=f32e138]: Plan
+                  - text: tab.
+              - listitem [ref=f32e139]:
+                - paragraph [ref=f32e140]: Long press on a category.
+              - listitem [ref=f32e141]:
+                - paragraph [ref=f32e142]:
+                  - text: Tap
+                  - emphasis [ref=f32e143]: Add Transaction
+                  - text: .
+              - listitem [ref=f32e144]:
+                - paragraph [ref=f32e145]:
+                  - text: Enter the amount of the transaction using the number pad and tap
+                  - emphasis [ref=f32e146]: Done
+                  - text: .
+              - listitem [ref=f32e147]:
+                - paragraph [ref=f32e148]:
+                  - text: "Using the drop down menu, indicate the transaction type:"
+                  - emphasis [ref=f32e149]: Spending, Inflow, Credit Card Payment,
+                  - text: or
+                  - emphasis [ref=f32e150]: Transfer
+                  - text: .
+              - listitem [ref=f32e151]:
+                - paragraph [ref=f32e152]: Confirm that the date and other details are correct. If you’d like, add a flag, photo, memo, or set this as a repeating scheduled transaction.
+              - listitem [ref=f32e153]:
+                - paragraph [ref=f32e154]:
+                  - text: Tap the
+                  - emphasis [ref=f32e155]: Save
+                  - text: button.
+        - paragraph [ref=f32e156]:
+          - link "Back to Top" [ref=f32e157] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f32e158]
+        - heading "Import Transactions" [level=2] [ref=f32e159]
+        - paragraph [ref=f32e160]: There are two ways to import transactions into YNAB.
+        - 'heading "Option One: Direct Import" [level=3] [ref=f32e161]'
+        - paragraph [ref=f32e162]:
+          - text: The first option is to
+          - link "link your account" [ref=f32e163] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/linked-accounts-B1991f2Cc
+          - text: in YNAB with your real-world account. This will allow you to import transactions once they clear the bank.
+        - paragraph [ref=f32e164]:
+          - text: If you'd rather not link the accounts, your bank isn't supported, or the connection is currently down, don't worry — we got you. 💪 YNAB is fully functional
+          - strong [ref=f32e165]: without Direct Import
+          - text: using our additional entry or import methods—and rest assured, we're happy to help
+          - link "troubleshoot your connection and imports" [ref=f32e166] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/troubleshooting-linked-accounts-BJ9Mv9b1s
+          - text: in the meantime if Direct Import is a priority for you!
+        - 'heading "Option Two: File-Based Importing" [level=3] [ref=f32e167]'
+        - paragraph [ref=f32e168]:
+          - text: Option Two is our
+          - link "File-Based Importing" [ref=f32e169] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/file-based-import-a-guide-Bkj4Sszyo
+          - text: feature (in the web app). You can download a file from your bank and drag-and-drop it right into YNAB. You might call it magic. ✨
+        - paragraph [ref=f32e170]:
+          - text: Either way, imported transactions will match right up with the ones you added on your phone or computer. You’ll even have the chance to approve the matches—or
+          - link "manually match" [ref=f32e171] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/approving-and-matching-transactions-a-guide-ByYNZaQ1i#matching
+          - text: two transactions if the amounts differed.
+        - generic [ref=f32e172]:
+          - heading "Looking to bring in historical transactions?" [level=4] [ref=f32e173]
+          - paragraph [ref=f32e174]:
+            - text: While you can bring in past transactions, categorizing all that past spending may not be worth the time investment because YNAB is all about prioritizing the money you have now and looking ahead. We do understand the desire to create a way to see trends or past patterns, though, so check out the
+            - link "Can I Import Past Transactions from before My Starting Balance?" [ref=f32e175] [cursor=pointer]:
+              - /url: https://support.ynab.com/en_us/the-starting-balance-an-overview-H1uozOfJs#past
+            - text: section of our Starting Balance article if you want more information on that!
+        - paragraph [ref=f32e176]:
+          - link "Back to Top" [ref=f32e177] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f32e178]
+        - heading "Mix and Match" [level=2] [ref=f32e179]
+        - paragraph [ref=f32e180]:
+          - text: Why limit yourself to just one option when you can have 'em all? That's right—you can add transactions yourself, import transactions from a bank file,
+          - strong [ref=f32e181]: and
+          - text: have YNAB import them for you all at the same time!
+        - paragraph [ref=f32e182]: This is especially handy when your account is linked but is temporarily unavailable, or if you're counting down the seconds until your financial institution clears a transaction. Sometimes YNABing is just too darn exciting to wait.
+        - paragraph [ref=f32e183]: "Wondering whether a transaction was imported or manually entered? Here's how to check:"
+        - list [ref=f32e184]:
+          - listitem [ref=f32e185]:
+            - paragraph [ref=f32e186]:
+              - strong [ref=f32e187]: On a computer
+              - text: "- double-click into the Payee field and then click the circled 'i' icon next to the payee name. If it's been imported, you'll see the Bank Import Details pop up with more specifics. If there's no icon, it was manually entered."
+          - listitem [ref=f32e188]:
+            - paragraph [ref=f32e189]:
+              - strong [ref=f32e190]: On iOS
+              - text: "- tap the transaction, then tap the Payee. If it's been imported, you'll see a Bank Import Details section at the top with more specifics. If you don't see that section listed, it was manually entered."
+          - listitem [ref=f32e191]:
+            - paragraph [ref=f32e192]:
+              - strong [ref=f32e193]: On Android
+              - text: "- tap the transaction, then tap the Payee. If it's been imported, you'll see a Bank Import Details section at the top with more specifics. If you don't see that section listed, it was manually entered."
+        - paragraph [ref=f32e194]:
+          - link "Back to Top" [ref=f32e195] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f32e196]
+        - heading "Help Us Help You!" [level=2] [ref=f32e197]
+        - paragraph [ref=f32e198]:
+          - text: Our Knowledge Base team reviews article feedback responses weekly, and we actively revise these articles to make them as helpful as possible. That's where you come in! Our articles are scored based on the
+          - emphasis [ref=f32e199]: "Yes"
+          - text: or
+          - emphasis [ref=f32e200]: "No"
+          - text: ratings received below. We also collect freeform feedback for any
+          - emphasis [ref=f32e201]: "No"
+          - text: ratings (so our team can focus in on what you were specifically searching for!).
+        - paragraph [ref=f32e202]:
+          - strong [ref=f32e203]: Success
+          - text: ": Found what you were searching for? It would be super helpful if you click"
+          - emphasis [ref=f32e204]: "Yes"
+          - text: below.
+        - paragraph [ref=f32e205]:
+          - strong [ref=f32e206]: Suggestions
+          - text: ": Didn't find what you're searching for and you'd like to share what terms or topics you wanted?"
+          - strong [ref=f32e207]
+          - text: Click
+          - emphasis [ref=f32e208]: "No"
+          - text: below. You'll then be able to submit your feedback about this article.
+          - strong [ref=f32e209]: "Please note:"
+          - text: the feedback submissions are anonymous, and we’re not able to respond, so make sure to use the next option if you have a specific scenario or question you would like a response to.
+        - paragraph [ref=f32e210]:
+          - strong [ref=f32e211]: Support
+          - text: ": If you have a question or would like a response to your specific question,"
+          - link "tell the chatbot you need a human or send us an email" [ref=f32e212] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/how-to-get-help-SygqcvtC5
+          - text: to ensure that your message gets to our Support team!
+    - generic [ref=f32e214]:
+      - generic [ref=f32e215]: Was this article helpful?
+      - generic [ref=f32e216]:
+        - button "Yes" [ref=f32e217]
+        - button "No" [ref=f32e218]
+  - generic [ref=f32e220]:
+    - generic [ref=f32e221]:
+      - heading "Still have questions?" [level=2] [ref=f32e222]
+      - heading [level=3]
+    - link "Contact Us" [ref=f32e225] [cursor=pointer]:
+      - /url: https://support.ynab.com/contact/contact-us-B1OG9RFfj
+  - generic [ref=f32e228]:
+    - link "Back to Top" [ref=f32e230] [cursor=pointer]:
+      - /url: "#top"
+      - generic [ref=f32e232]: 󰁝
+    - menu:
+      - listitem:
+        - link:
+          - /url: ""
+    - separator [ref=f32e233]
+    - generic [ref=f32e234]: © ynab.com 2026

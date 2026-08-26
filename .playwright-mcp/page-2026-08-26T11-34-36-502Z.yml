@@ -1,0 +1,164 @@
+- main [ref=f26e5]:
+  - text: 󰅖
+  - navigation [ref=f26e6]:
+    - generic [ref=f26e7]:
+      - link [ref=f26e9] [cursor=pointer]:
+        - /url: /
+        - img "Homepage" [ref=f26e10]
+      - menu [ref=f26e12]:
+        - menuitem [ref=f26e13]:
+          - link "Back to YNAB" [ref=f26e14] [cursor=pointer]:
+            - /url: https://app.ynab.com/
+  - article [ref=f26e17]:
+    - generic [ref=f26e18]:
+      - navigation "Breadcrumbs" [ref=f26e20]:
+        - link "Help Center" [ref=f26e21] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f26e22]: 󰅂
+        - link "Planning" [ref=f26e23] [cursor=pointer]:
+          - /url: /en_us/categories/planning-HJgZB2C69
+      - generic [ref=f26e25]:
+        - generic [ref=f26e26]: 󰍉
+        - textbox "Search help articles" [ref=f26e27]
+    - generic [ref=f26e30]:
+      - heading "Category Balances versus Account Balances" [level=2] [ref=f26e31]
+      - generic [ref=f26e32]: "July 2 2026 6:15pm • Est. Read Time: 5 MIN"
+      - generic [ref=f26e34]:
+        - paragraph [ref=f26e35]: Embrace the simplicity of using categories instead of multiple accounts to organize your finances with YNAB. Learn more about the relationship between accounts and categories, and understand that your plan doesn't care where your money is stored, but rather how you're planning to spend it. Recognize that while it is possible to try to match category balances to account balances, it can lead to confusion and unnecessary duplication of effort.
+        - generic [ref=f26e36]:
+          - heading "In This Article" [level=4] [ref=f26e37]
+          - paragraph [ref=f26e38]:
+            - link "Accounts versus Categories" [ref=f26e39] [cursor=pointer]:
+              - /url: "#accounts-vs-categories"
+          - paragraph [ref=f26e40]:
+            - link "Let Your Plan Do the Work" [ref=f26e41] [cursor=pointer]:
+              - /url: "#plan"
+          - paragraph [ref=f26e42]:
+            - link "Keeping Categories Matching Accounts" [ref=f26e43] [cursor=pointer]:
+              - /url: "#match"
+        - separator [ref=f26e44]
+        - heading "Accounts versus Categories" [level=2] [ref=f26e45]
+        - paragraph [ref=f26e46]: Before you started using YNAB, you might have used multiple accounts to organize your money—this is particularly common for savings targets. Maybe you had a savings account for vacation, another for home repairs, and another for your antique spoon collection (hey, it's important to have hobbies! 🥄).
+        - paragraph [ref=f26e47]:
+          - text: Now that you’re using YNAB,
+          - strong [ref=f26e48]: organizing your money is done with categories and not accounts
+          - text: . Your plan doesn’t care where your money is stored; it only cares that you have the money. In fact, you could have all of your money in one account, and you’d still be able to separate it out exactly as you need to by assigning it to separate categories.
+        - paragraph [ref=f26e49]: We understand that there might be certain advantages to different accounts (high yield savings account, anyone?), so we don’t discourage you from having different account types. Instead, we challenge you to think less about where that money is stored, and focus more on how you'd like to spend it.
+        - heading "If the account I use for my emergency fund has $500, shouldn't my Emergency Fund category have $500, too?" [level=3] [ref=f26e50]
+        - paragraph [ref=f26e51]:
+          - text: This is a bit of a trick question because when you have a category for an Emergency Fund, do you really also need an account? When you add your accounts to YNAB, they simply become containers for your money. They no longer tell you how you plan to spend that money. Because of that,
+          - strong [ref=f26e52]: there is nothing linking that account balance to a category or group of categories.
+        - paragraph [ref=f26e53]:
+          - text: You’ll notice that when you make a transfer from one
+          - link "Cash account" [ref=f26e54] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/account-types-an-overview-BkmGM0qCq#cash-credit
+          - text: to another, the transfer transaction doesn’t require a category. This is because that money was already assigned to a category when it first entered your plan, so your category balances will not change. If you want to change both the location and your plan for spending the money, you'll have to move it to the other account
+          - strong [ref=f26e55]: and
+          - text: move it from the category it was in to a new category.
+        - paragraph [ref=f26e56]: When you try to match your category balances to your account balances, things get complicated fast. It’s kind of like keeping both a paper calendar and a digital calendar at the same time. It might work out most of the time, but then as changes are made along the way, you start noticing that your paper calendar says Crossfit is at 1:30, but the calendar on your phone says it’s at 1:00. Now you don’t know the right time to skip head to your workout! It’s not only unnecessary to use two calendars, but doing so can create a lot of confusion (and cause you to be late for an appointment!).
+        - generic [ref=f26e57]:
+          - heading "How Accounts are Like Refrigerators" [level=4] [ref=f26e58]
+          - paragraph [ref=f26e59]: Another way to think about it is that your accounts are like refrigerators, and your categories help you plan out your meals. 🍅🍇 You don’t need a fridge for breakfasts, one for lunches, and one for dinners. You keep all of your food together and make a meal plan. Even if you do have multiple places to store your food (I’m sure you probably have a cupboard and a freezer, too!), moving an ingredient from one place to another doesn’t change which meal you’re using it for — it just changes where the ingredient is located!
+        - paragraph [ref=f26e60]:
+          - link "Back to Top" [ref=f26e61] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f26e62]
+        - heading "Let Your Plan Do the Work!" [level=2] [ref=f26e63]
+        - paragraph [ref=f26e64]:
+          - text: In your plan, your accounts are now just a place to store your money. Your old method may have worked pretty well, but now that you’re using YNAB, there’s no longer a need to divide your money between accounts. Your categories tell you what your money needs to do, and you no longer have to make any account transfers to change the plan for your money—instead, you
+          - link "just make a few clicks to move money" [ref=f26e65] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/moving-money-in-your-plan-ryyCKbBJi/#categories
+          - text: between your categories, and you now know that $50 is set aside for car maintenance instead of that leaky faucet you figured out how to fix yourself! 🔧
+        - paragraph [ref=f26e66]:
+          - text: The beauty of using your categories to tell you the purpose of your money is that you can now have fewer accounts to keep track of! The fewer accounts you have, the more
+          - link "simple your planning process will be" [ref=f26e67] [cursor=pointer]:
+            - /url: https://www.ynab.com/guide/simplify-finances
+          - text: .
+        - paragraph [ref=f26e68]: It can be a shift in thinking—trust us, we’ve all been there!—but it’s really powerful to let go of the idea that having money in a savings account means that the money has to be used toward long-term goals (or that a checking account is only for your everyday spending).
+        - generic [ref=f26e69]:
+          - heading "Maintaining a Sufficient Account Balance" [level=4] [ref=f26e70]
+          - paragraph [ref=f26e71]:
+            - text: Maybe you're wondering how you can be sure there’s enough money in your accounts to cover your upcoming expenses? We've got a guide on
+            - link "How Much to Keep in Your Checking Account" [ref=f26e72] [cursor=pointer]:
+              - /url: https://support.ynab.com/en_us/how-much-to-keep-in-your-checking-account-a-guide-ryZNWymAc
+            - text: "!"
+        - paragraph [ref=f26e73]:
+          - link "Back to Top" [ref=f26e74] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f26e75]
+        - heading "Keeping Categories Matching Accounts" [level=2] [ref=f26e76]
+        - paragraph [ref=f26e77]: What if you're not quite ready to trust your categories and let go of using accounts?
+        - paragraph [ref=f26e78]:
+          - text: First, consider using
+          - link "Focused Views" [ref=f26e79] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/focused-views-a-guide-BksnNYqLh
+          - text: instead. Focused Views allows you to create and review subsets of categories. You could simplify your plan by keeping all money in one account while creating views to prioritize and organize your money.
+        - paragraph [ref=f26e80]: Or, if you don't mind doing the extra work, we can help with some pointers for keeping the category (or category group) matched up with a specific account.
+        - heading "How to Match Your Categories With Accounts" [level=3] [ref=f26e81]
+        - list [ref=f26e82]:
+          - listitem [ref=f26e83]:
+            - paragraph [ref=f26e84]:
+              - text: The plan is fed directly from accounts. It is important to make sure account balances are correct by
+              - link "reconciling your accounts" [ref=f26e85] [cursor=pointer]:
+                - /url: https://support.ynab.com/en_us/reconciling-accounts-a-guide-BJFE3fHys
+              - text: often.
+          - listitem [ref=f26e86]:
+            - paragraph [ref=f26e87]: "If an account shows more than the category (or category group), there is more money in a different category. To fix this, move money until the amounts match again. Here's an example of a savings account balance that is matched to the Wants category group total:"
+            - img "The Savings account balance matches the total amount available in the Wants category group." [ref=f26e88]
+            - paragraph
+          - listitem [ref=f26e89]:
+            - paragraph [ref=f26e90]: Since there is nothing that links a category group or individual category to an account, this means that every time you move money between your accounts, you'll also need to move it between the corresponding categories. The category will hold the most accurate information in your plan. As long as the account is reconciled, it should get things back on track moving forward.
+        - paragraph [ref=f26e91]:
+          - link "Back to Top" [ref=f26e92] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f26e93]
+        - heading "Help Us Help You!" [level=2] [ref=f26e94]
+        - paragraph [ref=f26e95]:
+          - text: Our Knowledge Base team reviews article feedback responses weekly, and we actively revise these articles to make them as helpful as possible. That's where you come in! Our articles are scored based on the
+          - emphasis [ref=f26e96]: "Yes"
+          - text: or
+          - emphasis [ref=f26e97]: "No"
+          - text: ratings received below. We also collect freeform feedback for any
+          - emphasis [ref=f26e98]: "No"
+          - text: ratings (so our team can focus in on what you were specifically searching for!).
+        - paragraph [ref=f26e99]:
+          - strong [ref=f26e100]: Success
+          - text: ": Found what you were searching for? It would be super helpful if you click"
+          - emphasis [ref=f26e101]: "Yes"
+          - text: below.
+        - paragraph [ref=f26e102]:
+          - strong [ref=f26e103]: Suggestions
+          - text: ": Didn't find what you're searching for and you'd like to share what terms or topics you wanted?"
+          - strong [ref=f26e104]
+          - text: Click
+          - emphasis [ref=f26e105]: "No"
+          - text: below. You'll then be able to submit your feedback about this article.
+          - strong [ref=f26e106]: "Please note:"
+          - text: the feedback submissions are anonymous, and we’re not able to respond, so make sure to use the next option if you have a specific scenario or question you would like a response to.
+        - paragraph [ref=f26e107]:
+          - strong [ref=f26e108]: Support
+          - text: ": If you have a question or would like a response to your specific question,"
+          - link "tell the chatbot you need a human or send us an email" [ref=f26e109] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/how-to-get-help-SygqcvtC5
+          - text: to ensure that your message gets to our Support team!
+    - generic [ref=f26e111]:
+      - generic [ref=f26e112]: Was this article helpful?
+      - generic [ref=f26e113]:
+        - button "Yes" [ref=f26e114]
+        - button "No" [ref=f26e115]
+  - generic [ref=f26e117]:
+    - generic [ref=f26e118]:
+      - heading "Still have questions?" [level=2] [ref=f26e119]
+      - heading [level=3]
+    - link "Contact Us" [ref=f26e122] [cursor=pointer]:
+      - /url: https://support.ynab.com/contact/contact-us-B1OG9RFfj
+  - generic [ref=f26e125]:
+    - link "Back to Top" [ref=f26e127] [cursor=pointer]:
+      - /url: "#top"
+      - generic [ref=f26e129]: 󰁝
+    - menu:
+      - listitem:
+        - link:
+          - /url: ""
+    - separator [ref=f26e130]
+    - generic [ref=f26e131]: © ynab.com 2026

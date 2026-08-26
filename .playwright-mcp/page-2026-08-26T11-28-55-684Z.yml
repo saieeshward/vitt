@@ -1,0 +1,445 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - link "DuckDuckGo home" [ref=e7] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e8]: DuckDuckGo
+          - generic [ref=e15]:
+            - combobox "Search privately" [ref=e17]: site:support.ynab.com currency
+            - button "search" [ref=e19] [cursor=pointer]
+        - button "Open menu" [ref=e23] [cursor=pointer]
+      - navigation [ref=e31]:
+        - list [ref=e32]:
+          - listitem [ref=e33]:
+            - link "All" [ref=e34] [cursor=pointer]:
+              - /url: /?q=site%3Asupport.ynab.com+currency&ia=web
+          - listitem [ref=e37]:
+            - link "Images" [ref=e38] [cursor=pointer]:
+              - /url: /?q=site%3Asupport.ynab.com+currency&ia=images&iax=images
+          - listitem [ref=e39]:
+            - link "Videos" [ref=e40] [cursor=pointer]:
+              - /url: /?q=site%3Asupport.ynab.com+currency&ia=videos&iax=videos
+          - listitem [ref=e41]:
+            - link "News" [ref=e42] [cursor=pointer]:
+              - /url: /?q=site%3Asupport.ynab.com+currency&ia=news&iar=news
+          - listitem [ref=e43]:
+            - generic [ref=e44]:
+              - generic [ref=e45] [cursor=pointer]:
+                - generic [ref=e46]: More
+                - img [ref=e48]: ▼
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - link "Maps":
+                          - /url: /?q=site%3Asupport.ynab.com+currency&iaxm=maps
+                  - generic:
+                    - generic:
+                      - generic:
+                        - link "Shopping":
+                          - /url: /?q=site%3Asupport.ynab.com+currency&ia=shopping&iax=shopping
+        - list [ref=e50]:
+          - listitem [ref=e51]:
+            - link "Duck.ai" [ref=e53] [cursor=pointer]:
+              - /url: /?q=site%3Asupport.ynab.com+currency&ia=chat
+          - listitem [ref=e57]:
+            - button "Search Settings ✀" [ref=e59] [cursor=pointer]:
+              - generic [ref=e62]: Search Settings
+              - generic [ref=e63]: ✀
+    - generic [ref=e70]:
+      - navigation [ref=e72]:
+        - generic [ref=e75] [cursor=pointer]:
+          - generic [ref=e76]: Private
+          - img [ref=e84]: ▼
+        - generic [ref=e88] [cursor=pointer]:
+          - generic [ref=e91]:
+            - switch "✓" [checked] [ref=e92]
+            - generic [ref=e94]: Ireland
+          - img [ref=e95]: ▼
+        - generic [ref=e99] [cursor=pointer]:
+          - generic [ref=e100]: "Safe search: moderate"
+          - img [ref=e101]: ▼
+        - generic [ref=e105] [cursor=pointer]:
+          - generic [ref=e106]: Any time
+          - img [ref=e107]: ▼
+      - generic [ref=e110]:
+        - list [ref=e111]:
+          - listitem [ref=e112]:
+            - generic [ref=e113]:
+              - generic [ref=e116]:
+                - text: Only showing results from
+                - generic [ref=e117]: support.ynab.com
+              - button "Show all results" [ref=e119] [cursor=pointer]
+          - listitem [ref=e120]:
+            - article [ref=e121] [cursor=pointer]:
+              - button [ref=e123]
+              - generic [ref=e128]:
+                - link "Search domain support.ynab.com" [ref=e130]:
+                  - /url: /?q=site%3Asupport.ynab.com%20currency
+                - generic [ref=e133]:
+                  - paragraph [ref=e134]: YNAB Help
+                  - link "https://support.ynab.com › en_us › credit-cards-funded-spending-By7XIs8HMg" [ref=e135]:
+                    - /url: https://support.ynab.com/en_us/credit-cards-funded-spending-By7XIs8HMg
+                    - paragraph [ref=e137]:
+                      - generic [ref=e138]: https://support.ynab.com
+                      - generic [ref=e139]: › en_us › credit-cards-funded-spending-By7XIs8HMg
+              - heading [level=2] [ref=e141]:
+                - link "Credit Cards - Funded Spending" [ref=e142]:
+                  - /url: https://support.ynab.com/en_us/credit-cards-funded-spending-By7XIs8HMg
+              - generic [ref=e144]: Learn how YNAB's Credit Card Payment category works. Funded spending automatically moves money to cover your card balance as you spend.
+          - listitem [ref=e148]:
+            - article [ref=e149] [cursor=pointer]:
+              - button [ref=e151]
+              - generic [ref=e156]:
+                - link "Search domain support.ynab.com" [ref=e158]:
+                  - /url: /?q=site%3Asupport.ynab.com%20currency
+                - generic [ref=e161]:
+                  - paragraph [ref=e162]: YNAB Help
+                  - link "https://support.ynab.com › en_us › how-to-adjust-your-plan-settings-SyFt35cAq" [ref=e163]:
+                    - /url: https://support.ynab.com/en_us/how-to-adjust-your-plan-settings-SyFt35cAq
+                    - paragraph [ref=e165]:
+                      - generic [ref=e166]: https://support.ynab.com
+                      - generic [ref=e167]: › en_us › how-to-adjust-your-plan-settings-SyFt35cAq
+              - heading [level=2] [ref=e169]:
+                - link "How to Adjust Your Plan Settings in YNAB" [ref=e170]:
+                  - /url: https://support.ynab.com/en_us/how-to-adjust-your-plan-settings-SyFt35cAq
+              - generic [ref=e175]:
+                - text: 27 Jul 2026·
+                - generic [ref=e176]: "Currency: tap on the Currency option and choose your currency from the list that pops up. Number Format: tap on the current format and choose your preferred number format. Currency Placement: select the appropriate placement of the currency marker or choose \"Don't Display\"."
+          - listitem [ref=e177]:
+            - article [ref=e178] [cursor=pointer]:
+              - button [ref=e180]
+              - generic [ref=e185]:
+                - link "Search domain support.ynab.com" [ref=e187]:
+                  - /url: /?q=site%3Asupport.ynab.com%20currency
+                - generic [ref=e190]:
+                  - paragraph [ref=e191]: YNAB Help
+                  - link "https://support.ynab.com › en_us › using-multiple-currencies-in-ynab-a-guide-SyBF6PHno" [ref=e192]:
+                    - /url: https://support.ynab.com/en_us/using-multiple-currencies-in-ynab-a-guide-SyBF6PHno
+                    - paragraph [ref=e194]:
+                      - generic [ref=e195]: https://support.ynab.com
+                      - generic [ref=e196]: › en_us › using-multiple-currencies-in-ynab-a-guide-SyBF6PHno
+              - heading [level=2] [ref=e198]:
+                - 'link "Using Multiple Currencies in YNAB: A Guide" [ref=e199]':
+                  - /url: https://support.ynab.com/en_us/using-multiple-currencies-in-ynab-a-guide-SyBF6PHno
+              - generic [ref=e201]: 9 Jul 2026·Learn how to manage multiple currencies in YNAB depending on your situation, and review tips for managing them. When using multiple currencies (like US dollars and Canadian dollars), we recommend creating a separate plan for each. You record what you send, and you record what you receive.
+          - listitem [ref=e205]:
+            - article [ref=e206] [cursor=pointer]:
+              - button [ref=e208]
+              - generic [ref=e213]:
+                - link "Search domain support.ynab.com" [ref=e215]:
+                  - /url: /?q=site%3Asupport.ynab.com%20currency
+                - generic [ref=e218]:
+                  - paragraph [ref=e219]: YNAB Help
+                  - link "https://support.ynab.com › en_us › using-multiple-currencies-in-ynab-a-guide-SyBF6PHno?mobile-help=true" [ref=e220]:
+                    - /url: https://support.ynab.com/en_us/using-multiple-currencies-in-ynab-a-guide-SyBF6PHno?mobile-help=true
+                    - paragraph [ref=e222]:
+                      - generic [ref=e223]: https://support.ynab.com
+                      - generic [ref=e224]: › en_us › using-multiple-currencies-in-ynab-a-guide-SyBF6PHno?mobile-help=true
+              - heading [level=2] [ref=e226]:
+                - 'link "Using Multiple Currencies in YNAB: A Guide" [ref=e227]':
+                  - /url: https://support.ynab.com/en_us/using-multiple-currencies-in-ynab-a-guide-SyBF6PHno?mobile-help=true
+              - generic [ref=e229]: 27 May 2026·Learn how to manage multiple currencies in YNAB depending on your situation, and review tips for managing them. Links with a ↗️ icon will open in a new tab. When using multiple currencies (like US dollars and Canadian dollars), we recommend creating a separate plan for each. You record what you send, and you record what you receive.
+          - listitem [ref=e233]:
+            - article [ref=e234] [cursor=pointer]:
+              - button [ref=e236]
+              - generic [ref=e241]:
+                - link "Search domain support.ynab.com" [ref=e243]:
+                  - /url: /?q=site%3Asupport.ynab.com%20currency
+                - generic [ref=e246]:
+                  - paragraph [ref=e247]: YNAB Help
+                  - link "https://support.ynab.com › en_us › handling-credit-cards-overview-ry7cNub1s" [ref=e248]:
+                    - /url: https://support.ynab.com/en_us/handling-credit-cards-overview-ry7cNub1s
+                    - paragraph [ref=e250]:
+                      - generic [ref=e251]: https://support.ynab.com
+                      - generic [ref=e252]: › en_us › handling-credit-cards-overview-ry7cNub1s
+              - heading [level=2] [ref=e254]:
+                - link "Handling Credit Cards in YNAB" [ref=e255]:
+                  - /url: https://support.ynab.com/en_us/handling-credit-cards-overview-ry7cNub1s
+              - generic [ref=e257]: "6 days ago·Learn the expected flow of funds: assign money to the purchase category, use a credit card to make a funded purchase, and YNAB automatically moves the money from the purchase category to the related Credit Card Payment category. Identify the specific scenarios when you may need to also assign money directly to the Credit Card Payment category."
+          - listitem [ref=e261]:
+            - article [ref=e262] [cursor=pointer]:
+              - button [ref=e264]
+              - generic [ref=e269]:
+                - link "Search domain support.ynab.com" [ref=e271]:
+                  - /url: /?q=site%3Asupport.ynab.com%20currency
+                - generic [ref=e274]:
+                  - paragraph [ref=e275]: YNAB Help
+                  - link "https://support.ynab.com › en_us › categories › credit-cards-and-debt-HkZZB2Aac" [ref=e276]:
+                    - /url: https://support.ynab.com/en_us/categories/credit-cards-and-debt-HkZZB2Aac
+                    - paragraph [ref=e278]:
+                      - generic [ref=e279]: https://support.ynab.com
+                      - generic [ref=e280]: › en_us › categories › credit-cards-and-debt-HkZZB2Aac
+              - heading [level=2] [ref=e282]:
+                - link "Credit Cards and Debt - YNAB" [ref=e283]:
+                  - /url: https://support.ynab.com/en_us/categories/credit-cards-and-debt-HkZZB2Aac
+              - generic [ref=e285]: 27 Jul 2026·Contact YNAB support if you need any additional assist... Use loan accounts to track your loans and assign money for payments. View your progress as you pay off mortgage, auto, student, medical, or personal loans. Deci... Gain control of your student loans, visualize them, and pay them off with YNAB.
+          - listitem [ref=e289]:
+            - article [ref=e290] [cursor=pointer]:
+              - button [ref=e292]
+              - generic [ref=e297]:
+                - link "Search domain support.ynab.com" [ref=e299]:
+                  - /url: /?q=site%3Asupport.ynab.com%20currency
+                - generic [ref=e302]:
+                  - paragraph [ref=e303]: YNAB Help
+                  - link "https://support.ynab.com › en_us › credit-card-payments-a-guide-r1_506Q1j" [ref=e304]:
+                    - /url: https://support.ynab.com/en_us/credit-card-payments-a-guide-r1_506Q1j
+                    - paragraph [ref=e306]:
+                      - generic [ref=e307]: https://support.ynab.com
+                      - generic [ref=e308]: › en_us › credit-card-payments-a-guide-r1_506Q1j
+              - heading [level=2] [ref=e310]:
+                - link "Credit Card Payments in YNAB" [ref=e311]:
+                  - /url: https://support.ynab.com/en_us/credit-card-payments-a-guide-r1_506Q1j
+              - generic [ref=e313]: 6 days ago·Use the Credit Card Payment category to determine exactly what you can afford for your next payment. Learn how to know how much and when to pay, along with several other tips and tricks! Just getting started? Check out our credit card overview article first! For linked accounts, credit card payments will import once they clear.
+          - listitem [ref=e317]:
+            - article [ref=e318] [cursor=pointer]:
+              - button [ref=e320]
+              - generic [ref=e325]:
+                - link "Search domain support.ynab.com" [ref=e327]:
+                  - /url: /?q=site%3Asupport.ynab.com%20currency
+                - generic [ref=e330]:
+                  - paragraph [ref=e331]: YNAB Help
+                  - link "https://support.ynab.com › en_us › underfunded-alert-in-the-credit-card-payment-category-a-guide-rkeh40G5h" [ref=e332]:
+                    - /url: https://support.ynab.com/en_us/underfunded-alert-in-the-credit-card-payment-category-a-guide-rkeh40G5h
+                    - paragraph [ref=e334]:
+                      - generic [ref=e335]: https://support.ynab.com
+                      - generic [ref=e336]: › en_us › underfunded-alert-in-the-credit-card-payment-category-a-guide-rkeh40G5h
+              - heading [level=2] [ref=e338]:
+                - link "Underfunded Alert in the Credit Card Payment Category" [ref=e339]:
+                  - /url: https://support.ynab.com/en_us/underfunded-alert-in-the-credit-card-payment-category-a-guide-rkeh40G5h
+              - generic [ref=e341]: 6 days ago·When you set a target in one of your spending categories, you tell YNAB how much cash you want to have available for a specific purpose. If you don't have enough, the category will turn yellow and be Underfunded.
+          - listitem [ref=e345]:
+            - article [ref=e346] [cursor=pointer]:
+              - button [ref=e348]
+              - generic [ref=e353]:
+                - link "Search domain support.ynab.com" [ref=e355]:
+                  - /url: /?q=site%3Asupport.ynab.com%20currency
+                - generic [ref=e358]:
+                  - paragraph [ref=e359]: YNAB Help
+                  - link "https://support.ynab.com › en_us › paying-down-a-credit-card-balance-over-time-H1uY7hQyo" [ref=e360]:
+                    - /url: https://support.ynab.com/en_us/paying-down-a-credit-card-balance-over-time-H1uY7hQyo
+                    - paragraph [ref=e362]:
+                      - generic [ref=e363]: https://support.ynab.com
+                      - generic [ref=e364]: › en_us › paying-down-a-credit-card-balance-over-time-H1uY7hQyo
+              - heading [level=2] [ref=e366]:
+                - link "Paying Down a Credit Card Balance Over Time Using YNAB" [ref=e367]:
+                  - /url: https://support.ynab.com/en_us/paying-down-a-credit-card-balance-over-time-H1uY7hQyo
+              - generic [ref=e369]: 2 Jul 2026·Track credit card interest and fees in YNAB by using a dedicated Interest category. Learn how interest is included in your payment and how to use targets in your Credit Card Payment category to help you make a payoff goal. What About Interest? What if There's Too Much Money in my Credit Card Payment Category?
+          - listitem [ref=e373]:
+            - article [ref=e374] [cursor=pointer]:
+              - button [ref=e376]
+              - generic [ref=e381]:
+                - link "Search domain support.ynab.com" [ref=e383]:
+                  - /url: /?q=site%3Asupport.ynab.com%20currency
+                - generic [ref=e386]:
+                  - paragraph [ref=e387]: YNAB Help
+                  - link "https://support.ynab.com › en_us › paid-in-full-credit-cards-a-guide-Hk56hPMyo" [ref=e388]:
+                    - /url: https://support.ynab.com/en_us/paid-in-full-credit-cards-a-guide-Hk56hPMyo
+                    - paragraph [ref=e390]:
+                      - generic [ref=e391]: https://support.ynab.com
+                      - generic [ref=e392]: › en_us › paid-in-full-credit-cards-a-guide-Hk56hPMyo
+              - heading [level=2] [ref=e394]:
+                - 'link "Paid in Full Credit Cards in YNAB: A Guide" [ref=e395]':
+                  - /url: https://support.ynab.com/en_us/paid-in-full-credit-cards-a-guide-Hk56hPMyo
+              - generic [ref=e397]: 27 Jul 2026·Learn how YNAB is designed to help you pay your credit card balance in full each month. This article covers how to set up a paid-in-full credit card, how day-to-day spending works, and how to keep your Credit Card Payment category in sync with what you owe. What if I Pay the Statement Balance?
+          - listitem [ref=e401]:
+            - generic [ref=e403]:
+              - paragraph [ref=e404]: Searches related to site:support.ynab.com currency
+              - generic [ref=e405]:
+                - list [ref=e406]:
+                  - listitem [ref=e407]:
+                    - link "currency exchange rate" [ref=e408] [cursor=pointer]:
+                      - /url: "?q=currency%20exchange%20rate&origin=related"
+                  - listitem [ref=e411]:
+                    - link "€ currency symbol" [ref=e412] [cursor=pointer]:
+                      - /url: "?q=%E2%82%AC%20currency%20symbol&origin=related"
+                  - listitem [ref=e415]:
+                    - link "€ currency name" [ref=e416] [cursor=pointer]:
+                      - /url: "?q=%E2%82%AC%20currency%20name&origin=related"
+                  - listitem [ref=e419]:
+                    - link "¥ currency code" [ref=e420] [cursor=pointer]:
+                      - /url: "?q=%C2%A5%20currency%20code&origin=related"
+                  - listitem [ref=e423]:
+                    - link "€ to usd" [ref=e424] [cursor=pointer]:
+                      - /url: "?q=%E2%82%AC%20to%20usd&origin=related"
+                - list [ref=e427]:
+                  - listitem [ref=e428]:
+                    - link "currency bank" [ref=e429] [cursor=pointer]:
+                      - /url: "?q=currency%20bank&origin=related"
+                  - listitem [ref=e432]:
+                    - link "€ currency country" [ref=e433] [cursor=pointer]:
+                      - /url: "?q=%E2%82%AC%20currency%20country&origin=related"
+                  - listitem [ref=e436]:
+                    - link "€ currency symbol means" [ref=e437] [cursor=pointer]:
+                      - /url: "?q=%E2%82%AC%20currency%20symbol%20means&origin=related"
+                  - listitem [ref=e440]:
+                    - link "currency news" [ref=e441] [cursor=pointer]:
+                      - /url: "?q=currency%20news&origin=related"
+                  - listitem [ref=e444]:
+                    - link "kzt currency" [ref=e445] [cursor=pointer]:
+                      - /url: "?q=kzt%20currency&origin=related"
+        - button "More results" [ref=e450] [cursor=pointer]
+    - list [ref=e453]:
+      - button "Close menu" [ref=e454] [cursor=pointer]
+      - list [ref=e458]:
+        - listitem [ref=e459]: Search
+        - listitem [ref=e460]:
+          - link "Homepage" [ref=e461] [cursor=pointer]:
+            - /url: https://start.duckduckgo.com/
+        - listitem [ref=e462]:
+          - link "Themes" [ref=e463] [cursor=pointer]:
+            - /url: /settings#appearance
+        - listitem [ref=e464]:
+          - link "Settings" [ref=e465] [cursor=pointer]:
+            - /url: /settings
+      - list [ref=e466]:
+        - listitem [ref=e467]: Share Feedback
+        - listitem [ref=e468]:
+          - generic [ref=e471]:
+            - button "Positive feedback" [ref=e472] [cursor=pointer]
+            - button "Negative feedback" [ref=e476] [cursor=pointer]
+      - list [ref=e480]:
+        - listitem [ref=e481]: Downloads
+        - listitem [ref=e482]:
+          - link "iOS Browser" [ref=e483] [cursor=pointer]:
+            - /url: https://apps.apple.com/app/duckduckgo-private-browser/id663592361?platform=iphone&pt=866401&mt=8&ct=serp-atb-serp
+        - listitem [ref=e484]:
+          - link "Android Browser" [ref=e485] [cursor=pointer]:
+            - /url: https://play.google.com/store/apps/details?id=com.duckduckgo.mobile.android&referrer=utm_campaign%3Dserp-atb-serp%26origin%3Dfunnel_playstore_searchresults
+        - listitem [ref=e486]:
+          - link "Mac Browser" [ref=e487] [cursor=pointer]:
+            - /url: /mac?origin=funnel_browser_searchresults
+        - listitem [ref=e488]:
+          - link "Windows Browser" [ref=e489] [cursor=pointer]:
+            - /url: /windows?origin=funnel_browser_searchresults
+        - listitem [ref=e490]: Browser Extensions
+      - list [ref=e491]:
+        - listitem [ref=e492]: More From DuckDuckGo
+        - listitem [ref=e493]:
+          - generic [ref=e496]:
+            - button "Dismiss promotion" [ref=e497] [cursor=pointer]
+            - generic [ref=e500]:
+              - paragraph [ref=e502]: Upgrade to our Private Browser
+              - paragraph [ref=e514]: Fast. Secure. Free.
+            - link "Install Mac Browser" [ref=e515] [cursor=pointer]:
+              - /url: /mac
+        - listitem [ref=e518]:
+          - link "DuckDuckGo Subscription" [ref=e519] [cursor=pointer]:
+            - /url: /pro?origin=funnel_pro_searchresults
+        - listitem [ref=e520]:
+          - link "Duck.ai" [ref=e521] [cursor=pointer]:
+            - /url: https://duck.ai
+        - listitem [ref=e522]:
+          - link "Email Protection" [ref=e523] [cursor=pointer]:
+            - /url: /email
+        - listitem [ref=e524]:
+          - link "Newsletter" [ref=e525] [cursor=pointer]:
+            - /url: /newsletter
+        - listitem [ref=e526]:
+          - link "Blog" [ref=e527] [cursor=pointer]:
+            - /url: /blog
+        - listitem [ref=e528]:
+          - link "Podcast" [ref=e529] [cursor=pointer]:
+            - /url: https://insideduckduckgo.substack.com/?showWelcome=true
+        - listitem [ref=e530]:
+          - link "Collaborations" [ref=e531] [cursor=pointer]:
+            - /url: /collaborations
+      - list [ref=e532]:
+        - listitem [ref=e533]: Learn More
+        - listitem [ref=e534]:
+          - link "What’s New" [ref=e535] [cursor=pointer]:
+            - /url: /updates
+        - listitem [ref=e536]:
+          - link "Compare Privacy" [ref=e537] [cursor=pointer]:
+            - /url: /compare-privacy
+        - listitem [ref=e538]:
+          - link "About Our Browser" [ref=e539] [cursor=pointer]:
+            - /url: /app
+        - listitem [ref=e540]:
+          - link "About DuckDuckGo" [ref=e541] [cursor=pointer]:
+            - /url: /about
+      - list [ref=e542]:
+        - listitem [ref=e543]: Other Resources
+        - listitem [ref=e544]:
+          - link "Help" [ref=e545] [cursor=pointer]:
+            - /url: /duckduckgo-help-pages
+        - listitem [ref=e546]:
+          - link "Community" [ref=e547] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/duckduckgo/
+        - listitem [ref=e548]:
+          - link "Careers" [ref=e549] [cursor=pointer]:
+            - /url: /careers
+        - listitem [ref=e550]:
+          - link "Privacy Policy" [ref=e551] [cursor=pointer]:
+            - /url: /privacy
+        - listitem [ref=e552]:
+          - link "Terms of Service" [ref=e553] [cursor=pointer]:
+            - /url: /terms
+        - listitem [ref=e554]:
+          - link "Press Kit" [ref=e555] [cursor=pointer]:
+            - /url: /press
+        - listitem [ref=e556]:
+          - link "Advertise on Search" [ref=e557] [cursor=pointer]:
+            - /url: /duckduckgo-help-pages/company/advertise-on-duckduckgo-search
+  - generic [ref=e561]:
+    - generic [ref=e563]:
+      - generic [ref=e574]:
+        - heading "Introducing DuckDuckGo Collaborations" [level=3] [ref=e575]
+        - paragraph [ref=e576]: Expertly crafted products for people who give a duck about privacy.
+      - link "See More" [ref=e577] [cursor=pointer]:
+        - /url: https://duckduckgo.com/collaborations
+    - generic [ref=e579]:
+      - generic [ref=e580]:
+        - heading "Learn More" [level=3] [ref=e581]
+        - list [ref=e582]:
+          - listitem [ref=e583]:
+            - link "What's New" [ref=e584] [cursor=pointer]:
+              - /url: https://duckduckgo.com/updates
+          - listitem [ref=e585]:
+            - link "About Browser" [ref=e586] [cursor=pointer]:
+              - /url: https://duckduckgo.com/app
+          - listitem [ref=e587]:
+            - link "Compare Privacy" [ref=e588] [cursor=pointer]:
+              - /url: https://duckduckgo.com/compare-privacy
+          - listitem [ref=e589]:
+            - link "Help Pages" [ref=e590] [cursor=pointer]:
+              - /url: https://duckduckgo.com/duckduckgo-help-pages/
+      - generic [ref=e591]:
+        - heading "Get More" [level=3] [ref=e592]
+        - list [ref=e593]:
+          - listitem [ref=e594]:
+            - link "Subscription" [ref=e595] [cursor=pointer]:
+              - /url: https://duckduckgo.com/pro
+          - listitem [ref=e596]:
+            - link "Email Protection" [ref=e597] [cursor=pointer]:
+              - /url: https://duckduckgo.com/email
+          - listitem [ref=e598]:
+            - generic [ref=e599]:
+              - link "Podcast" [ref=e601] [cursor=pointer]:
+                - /url: https://insideduckduckgo.substack.com/?showWelcome=true
+              - generic [ref=e602]:
+                - text: "&"
+                - link "Newsletter" [ref=e603] [cursor=pointer]:
+                  - /url: https://duckduckgo.com/newsletter
+          - listitem [ref=e604]:
+            - link "Collaborations" [ref=e605] [cursor=pointer]:
+              - /url: https://duckduckgo.com/collaborations
+  - button "Share Feedback" [ref=e610] [cursor=pointer]
+  - generic [ref=e611]:
+    - generic [ref=e613]:
+      - banner [ref=e614]:
+        - paragraph [ref=e616]: Upgrade to our browser.
+      - generic [ref=e617]:
+        - paragraph [ref=e623]:
+          - generic [ref=e624]:
+            - text: Try the
+            - strong [ref=e625]: DuckDuckGo Browser.
+            - text: Fast. Free. Private.
+        - link "Download Browser" [ref=e626] [cursor=pointer]:
+          - /url: https://duckduckgo.com/mac?origin=funnel_browser_searchresults__popover
+      - paragraph [ref=e632]:
+        - generic [ref=e633]: Free
+    - button [ref=e635] [cursor=pointer]

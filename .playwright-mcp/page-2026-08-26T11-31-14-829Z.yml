@@ -1,0 +1,385 @@
+- generic [active] [ref=f60e1]:
+  - generic [ref=f60e2]:
+    - generic [ref=f60e4]:
+      - generic [ref=f60e5]:
+        - generic [ref=f60e6]:
+          - link "DuckDuckGo home" [ref=f60e7] [cursor=pointer]:
+            - /url: /
+            - generic [ref=f60e8]: DuckDuckGo
+          - generic [ref=f60e15]:
+            - combobox "Search privately" [ref=f60e17]: Toshl help "main currency" accounts exchange rate
+            - button "search" [ref=f60e19] [cursor=pointer]
+        - button "Open menu" [ref=f60e23] [cursor=pointer]
+      - navigation [ref=f60e31]:
+        - list [ref=f60e32]:
+          - listitem [ref=f60e33]:
+            - link "All" [ref=f60e34] [cursor=pointer]:
+              - /url: /?q=Toshl+help+%22main+currency%22+accounts+exchange+rate&ia=web
+          - listitem [ref=f60e37]:
+            - link "Images" [ref=f60e38] [cursor=pointer]:
+              - /url: /?q=Toshl+help+%22main+currency%22+accounts+exchange+rate&ia=images&iax=images
+          - listitem [ref=f60e39]:
+            - link "Videos" [ref=f60e40] [cursor=pointer]:
+              - /url: /?q=Toshl+help+%22main+currency%22+accounts+exchange+rate&ia=videos&iax=videos
+          - listitem [ref=f60e41]:
+            - link "News" [ref=f60e42] [cursor=pointer]:
+              - /url: /?q=Toshl+help+%22main+currency%22+accounts+exchange+rate&ia=news&iar=news
+          - listitem [ref=f60e43]:
+            - generic [ref=f60e44]:
+              - generic [ref=f60e45] [cursor=pointer]:
+                - generic [ref=f60e46]: More
+                - img [ref=f60e48]: ▼
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - link "Maps":
+                          - /url: /?q=Toshl+help+%22main+currency%22+accounts+exchange+rate&iaxm=maps
+                  - generic:
+                    - generic:
+                      - generic:
+                        - link "Shopping":
+                          - /url: /?q=Toshl+help+%22main+currency%22+accounts+exchange+rate&ia=shopping&iax=shopping
+        - list [ref=f60e50]:
+          - listitem [ref=f60e51]:
+            - link "Search Assist" [ref=f60e54] [cursor=pointer]:
+              - /url: /?q=Toshl+help+%22main+currency%22+accounts+exchange+rate&ia=web&assist=true
+          - listitem [ref=f60e59]:
+            - link "Duck.ai" [ref=f60e61] [cursor=pointer]:
+              - /url: /?q=Toshl+help+%22main+currency%22+accounts+exchange+rate&ia=chat
+          - listitem [ref=f60e65]:
+            - button "Search Settings ✀" [ref=f60e67] [cursor=pointer]:
+              - generic [ref=f60e70]: Search Settings
+              - generic [ref=f60e71]: ✀
+    - generic [ref=f60e78]:
+      - navigation [ref=f60e80]:
+        - generic [ref=f60e83] [cursor=pointer]:
+          - generic [ref=f60e84]: Private
+          - img [ref=f60e92]: ▼
+        - generic [ref=f60e96] [cursor=pointer]:
+          - generic [ref=f60e99]:
+            - switch "✓" [checked] [ref=f60e100]
+            - generic [ref=f60e102]: Ireland
+          - img [ref=f60e103]: ▼
+        - generic [ref=f60e107] [cursor=pointer]:
+          - generic [ref=f60e108]: "Safe search: moderate"
+          - img [ref=f60e109]: ▼
+        - generic [ref=f60e113] [cursor=pointer]:
+          - generic [ref=f60e114]: Any time
+          - img [ref=f60e115]: ▼
+      - generic [ref=f60e118]:
+        - list [ref=f60e119]:
+          - listitem [ref=f60e120]:
+            - article [ref=f60e121] [cursor=pointer]:
+              - button [ref=f60e123]
+              - link "Key Currency https://www.keycurrency.co.uk › great-rates › large" [ref=f60e130]:
+                - /url: https://duckduckgo.com/y.js?ad_domain=keycurrency.co.uk&ad_provider=bingv7aa&ad_type=txad&click_metadata=goodh8fP82yxV_YmTKoR6bGZdHvBdRWCfiyYEaUA%2DF_1nNQTwOwVhHMGEs0m3H3s9NpzbWvq1R7XZFibcCPZkWOVpVtqnXOF1R4ajQypGMfALOq6Sm2wJ1kGAKMCHk%2DwFY8A60EbEB_13UucX3Ke0AQBMjF8tfMsuTwE7wjA7nc.jJaM16DOjz2ZIDMkKMOK0g&eddgt=w4cY9Qa4aHOvkWsUMXL1eg%3D%3D&rut=ae3e8dc2e839fc9b98fb0eb20d8bd23815e37402af3d53c6bbfe0260c30811ab&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8i7rLZNYEwnU4tBwWjaKwBTVUCUzFymxeHvxdm8EhDiZu8m9RmxavBeNMuS4pGFAE0ZOWOKMVYkSt0FAcE5zHgSEKoieXwK%2DngaZ6NqX7C5Bk4UWcCFovWxVqXE2qtjpZmU66QfBzcRK6%2D10KtB3o_aT67R9fKboIRTWb5U0EpgdoJ%2D6ON8SaXYzoLAlpUut4bFvCzwqayPCPj65gc47oBqM5uOo%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cua2V5Y3VycmVuY3kuY28udWslMmZsYXJnZW1vbmV5dHJhbnNmZXJzJTNmc3JjJTNkR29vZ2xlJTI2Y2FtcGFpZ24lM2QzMjkzMzk5ODYlMjZhZGdyb3VwJTNkMTE1OTk4NDk4NTY5MTMzMyUyNmtleXdvcmQlM2R0cmFuZmVyJTI1MjBtb25leSUyNTIwY291bnRyeSUyNTIwdG8lMjUyMGNvdW50cnklMjZkZXZpY2UlM2RjJTI2bXNjbGtpZCUzZGFiOGUzMTVjZDQyYjFhMWEyMjg0NWJkMjFhYTkxZGMxJTI2dXRtX3NvdXJjZSUzZGJpbmclMjZ1dG1fbWVkaXVtJTNkY3BjJTI2dXRtX2NhbXBhaWduJTNkTGFyZ2UlMjUyME1vbmV5JTI1MjBUcmFuc2ZlciUyNTIwJTI1MkIlMjUyMEJyb2FkJTI1MjBNYXRjaCUyNnV0bV90ZXJtJTNkdHJhbmZlciUyNTIwbW9uZXklMjUyMGNvdW50cnklMjUyMHRvJTI1MjBjb3VudHJ5JTI2dXRtX2NvbnRlbnQlM2QlMjUyQkxhcmdlJTI1MjAlMjUyQkV4Y2hhbmdl%26rlid%3Dab8e315cd42b1a1a22845bd21aa91dc1&vqd=4-87125660180769762326899998875356091846&iurl=%7B1%7DIG%3D58E96E08A8A54C50977CA71A6E90C7B8%26CID%3D2E7E3CCDBC9C65EA3B952B0CBDBA64B6%26ID%3DDevEx%2C5036.1
+                - generic [ref=f60e134]:
+                  - paragraph [ref=f60e135]: Key Currency
+                  - paragraph [ref=f60e136]:
+                    - generic [ref=f60e137]: https://www.keycurrency.co.uk
+                    - generic [ref=f60e138]: › great-rates › large
+              - heading [level=2] [ref=f60e140]:
+                - link "Large Money Transfer £5,000+ - Best Exchange Rate Today?" [ref=f60e141]:
+                  - /url: https://duckduckgo.com/y.js?ad_domain=keycurrency.co.uk&ad_provider=bingv7aa&ad_type=txad&click_metadata=goodh8fP82yxV_YmTKoR6bGZdHvBdRWCfiyYEaUA%2DF_1nNQTwOwVhHMGEs0m3H3s9NpzbWvq1R7XZFibcCPZkWOVpVtqnXOF1R4ajQypGMfALOq6Sm2wJ1kGAKMCHk%2DwFY8A60EbEB_13UucX3Ke0AQBMjF8tfMsuTwE7wjA7nc.jJaM16DOjz2ZIDMkKMOK0g&eddgt=w4cY9Qa4aHOvkWsUMXL1eg%3D%3D&rut=ae3e8dc2e839fc9b98fb0eb20d8bd23815e37402af3d53c6bbfe0260c30811ab&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8i7rLZNYEwnU4tBwWjaKwBTVUCUzFymxeHvxdm8EhDiZu8m9RmxavBeNMuS4pGFAE0ZOWOKMVYkSt0FAcE5zHgSEKoieXwK%2DngaZ6NqX7C5Bk4UWcCFovWxVqXE2qtjpZmU66QfBzcRK6%2D10KtB3o_aT67R9fKboIRTWb5U0EpgdoJ%2D6ON8SaXYzoLAlpUut4bFvCzwqayPCPj65gc47oBqM5uOo%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cua2V5Y3VycmVuY3kuY28udWslMmZsYXJnZW1vbmV5dHJhbnNmZXJzJTNmc3JjJTNkR29vZ2xlJTI2Y2FtcGFpZ24lM2QzMjkzMzk5ODYlMjZhZGdyb3VwJTNkMTE1OTk4NDk4NTY5MTMzMyUyNmtleXdvcmQlM2R0cmFuZmVyJTI1MjBtb25leSUyNTIwY291bnRyeSUyNTIwdG8lMjUyMGNvdW50cnklMjZkZXZpY2UlM2RjJTI2bXNjbGtpZCUzZGFiOGUzMTVjZDQyYjFhMWEyMjg0NWJkMjFhYTkxZGMxJTI2dXRtX3NvdXJjZSUzZGJpbmclMjZ1dG1fbWVkaXVtJTNkY3BjJTI2dXRtX2NhbXBhaWduJTNkTGFyZ2UlMjUyME1vbmV5JTI1MjBUcmFuc2ZlciUyNTIwJTI1MkIlMjUyMEJyb2FkJTI1MjBNYXRjaCUyNnV0bV90ZXJtJTNkdHJhbmZlciUyNTIwbW9uZXklMjUyMGNvdW50cnklMjUyMHRvJTI1MjBjb3VudHJ5JTI2dXRtX2NvbnRlbnQlM2QlMjUyQkxhcmdlJTI1MjAlMjUyQkV4Y2hhbmdl%26rlid%3Dab8e315cd42b1a1a22845bd21aa91dc1&vqd=4-87125660180769762326899998875356091846&iurl=%7B1%7DIG%3D58E96E08A8A54C50977CA71A6E90C7B8%26CID%3D2E7E3CCDBC9C65EA3B952B0CBDBA64B6%26ID%3DDevEx%2C5036.1
+                - button "Ad" [ref=f60e144]
+              - generic [ref=f60e147]:
+                - link "Best exchange rate for large amounts? Unlock great rates with no hidden fees. Get A Quote. Offering Great Exchange Rates. No Hidden Fees. Get a Quick Quote Today." [ref=f60e148]:
+                  - /url: https://duckduckgo.com/y.js?ad_domain=keycurrency.co.uk&ad_provider=bingv7aa&ad_type=txad&click_metadata=goodh8fP82yxV_YmTKoR6bGZdHvBdRWCfiyYEaUA%2DF_1nNQTwOwVhHMGEs0m3H3s9NpzbWvq1R7XZFibcCPZkWOVpVtqnXOF1R4ajQypGMfALOq6Sm2wJ1kGAKMCHk%2DwFY8A60EbEB_13UucX3Ke0AQBMjF8tfMsuTwE7wjA7nc.jJaM16DOjz2ZIDMkKMOK0g&eddgt=w4cY9Qa4aHOvkWsUMXL1eg%3D%3D&rut=ae3e8dc2e839fc9b98fb0eb20d8bd23815e37402af3d53c6bbfe0260c30811ab&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8i7rLZNYEwnU4tBwWjaKwBTVUCUzFymxeHvxdm8EhDiZu8m9RmxavBeNMuS4pGFAE0ZOWOKMVYkSt0FAcE5zHgSEKoieXwK%2DngaZ6NqX7C5Bk4UWcCFovWxVqXE2qtjpZmU66QfBzcRK6%2D10KtB3o_aT67R9fKboIRTWb5U0EpgdoJ%2D6ON8SaXYzoLAlpUut4bFvCzwqayPCPj65gc47oBqM5uOo%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cua2V5Y3VycmVuY3kuY28udWslMmZsYXJnZW1vbmV5dHJhbnNmZXJzJTNmc3JjJTNkR29vZ2xlJTI2Y2FtcGFpZ24lM2QzMjkzMzk5ODYlMjZhZGdyb3VwJTNkMTE1OTk4NDk4NTY5MTMzMyUyNmtleXdvcmQlM2R0cmFuZmVyJTI1MjBtb25leSUyNTIwY291bnRyeSUyNTIwdG8lMjUyMGNvdW50cnklMjZkZXZpY2UlM2RjJTI2bXNjbGtpZCUzZGFiOGUzMTVjZDQyYjFhMWEyMjg0NWJkMjFhYTkxZGMxJTI2dXRtX3NvdXJjZSUzZGJpbmclMjZ1dG1fbWVkaXVtJTNkY3BjJTI2dXRtX2NhbXBhaWduJTNkTGFyZ2UlMjUyME1vbmV5JTI1MjBUcmFuc2ZlciUyNTIwJTI1MkIlMjUyMEJyb2FkJTI1MjBNYXRjaCUyNnV0bV90ZXJtJTNkdHJhbmZlciUyNTIwbW9uZXklMjUyMGNvdW50cnklMjUyMHRvJTI1MjBjb3VudHJ5JTI2dXRtX2NvbnRlbnQlM2QlMjUyQkxhcmdlJTI1MjAlMjUyQkV4Y2hhbmdl%26rlid%3Dab8e315cd42b1a1a22845bd21aa91dc1&vqd=4-87125660180769762326899998875356091846&iurl=%7B1%7DIG%3D58E96E08A8A54C50977CA71A6E90C7B8%26CID%3D2E7E3CCDBC9C65EA3B952B0CBDBA64B6%26ID%3DDevEx%2C5036.1
+                - 'link "Types: Property Sales Abroad, Family Inheritance, Overseas Payments" [ref=f60e151]':
+                  - /url: https://duckduckgo.com/y.js?ad_domain=keycurrency.co.uk&ad_provider=bingv7aa&ad_type=txad&click_metadata=goodh8fP82yxV_YmTKoR6bGZdHvBdRWCfiyYEaUA%2DF_1nNQTwOwVhHMGEs0m3H3s9NpzbWvq1R7XZFibcCPZkWOVpVtqnXOF1R4ajQypGMfALOq6Sm2wJ1kGAKMCHk%2DwFY8A60EbEB_13UucX3Ke0AQBMjF8tfMsuTwE7wjA7nc.jJaM16DOjz2ZIDMkKMOK0g&eddgt=w4cY9Qa4aHOvkWsUMXL1eg%3D%3D&rut=ae3e8dc2e839fc9b98fb0eb20d8bd23815e37402af3d53c6bbfe0260c30811ab&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8i7rLZNYEwnU4tBwWjaKwBTVUCUzFymxeHvxdm8EhDiZu8m9RmxavBeNMuS4pGFAE0ZOWOKMVYkSt0FAcE5zHgSEKoieXwK%2DngaZ6NqX7C5Bk4UWcCFovWxVqXE2qtjpZmU66QfBzcRK6%2D10KtB3o_aT67R9fKboIRTWb5U0EpgdoJ%2D6ON8SaXYzoLAlpUut4bFvCzwqayPCPj65gc47oBqM5uOo%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cua2V5Y3VycmVuY3kuY28udWslMmZsYXJnZW1vbmV5dHJhbnNmZXJzJTNmc3JjJTNkR29vZ2xlJTI2Y2FtcGFpZ24lM2QzMjkzMzk5ODYlMjZhZGdyb3VwJTNkMTE1OTk4NDk4NTY5MTMzMyUyNmtleXdvcmQlM2R0cmFuZmVyJTI1MjBtb25leSUyNTIwY291bnRyeSUyNTIwdG8lMjUyMGNvdW50cnklMjZkZXZpY2UlM2RjJTI2bXNjbGtpZCUzZGFiOGUzMTVjZDQyYjFhMWEyMjg0NWJkMjFhYTkxZGMxJTI2dXRtX3NvdXJjZSUzZGJpbmclMjZ1dG1fbWVkaXVtJTNkY3BjJTI2dXRtX2NhbXBhaWduJTNkTGFyZ2UlMjUyME1vbmV5JTI1MjBUcmFuc2ZlciUyNTIwJTI1MkIlMjUyMEJyb2FkJTI1MjBNYXRjaCUyNnV0bV90ZXJtJTNkdHJhbmZlciUyNTIwbW9uZXklMjUyMGNvdW50cnklMjUyMHRvJTI1MjBjb3VudHJ5JTI2dXRtX2NvbnRlbnQlM2QlMjUyQkxhcmdlJTI1MjAlMjUyQkV4Y2hhbmdl%26rlid%3Dab8e315cd42b1a1a22845bd21aa91dc1&vqd=4-87125660180769762326899998875356091846&iurl=%7B1%7DIG%3D58E96E08A8A54C50977CA71A6E90C7B8%26CID%3D2E7E3CCDBC9C65EA3B952B0CBDBA64B6%26ID%3DDevEx%2C5036.1
+              - list [ref=f60e154]:
+                - listitem [ref=f60e155]:
+                  - link "International Payments Get expert guidance and better exchange rates" [ref=f60e156]:
+                    - /url: https://duckduckgo.com/y.js?ad_domain=keycurrency.co.uk&ad_provider=bingv7aa&ad_type=txad&click_metadata=tSW9oVpKMgk2xS5r8DM8wT3OoqWvmZ%2Dy6%2Di6nFyIe7nORZaCYiRkjXhl56I_CpuBG59aG6SgdxKRircsYEIEElBntsgkpztmxyvGhcN5ul8AgXQNoSGJeuYbTki1wWnpAeXa6OMqWh1GGZzUgEMBtw.188mrPPQsKIty2wb%2D21BHQ&eddgt=w4cY9Qa4aHOvkWsUMXL1eg%3D%3D&rut=1a3a8651bab7d611a7fd5c9fe52bca76fb16cfddd3c0410d6cb13f6868a7ffc5&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8XKhm%2D9WrukGSKopkWKKoVzVUCUzZvPjoGF7ey12SJgi0w8DQ%2DhrNpAnG7nTblfjN7%2DB6PTvCw31DbYQRRjr_mKq9FaUBHp5iXJTKNKXJPwyEKMZUYasqGHw8Ykh79ap5x2eIPZPG4NBGA0dWc31ZjWAe69_acBX9btuNtj0QNpbVfx_wOg2xBvF7iUPOKjPpRvDvM3D8kSELvH41IBCZu3qjaEf%2DoDfXo62b07xnRl0buVhH%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cua2V5Y3VycmVuY3kuY28udWslMmZpbnRlcm5hdGlvbmFscGF5bWVudHMlM2ZzcmMlM2RHb29nbGUlMjZjYW1wYWlnbiUzZDMyOTMzOTk4NiUyNmFkZ3JvdXAlM2QxMTU5OTg0OTg1NjkxMzMzJTI2a2V5d29yZCUzZHRyYW5mZXIlMjUyMG1vbmV5JTI1MjBjb3VudHJ5JTI1MjB0byUyNTIwY291bnRyeSUyNmRldmljZSUzZGMlMjZtc2Nsa2lkJTNkZGEyMTVjYWY2ZTA1MTFlNzVjNTQzNjIxYTA4N2EyODAlMjZ1dG1fc291cmNlJTNkYmluZyUyNnV0bV9tZWRpdW0lM2RjcGMlMjZ1dG1fY2FtcGFpZ24lM2RMYXJnZSUyNTIwTW9uZXklMjUyMFRyYW5zZmVyJTI1MjAlMjUyQiUyNTIwQnJvYWQlMjUyME1hdGNoJTI2dXRtX3Rlcm0lM2R0cmFuZmVyJTI1MjBtb25leSUyNTIwY291bnRyeSUyNTIwdG8lMjUyMGNvdW50cnklMjZ1dG1fY29udGVudCUzZCUyNTJCTGFyZ2UlMjUyMCUyNTJCRXhjaGFuZ2U%26rlid%3Dda215caf6e0511e75c543621a087a280&vqd=4-337807722518197828623637748021021652845&iurl=%7B1%7DIG%3D58E96E08A8A54C50977CA71A6E90C7B8%26CID%3D2E7E3CCDBC9C65EA3B952B0CBDBA64B6%26ID%3DDevEx%2C5043.1
+                    - heading "International Payments" [level=3] [ref=f60e157]
+                    - paragraph [ref=f60e158]:
+                      - generic [ref=f60e159]: Get expert guidance and better exchange rates
+                - listitem [ref=f60e160]:
+                  - link "Safe & Easy Transfers Making a money transfer is quick, simple & safe" [ref=f60e161]:
+                    - /url: https://duckduckgo.com/y.js?ad_domain=keycurrency.co.uk&ad_provider=bingv7aa&ad_type=txad&click_metadata=WmWdhewGNJByjC0ZS6W%2DmNs%2DNoFyBvEmvPv7k_d_RPmyekdBXhcHP7SedyvIR9RK9Yf5FPMmfVTLsmMAv13j2bPNNp4kkwexKgJ1Im4pWtuCokkYhJu6os_JcnYLdte8PkYJyIGQoX5nIFQLoWxxaw.ybXLsq9SsvhiLV20MeLZlg&eddgt=w4cY9Qa4aHOvkWsUMXL1eg%3D%3D&rut=251a9ea6e70cd8e03c46f39aacde63487eacd43130f9fb412fe3fa2f0441d943&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8h3m1661MNdre6Z8irqc%2DHTVUCUwDlQTN%2D8Ph9GXcK2IBsKueer04ixR%2D2cdcculgzRqg4qD4s5Lr%2Dgwkt4BcyqmNuk0GmsA8Cm1Vnt0Onrdz7ePpJebHjL2msQmF229JCiyfvawCmRCFAjrpz4Ey84SCGBw_ismZ_dgKNBwdM0tTsXY77Ved2US2SgLsVpZNnMgTaexOWvj6u2royxkKOQB2qYDeS6TCUx3UJLRcCcTyMvdD%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cua2V5Y3VycmVuY3kuY28udWslMmZnZXQtYS1xdWljay1xdW90ZSUyZiUzZnNyYyUzZEdvb2dsZSUyNmNhbXBhaWduJTNkMzI5MzM5OTg2JTI2YWRncm91cCUzZDExNTk5ODQ5ODU2OTEzMzMlMjZrZXl3b3JkJTNkdHJhbmZlciUyNTIwbW9uZXklMjUyMGNvdW50cnklMjUyMHRvJTI1MjBjb3VudHJ5JTI2ZGV2aWNlJTNkYyUyNm1zY2xraWQlM2QzNTk1Yzk0MmM0NjgxYjFhOTg5MmEzY2MwYWVhMTYyNSUyNnV0bV9zb3VyY2UlM2RiaW5nJTI2dXRtX21lZGl1bSUzZGNwYyUyNnV0bV9jYW1wYWlnbiUzZExhcmdlJTI1MjBNb25leSUyNTIwVHJhbnNmZXIlMjUyMCUyNTJCJTI1MjBCcm9hZCUyNTIwTWF0Y2glMjZ1dG1fdGVybSUzZHRyYW5mZXIlMjUyMG1vbmV5JTI1MjBjb3VudHJ5JTI1MjB0byUyNTIwY291bnRyeSUyNnV0bV9jb250ZW50JTNkJTI1MkJMYXJnZSUyNTIwJTI1MkJFeGNoYW5nZQ%26rlid%3D3595c942c4681b1a9892a3cc0aea1625&vqd=4-16275125572257506693482486271108994344&iurl=%7B1%7DIG%3D58E96E08A8A54C50977CA71A6E90C7B8%26CID%3D2E7E3CCDBC9C65EA3B952B0CBDBA64B6%26ID%3DDevEx%2C5045.1
+                    - heading "Safe & Easy Transfers" [level=3] [ref=f60e162]
+                    - paragraph [ref=f60e163]:
+                      - generic [ref=f60e164]: Making a money transfer is quick, simple & safe
+          - listitem [ref=f60e165]:
+            - generic [ref=f60e173]:
+              - generic [ref=f60e174]:
+                - generic [ref=f60e176]:
+                  - text: Generate answer for
+                  - strong [ref=f60e177]: Toshl help "main currency" accounts exchange rate
+                - generic [ref=f60e178]:
+                  - button "Learn More About Assist" [ref=f60e179] [cursor=pointer]
+                  - button "Assist Settings" [ref=f60e183] [cursor=pointer]
+              - button "Assist" [ref=f60e186] [cursor=pointer]: Search Assist
+          - listitem [ref=f60e190]:
+            - article [ref=f60e191] [cursor=pointer]:
+              - button [ref=f60e193]
+              - generic [ref=f60e198]:
+                - link "Search domain toshl.com" [ref=f60e200]:
+                  - /url: /?q=Toshl%20help%20%22main%20currency%22%20accounts%20exchange%20rate+site:toshl.com
+                - generic [ref=f60e203]:
+                  - paragraph [ref=f60e204]: Toshl Finance
+                  - link "https://toshl.com › currencies" [ref=f60e205]:
+                    - /url: https://toshl.com/currencies/
+                    - paragraph [ref=f60e207]:
+                      - generic [ref=f60e208]: https://toshl.com
+                      - generic [ref=f60e209]: › currencies
+              - heading [level=2] [ref=f60e211]:
+                - link "Toshl Finance - Personal finance, budget and expense tracker app" [ref=f60e212]:
+                  - /url: https://toshl.com/currencies/
+              - generic [ref=f60e214]: Customize the currency of budgets, financial accounts and freely switch your main currency, that's used in all the graphs and sums. Are you an expat used to thinking in your home currency, have bank accounts in several currencies and a travel budget in yet another?
+          - listitem [ref=f60e219]:
+            - article [ref=f60e220] [cursor=pointer]:
+              - button [ref=f60e222]
+              - generic [ref=f60e227]:
+                - link "Search domain toshl.com" [ref=f60e229]:
+                  - /url: /?q=Toshl%20help%20%22main%20currency%22%20accounts%20exchange%20rate+site:toshl.com
+                - generic [ref=f60e232]:
+                  - paragraph [ref=f60e233]: Toshl Finance
+                  - link "https://toshl.com › blog › category › tips-tricks" [ref=f60e234]:
+                    - /url: https://toshl.com/blog/category/tips-tricks/
+                    - paragraph [ref=f60e236]:
+                      - generic [ref=f60e237]: https://toshl.com
+                      - generic [ref=f60e238]: › blog › category › tips-tricks
+              - heading [level=2] [ref=f60e240]:
+                - link "Tips & Tricks - Toshl Finance Blog" [ref=f60e241]:
+                  - /url: https://toshl.com/blog/category/tips-tricks/
+              - generic [ref=f60e246]:
+                - text: 3 Oct 2025·
+                - generic [ref=f60e247]: How to handle this currency change in Toshl? When Bulgaria adopts the euro, the best thing to do is to simply change your main currency in the Toshl settings to euro with the first (recommended) conversion option.
+          - listitem [ref=f60e248]:
+            - article [ref=f60e249] [cursor=pointer]:
+              - button [ref=f60e251]
+              - generic [ref=f60e256]:
+                - link "Search domain toshl.com" [ref=f60e258]:
+                  - /url: /?q=Toshl%20help%20%22main%20currency%22%20accounts%20exchange%20rate+site:toshl.com
+                - generic [ref=f60e261]:
+                  - paragraph [ref=f60e262]: Toshl Finance
+                  - link "https://toshl.com › blog › currencies-in-toshl-finance-ounces-of-gold-welcome-ios" [ref=f60e263]:
+                    - /url: https://toshl.com/blog/currencies-in-toshl-finance-ounces-of-gold-welcome-ios/
+                    - paragraph [ref=f60e265]:
+                      - generic [ref=f60e266]: https://toshl.com
+                      - generic [ref=f60e267]: › blog › currencies-in-toshl-finance-ounces-of-gold-welcome-ios
+              - heading [level=2] [ref=f60e269]:
+                - link "Currencies in Toshl Finance - Ounces of Gold Welcome (iOS)" [ref=f60e270]:
+                  - /url: https://toshl.com/blog/currencies-in-toshl-finance-ounces-of-gold-welcome-ios/
+              - generic [ref=f60e272]: To set a custom exchange rate, delete the suggested rate and start typing a new one if you already know it. You can also tap one of the other numbers on the screen, the amount in foreign currency, or the amount in your main currency.
+          - listitem [ref=f60e277]:
+            - article [ref=f60e278] [cursor=pointer]:
+              - button [ref=f60e280]
+              - link "Key Currency https://www.keycurrency.co.uk › great-rates › large" [ref=f60e287]:
+                - /url: https://duckduckgo.com/y.js?ad_domain=keycurrency.co.uk&ad_provider=bingv7aa&ad_type=txad&click_metadata=7%2DN5bQeNRCqkGQP6zzBsi3KKNJa2JgfaW7MDUzazKD2XzKdLGqiCUXEZl9h81Lxo39AeXSLp8K1ESTCGQCubpuc4nk8CR1Hq%2DEsk2Gib28MuewvRp5dNld5iqcqFDCplrO14mAFTVRukYNMOHFXjOM_XqQZrsZFCzBeAezWME_U.FA3QbAYYuvZ9q_qD93%2De1g&eddgt=w4cY9Qa4aHOvkWsUMXL1eg%3D%3D&rut=d4dd0980576df6a1b24deb4f6fc4018e8f6264347cb4c4d49d7eccd8ab11275b&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8QlW7SF7Wjlps_O0gHtrcGzVUCUwNjSIWxsvCDoaQ2VEVz60JDnTok3lwEJqdAy8nQfK0n0Rj%2D0YEXEOAyrqMng4GuAlRNumuqxp%2DQrgX4zJrs3rkvMrlir5ynSTx6LGdiQdfn4OoQdDry8mtLKO_M6ojfaKCcDlU3YPJdCpVQvy3hryby4RL1OcXiofJdLzLN_kOB60WnV27ppP5HW9FH58xXkY%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cua2V5Y3VycmVuY3kuY28udWslMmZsYXJnZW1vbmV5dHJhbnNmZXJzJTNmc3JjJTNkR29vZ2xlJTI2Y2FtcGFpZ24lM2QzMjkzMzk5ODYlMjZhZGdyb3VwJTNkMTE1OTk4NDk4NTY5MTMzMyUyNmtleXdvcmQlM2R0cmFuZmVyJTI1MjBtb25leSUyNTIwY291bnRyeSUyNTIwdG8lMjUyMGNvdW50cnklMjZkZXZpY2UlM2RjJTI2bXNjbGtpZCUzZGUzM2JlODkyNzMyMDE0Mjk1NTNhODIxY2JkYTIzNWExJTI2dXRtX3NvdXJjZSUzZGJpbmclMjZ1dG1fbWVkaXVtJTNkY3BjJTI2dXRtX2NhbXBhaWduJTNkTGFyZ2UlMjUyME1vbmV5JTI1MjBUcmFuc2ZlciUyNTIwJTI1MkIlMjUyMEJyb2FkJTI1MjBNYXRjaCUyNnV0bV90ZXJtJTNkdHJhbmZlciUyNTIwbW9uZXklMjUyMGNvdW50cnklMjUyMHRvJTI1MjBjb3VudHJ5JTI2dXRtX2NvbnRlbnQlM2QlMjUyQkxhcmdlJTI1MjAlMjUyQkV4Y2hhbmdl%26rlid%3De33be89273201429553a821cbda235a1&vqd=4-59006176399976377360897844234099891835&iurl=%7B1%7DIG%3D58E96E08A8A54C50977CA71A6E90C7B8%26CID%3D2E7E3CCDBC9C65EA3B952B0CBDBA64B6%26ID%3DDevEx%2C5047.1
+                - generic [ref=f60e291]:
+                  - paragraph [ref=f60e292]: Key Currency
+                  - paragraph [ref=f60e293]:
+                    - generic [ref=f60e294]: https://www.keycurrency.co.uk
+                    - generic [ref=f60e295]: › great-rates › large
+              - heading [level=2] [ref=f60e297]:
+                - link "Large Money Transfer £5,000+ - Best Exchange Rate Today?" [ref=f60e298]:
+                  - /url: https://duckduckgo.com/y.js?ad_domain=keycurrency.co.uk&ad_provider=bingv7aa&ad_type=txad&click_metadata=7%2DN5bQeNRCqkGQP6zzBsi3KKNJa2JgfaW7MDUzazKD2XzKdLGqiCUXEZl9h81Lxo39AeXSLp8K1ESTCGQCubpuc4nk8CR1Hq%2DEsk2Gib28MuewvRp5dNld5iqcqFDCplrO14mAFTVRukYNMOHFXjOM_XqQZrsZFCzBeAezWME_U.FA3QbAYYuvZ9q_qD93%2De1g&eddgt=w4cY9Qa4aHOvkWsUMXL1eg%3D%3D&rut=d4dd0980576df6a1b24deb4f6fc4018e8f6264347cb4c4d49d7eccd8ab11275b&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8QlW7SF7Wjlps_O0gHtrcGzVUCUwNjSIWxsvCDoaQ2VEVz60JDnTok3lwEJqdAy8nQfK0n0Rj%2D0YEXEOAyrqMng4GuAlRNumuqxp%2DQrgX4zJrs3rkvMrlir5ynSTx6LGdiQdfn4OoQdDry8mtLKO_M6ojfaKCcDlU3YPJdCpVQvy3hryby4RL1OcXiofJdLzLN_kOB60WnV27ppP5HW9FH58xXkY%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cua2V5Y3VycmVuY3kuY28udWslMmZsYXJnZW1vbmV5dHJhbnNmZXJzJTNmc3JjJTNkR29vZ2xlJTI2Y2FtcGFpZ24lM2QzMjkzMzk5ODYlMjZhZGdyb3VwJTNkMTE1OTk4NDk4NTY5MTMzMyUyNmtleXdvcmQlM2R0cmFuZmVyJTI1MjBtb25leSUyNTIwY291bnRyeSUyNTIwdG8lMjUyMGNvdW50cnklMjZkZXZpY2UlM2RjJTI2bXNjbGtpZCUzZGUzM2JlODkyNzMyMDE0Mjk1NTNhODIxY2JkYTIzNWExJTI2dXRtX3NvdXJjZSUzZGJpbmclMjZ1dG1fbWVkaXVtJTNkY3BjJTI2dXRtX2NhbXBhaWduJTNkTGFyZ2UlMjUyME1vbmV5JTI1MjBUcmFuc2ZlciUyNTIwJTI1MkIlMjUyMEJyb2FkJTI1MjBNYXRjaCUyNnV0bV90ZXJtJTNkdHJhbmZlciUyNTIwbW9uZXklMjUyMGNvdW50cnklMjUyMHRvJTI1MjBjb3VudHJ5JTI2dXRtX2NvbnRlbnQlM2QlMjUyQkxhcmdlJTI1MjAlMjUyQkV4Y2hhbmdl%26rlid%3De33be89273201429553a821cbda235a1&vqd=4-59006176399976377360897844234099891835&iurl=%7B1%7DIG%3D58E96E08A8A54C50977CA71A6E90C7B8%26CID%3D2E7E3CCDBC9C65EA3B952B0CBDBA64B6%26ID%3DDevEx%2C5047.1
+                - button "Ad" [ref=f60e301]
+              - link "Best exchange rate for large amounts? Unlock great rates with no hidden fees. Get A Quote. British Co. Trusted & Helpful Service. Excellent Rates & No Bank Fees. Get a Quote Today." [ref=f60e305]:
+                - /url: https://duckduckgo.com/y.js?ad_domain=keycurrency.co.uk&ad_provider=bingv7aa&ad_type=txad&click_metadata=7%2DN5bQeNRCqkGQP6zzBsi3KKNJa2JgfaW7MDUzazKD2XzKdLGqiCUXEZl9h81Lxo39AeXSLp8K1ESTCGQCubpuc4nk8CR1Hq%2DEsk2Gib28MuewvRp5dNld5iqcqFDCplrO14mAFTVRukYNMOHFXjOM_XqQZrsZFCzBeAezWME_U.FA3QbAYYuvZ9q_qD93%2De1g&eddgt=w4cY9Qa4aHOvkWsUMXL1eg%3D%3D&rut=d4dd0980576df6a1b24deb4f6fc4018e8f6264347cb4c4d49d7eccd8ab11275b&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8QlW7SF7Wjlps_O0gHtrcGzVUCUwNjSIWxsvCDoaQ2VEVz60JDnTok3lwEJqdAy8nQfK0n0Rj%2D0YEXEOAyrqMng4GuAlRNumuqxp%2DQrgX4zJrs3rkvMrlir5ynSTx6LGdiQdfn4OoQdDry8mtLKO_M6ojfaKCcDlU3YPJdCpVQvy3hryby4RL1OcXiofJdLzLN_kOB60WnV27ppP5HW9FH58xXkY%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cua2V5Y3VycmVuY3kuY28udWslMmZsYXJnZW1vbmV5dHJhbnNmZXJzJTNmc3JjJTNkR29vZ2xlJTI2Y2FtcGFpZ24lM2QzMjkzMzk5ODYlMjZhZGdyb3VwJTNkMTE1OTk4NDk4NTY5MTMzMyUyNmtleXdvcmQlM2R0cmFuZmVyJTI1MjBtb25leSUyNTIwY291bnRyeSUyNTIwdG8lMjUyMGNvdW50cnklMjZkZXZpY2UlM2RjJTI2bXNjbGtpZCUzZGUzM2JlODkyNzMyMDE0Mjk1NTNhODIxY2JkYTIzNWExJTI2dXRtX3NvdXJjZSUzZGJpbmclMjZ1dG1fbWVkaXVtJTNkY3BjJTI2dXRtX2NhbXBhaWduJTNkTGFyZ2UlMjUyME1vbmV5JTI1MjBUcmFuc2ZlciUyNTIwJTI1MkIlMjUyMEJyb2FkJTI1MjBNYXRjaCUyNnV0bV90ZXJtJTNkdHJhbmZlciUyNTIwbW9uZXklMjUyMGNvdW50cnklMjUyMHRvJTI1MjBjb3VudHJ5JTI2dXRtX2NvbnRlbnQlM2QlMjUyQkxhcmdlJTI1MjAlMjUyQkV4Y2hhbmdl%26rlid%3De33be89273201429553a821cbda235a1&vqd=4-59006176399976377360897844234099891835&iurl=%7B1%7DIG%3D58E96E08A8A54C50977CA71A6E90C7B8%26CID%3D2E7E3CCDBC9C65EA3B952B0CBDBA64B6%26ID%3DDevEx%2C5047.1
+              - list [ref=f60e309]:
+                - listitem [ref=f60e310]:
+                  - link "International Payments" [ref=f60e311]:
+                    - /url: https://duckduckgo.com/y.js?ad_domain=keycurrency.co.uk&ad_provider=bingv7aa&ad_type=txad&click_metadata=KgAkYL29ACTC3scY0waRRxS3EJ9Hs7FKhh3w6PH5kCw878GJkqrJJiN9PJs2AkuarEdaOh9WmhgQ5Uhv2Pw_ufIwZHsaKWWP%2DgYDccvtdKJDWHlvyGdWaerbCL7nQF2m07oV2C06_gD%2DJvrj36r3j77cJR24y4u_nwxvoLK5uV8.G%2D03LEwSdxPGGuoRq9UgvQ&eddgt=w4cY9Qa4aHOvkWsUMXL1eg%3D%3D&rut=380d442f17a64ce1d41e947b007f80a0a0634f4cc8c5c8c21bacb856edcfa391&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8RmHd_BBkVIR87vNhZPkqWDVUCUyeG4K3R23152R78lf_vrSx6rAOXckNSqEr4cIc8rX1Iyt7zNHdjpl3IpgGzylcVc%2DJvw3f6HIu%2D4flT1z7BfjNAiujhZeADPPAekQTkPAV0U5Xvu%2D%2Dr7XZv0nVeu202MhhfdbxNBT9B7XWB8L7sINfwn4We1yiiHnprhVos6WQ2x9PDMkUu7rB6HAGp3643T_Rqt2U6aTWsm7tIzj5vkNS%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cua2V5Y3VycmVuY3kuY28udWslMmZpbnRlcm5hdGlvbmFscGF5bWVudHMlM2ZzcmMlM2RHb29nbGUlMjZjYW1wYWlnbiUzZDMyOTMzOTk4NiUyNmFkZ3JvdXAlM2QxMTU5OTg0OTg1NjkxMzMzJTI2a2V5d29yZCUzZHRyYW5mZXIlMjUyMG1vbmV5JTI1MjBjb3VudHJ5JTI1MjB0byUyNTIwY291bnRyeSUyNmRldmljZSUzZGMlMjZtc2Nsa2lkJTNkMGY3MjY3OWFiMTJlMTczYjhiZDEwZDE0N2ZhYzlmOTElMjZ1dG1fc291cmNlJTNkYmluZyUyNnV0bV9tZWRpdW0lM2RjcGMlMjZ1dG1fY2FtcGFpZ24lM2RMYXJnZSUyNTIwTW9uZXklMjUyMFRyYW5zZmVyJTI1MjAlMjUyQiUyNTIwQnJvYWQlMjUyME1hdGNoJTI2dXRtX3Rlcm0lM2R0cmFuZmVyJTI1MjBtb25leSUyNTIwY291bnRyeSUyNTIwdG8lMjUyMGNvdW50cnklMjZ1dG1fY29udGVudCUzZCUyNTJCTGFyZ2UlMjUyMCUyNTJCRXhjaGFuZ2U%26rlid%3D0f72679ab12e173b8bd10d147fac9f91&vqd=4-219944922529083709047074830610329891507&iurl=%7B1%7DIG%3D58E96E08A8A54C50977CA71A6E90C7B8%26CID%3D2E7E3CCDBC9C65EA3B952B0CBDBA64B6%26ID%3DDevEx%2C5053.1
+                - listitem [ref=f60e312]:
+                  - text: ‧
+                  - link "Safe & Easy Transfers" [ref=f60e313]:
+                    - /url: https://duckduckgo.com/y.js?ad_domain=keycurrency.co.uk&ad_provider=bingv7aa&ad_type=txad&click_metadata=SLX7oliWudQ5%2DFkUwWIizgxCcBNzrj9tvhlX2oc3ZORbPkj_0TWtGD2ItNTEiIFAzDIxyEWRYZjleS3M973KhHEBpMUD30mlPGyqBg%2Dos3h5xYUMJjd4gtCIm6BKXI44AYQKJXkaaC4zAw_xhU31FSltuKsUOPRM83Dwt6tSU5Q.wHDTmHniKLp0Pc7_WbwEAg&eddgt=w4cY9Qa4aHOvkWsUMXL1eg%3D%3D&rut=32c566cbf9265ab37581fbea27afc14969119a838ca0f201a467bc790115e604&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8Q6WHwj6eH1NrGBiioTCdXDVUCUz%2DTL7GD%2DQoRuYgpS2DnFDQ7%2D73pmkrqU5StzxysQlgEfQswrsm%2Dwxzl5Os2Wx3zubGAU8RtM8e2RatTu_XIRwZ432kU53YrsbhM%2DZxewyo0ayH5XwEVCsLoO4tkY8BEB60BF9hHwSSRZ5vGh7zx0ShXTNYAJiDmoGEVOK6j4kZHiyEkc9JrVkXAOakhtTuSr9S0f0cZF1hxvovoGscCXAr%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cua2V5Y3VycmVuY3kuY28udWslMmZnZXQtYS1xdWljay1xdW90ZSUyZiUzZnNyYyUzZEdvb2dsZSUyNmNhbXBhaWduJTNkMzI5MzM5OTg2JTI2YWRncm91cCUzZDExNTk5ODQ5ODU2OTEzMzMlMjZrZXl3b3JkJTNkdHJhbmZlciUyNTIwbW9uZXklMjUyMGNvdW50cnklMjUyMHRvJTI1MjBjb3VudHJ5JTI2ZGV2aWNlJTNkYyUyNm1zY2xraWQlM2RlNTBmNDQxNjQwZjcxYjUxNjFkMTJlOTg4ZTc1NjM0MiUyNnV0bV9zb3VyY2UlM2RiaW5nJTI2dXRtX21lZGl1bSUzZGNwYyUyNnV0bV9jYW1wYWlnbiUzZExhcmdlJTI1MjBNb25leSUyNTIwVHJhbnNmZXIlMjUyMCUyNTJCJTI1MjBCcm9hZCUyNTIwTWF0Y2glMjZ1dG1fdGVybSUzZHRyYW5mZXIlMjUyMG1vbmV5JTI1MjBjb3VudHJ5JTI1MjB0byUyNTIwY291bnRyeSUyNnV0bV9jb250ZW50JTNkJTI1MkJMYXJnZSUyNTIwJTI1MkJFeGNoYW5nZQ%26rlid%3De50f441640f71b5161d12e988e756342&vqd=4-240191578468785312683781398696659443321&iurl=%7B1%7DIG%3D58E96E08A8A54C50977CA71A6E90C7B8%26CID%3D2E7E3CCDBC9C65EA3B952B0CBDBA64B6%26ID%3DDevEx%2C5055.1
+                - listitem [ref=f60e314]:
+                  - text: ‧
+                  - link "Our UK Team" [ref=f60e315]:
+                    - /url: https://duckduckgo.com/y.js?ad_domain=keycurrency.co.uk&ad_provider=bingv7aa&ad_type=txad&click_metadata=TNg5uURaRcihOCMaHbPR7kq4bO0wBLMfbN8ZogkQ0OS6JrAoGGmnXPfzEwkFgadZopYBTh4i9v14uya_lZs2YCAZIT3ozON5Km5484_FyxSRu5kloxtUwK1NEpQzZQVPbxjZUEY0KkBwApStX5cslf5ia_SfrgpfeGVb%2DBY9TH8.vU9PLfNdunMxsRliDaRYmg&eddgt=w4cY9Qa4aHOvkWsUMXL1eg%3D%3D&rut=a2f948a553aa6f97965a5b40242a154d7b68907aac3b3e26c56284c3486909cb&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8VUf95nnbLJMXE58JnQGDLzVUCUzZlJDGkr9ksbzckqxPbZ96fl%2DH6zw8QctkwFnoXggslIRwdOPCtOX2d%2DvvYK9ctaDiBM%2Db3jGApaHSrzg1nXKVmC2J6vzFmcJdqFIDGquyVqjyCnZ4A29A7qkBNqmScBCAsAD485SFGfI8J5VWqwVoQSUpePwmDj0bURvBUAKg_eOL2BM%2D9PWXP1LbzpLUU1J2ICiRFi9_tbcXbWisT7fl%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cua2V5Y3VycmVuY3kuY28udWslMmZhYm91dC11cyUzZnNyYyUzZEdvb2dsZSUyNmNhbXBhaWduJTNkMzI5MzM5OTg2JTI2YWRncm91cCUzZDExNTk5ODQ5ODU2OTEzMzMlMjZrZXl3b3JkJTNkdHJhbmZlciUyNTIwbW9uZXklMjUyMGNvdW50cnklMjUyMHRvJTI1MjBjb3VudHJ5JTI2ZGV2aWNlJTNkYyUyNm1zY2xraWQlM2QyMmY0NmI2NDJmMTQxMjQwOWJhNTAxZWFlMTk2ODkyNyUyNnV0bV9zb3VyY2UlM2RiaW5nJTI2dXRtX21lZGl1bSUzZGNwYyUyNnV0bV9jYW1wYWlnbiUzZExhcmdlJTI1MjBNb25leSUyNTIwVHJhbnNmZXIlMjUyMCUyNTJCJTI1MjBCcm9hZCUyNTIwTWF0Y2glMjZ1dG1fdGVybSUzZHRyYW5mZXIlMjUyMG1vbmV5JTI1MjBjb3VudHJ5JTI1MjB0byUyNTIwY291bnRyeSUyNnV0bV9jb250ZW50JTNkJTI1MkJMYXJnZSUyNTIwJTI1MkJFeGNoYW5nZQ%26rlid%3D22f46b642f1412409ba501eae1968927&vqd=4-204395919041579323214329059176543417199&iurl=%7B1%7DIG%3D58E96E08A8A54C50977CA71A6E90C7B8%26CID%3D2E7E3CCDBC9C65EA3B952B0CBDBA64B6%26ID%3DDevEx%2C5057.1
+                - listitem [ref=f60e316]:
+                  - text: ‧
+                  - link "Why Key Currency ?" [ref=f60e317]:
+                    - /url: https://duckduckgo.com/y.js?ad_domain=keycurrency.co.uk&ad_provider=bingv7aa&ad_type=txad&click_metadata=zqkdMZawWWDFSqDW2pRjZhXwLCKmOS5snbf0_dseBT%2DxZaApPEyM2D8OkdQ4ftQVbvyoIuQRBzh4Q1SoZw32VtRr8F6UY8BU3_E9rMpg%2DpWMq8xpR7ZOfyRi7qKbf8Gw7Thc7lQRBncXot8dXyLeS1oFXK3ZYXKvWb1RaXdfnyQ.SPu8lRmjPDGxZ11QqLb22w&eddgt=w4cY9Qa4aHOvkWsUMXL1eg%3D%3D&rut=c9e50b5b9cf49fd2f6607bd32cdee99743f73bbc172223d987e3c417b8624575&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8hjvdRx1agcv7tWRg03xkXDVUCUxH8HZ1J8OO9LD_6mNLFFTsnyJtqLc6RYYFXB7cba5guoBs_E6tWyDFnqysuTKMOYGL5_eKeYyyG24l6KYt6zLCVh1l3w%2D8qHkKrOmfrM%2Dkm3UPBmwy3zOmE2mLncP1hNrLKin5kmSx9SQwrTnXllrJ148BjWuZ9AtfJBgtGYshL07bMwoMM9sqtfXsOST70NsAkn6ab5dWFIQoaueECLw%2D%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cua2V5Y3VycmVuY3kuY28udWslMmZ0cnktdXMtaW5zdGVhZCUyZiUzZnNyYyUzZEdvb2dsZSUyNmNhbXBhaWduJTNkMzI5MzM5OTg2JTI2YWRncm91cCUzZDExNTk5ODQ5ODU2OTEzMzMlMjZrZXl3b3JkJTNkdHJhbmZlciUyNTIwbW9uZXklMjUyMGNvdW50cnklMjUyMHRvJTI1MjBjb3VudHJ5JTI2ZGV2aWNlJTNkYyUyNm1zY2xraWQlM2QyZWE0Y2I4NzBiYzIxYTJiYWM3Y2ExMDljNTQwZDM4YSUyNnV0bV9zb3VyY2UlM2RiaW5nJTI2dXRtX21lZGl1bSUzZGNwYyUyNnV0bV9jYW1wYWlnbiUzZExhcmdlJTI1MjBNb25leSUyNTIwVHJhbnNmZXIlMjUyMCUyNTJCJTI1MjBCcm9hZCUyNTIwTWF0Y2glMjZ1dG1fdGVybSUzZHRyYW5mZXIlMjUyMG1vbmV5JTI1MjBjb3VudHJ5JTI1MjB0byUyNTIwY291bnRyeSUyNnV0bV9jb250ZW50JTNkJTI1MkJMYXJnZSUyNTIwJTI1MkJFeGNoYW5nZQ%26rlid%3D2ea4cb870bc21a2bac7ca109c540d38a&vqd=4-84266190978911764050087980386892739583&iurl=%7B1%7DIG%3D58E96E08A8A54C50977CA71A6E90C7B8%26CID%3D2E7E3CCDBC9C65EA3B952B0CBDBA64B6%26ID%3DDevEx%2C5059.1
+          - listitem [ref=f60e318]:
+            - generic [ref=f60e320]:
+              - paragraph [ref=f60e321]: Searches related to Toshl help "main currency" accounts exchange rate
+              - generic [ref=f60e322]:
+                - list [ref=f60e323]:
+                  - listitem [ref=f60e324]:
+                    - link "how to filter toshl account" [ref=f60e325] [cursor=pointer]:
+                      - /url: "?q=how%20to%20filter%20toshl%20account&origin=related"
+                  - listitem [ref=f60e328]:
+                    - link "how to filter toshl data" [ref=f60e329] [cursor=pointer]:
+                      - /url: "?q=how%20to%20filter%20toshl%20data&origin=related"
+                  - listitem [ref=f60e332]:
+                    - link "toshl sign in" [ref=f60e333] [cursor=pointer]:
+                      - /url: "?q=toshl%20sign%20in&origin=related"
+                - list [ref=f60e336]:
+                  - listitem [ref=f60e337]:
+                    - link "toshl contact number" [ref=f60e338] [cursor=pointer]:
+                      - /url: "?q=toshl%20contact%20number&origin=related"
+                  - listitem [ref=f60e341]:
+                    - link "toshl help desk" [ref=f60e342] [cursor=pointer]:
+                      - /url: "?q=toshl%20help%20desk&origin=related"
+                  - listitem [ref=f60e345]:
+                    - link "toshl support" [ref=f60e346] [cursor=pointer]:
+                      - /url: "?q=toshl%20support&origin=related"
+        - button "More results" [ref=f60e351] [cursor=pointer]
+    - list [ref=f60e354]:
+      - button "Close menu" [ref=f60e355] [cursor=pointer]
+      - list [ref=f60e359]:
+        - listitem [ref=f60e360]: Search
+        - listitem [ref=f60e361]:
+          - link "Homepage" [ref=f60e362] [cursor=pointer]:
+            - /url: https://start.duckduckgo.com/
+        - listitem [ref=f60e363]:
+          - link "Themes" [ref=f60e364] [cursor=pointer]:
+            - /url: /settings#appearance
+        - listitem [ref=f60e365]:
+          - link "Settings" [ref=f60e366] [cursor=pointer]:
+            - /url: /settings
+      - list [ref=f60e367]:
+        - listitem [ref=f60e368]: Share Feedback
+        - listitem [ref=f60e369]:
+          - generic [ref=f60e372]:
+            - button "Positive feedback" [ref=f60e373] [cursor=pointer]
+            - button "Negative feedback" [ref=f60e377] [cursor=pointer]
+      - list [ref=f60e381]:
+        - listitem [ref=f60e382]: Downloads
+        - listitem [ref=f60e383]:
+          - link "iOS Browser" [ref=f60e384] [cursor=pointer]:
+            - /url: https://apps.apple.com/app/duckduckgo-private-browser/id663592361?platform=iphone&pt=866401&mt=8&ct=serp-atb-serp
+        - listitem [ref=f60e385]:
+          - link "Android Browser" [ref=f60e386] [cursor=pointer]:
+            - /url: https://play.google.com/store/apps/details?id=com.duckduckgo.mobile.android&referrer=utm_campaign%3Dserp-atb-serp%26origin%3Dfunnel_playstore_searchresults
+        - listitem [ref=f60e387]:
+          - link "Mac Browser" [ref=f60e388] [cursor=pointer]:
+            - /url: /mac?origin=funnel_browser_searchresults
+        - listitem [ref=f60e389]:
+          - link "Windows Browser" [ref=f60e390] [cursor=pointer]:
+            - /url: /windows?origin=funnel_browser_searchresults
+        - listitem [ref=f60e391]: Browser Extensions
+      - list [ref=f60e392]:
+        - listitem [ref=f60e393]: More From DuckDuckGo
+        - listitem [ref=f60e394]:
+          - generic [ref=f60e397]:
+            - button "Dismiss promotion" [ref=f60e398] [cursor=pointer]
+            - generic [ref=f60e401]:
+              - paragraph [ref=f60e403]: Upgrade to our Private Browser
+              - paragraph [ref=f60e415]: Fast. Secure. Free.
+            - link "Install Mac Browser" [ref=f60e416] [cursor=pointer]:
+              - /url: /mac
+        - listitem [ref=f60e419]:
+          - link "DuckDuckGo Subscription" [ref=f60e420] [cursor=pointer]:
+            - /url: /pro?origin=funnel_pro_searchresults
+        - listitem [ref=f60e421]:
+          - link "Duck.ai" [ref=f60e422] [cursor=pointer]:
+            - /url: https://duck.ai
+        - listitem [ref=f60e423]:
+          - link "Email Protection" [ref=f60e424] [cursor=pointer]:
+            - /url: /email
+        - listitem [ref=f60e425]:
+          - link "Newsletter" [ref=f60e426] [cursor=pointer]:
+            - /url: /newsletter
+        - listitem [ref=f60e427]:
+          - link "Blog" [ref=f60e428] [cursor=pointer]:
+            - /url: /blog
+        - listitem [ref=f60e429]:
+          - link "Podcast" [ref=f60e430] [cursor=pointer]:
+            - /url: https://insideduckduckgo.substack.com/?showWelcome=true
+        - listitem [ref=f60e431]:
+          - link "Collaborations" [ref=f60e432] [cursor=pointer]:
+            - /url: /collaborations
+      - list [ref=f60e433]:
+        - listitem [ref=f60e434]: Learn More
+        - listitem [ref=f60e435]:
+          - link "What’s New" [ref=f60e436] [cursor=pointer]:
+            - /url: /updates
+        - listitem [ref=f60e437]:
+          - link "Compare Privacy" [ref=f60e438] [cursor=pointer]:
+            - /url: /compare-privacy
+        - listitem [ref=f60e439]:
+          - link "About Our Browser" [ref=f60e440] [cursor=pointer]:
+            - /url: /app
+        - listitem [ref=f60e441]:
+          - link "About DuckDuckGo" [ref=f60e442] [cursor=pointer]:
+            - /url: /about
+      - list [ref=f60e443]:
+        - listitem [ref=f60e444]: Other Resources
+        - listitem [ref=f60e445]:
+          - link "Help" [ref=f60e446] [cursor=pointer]:
+            - /url: /duckduckgo-help-pages
+        - listitem [ref=f60e447]:
+          - link "Community" [ref=f60e448] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/duckduckgo/
+        - listitem [ref=f60e449]:
+          - link "Careers" [ref=f60e450] [cursor=pointer]:
+            - /url: /careers
+        - listitem [ref=f60e451]:
+          - link "Privacy Policy" [ref=f60e452] [cursor=pointer]:
+            - /url: /privacy
+        - listitem [ref=f60e453]:
+          - link "Terms of Service" [ref=f60e454] [cursor=pointer]:
+            - /url: /terms
+        - listitem [ref=f60e455]:
+          - link "Press Kit" [ref=f60e456] [cursor=pointer]:
+            - /url: /press
+        - listitem [ref=f60e457]:
+          - link "Advertise on Search" [ref=f60e458] [cursor=pointer]:
+            - /url: /duckduckgo-help-pages/company/advertise-on-duckduckgo-search
+  - generic [ref=f60e462]:
+    - generic [ref=f60e464]:
+      - generic [ref=f60e481]:
+        - heading "Get Our Mac Browser" [level=3] [ref=f60e482]
+        - paragraph [ref=f60e483]: Protect your data as you search, browse, and use AI.
+      - link "Download" [ref=f60e484] [cursor=pointer]:
+        - /url: https://duckduckgo.com/mac?origin=funnel_browser_searchresults__footercard
+    - generic [ref=f60e488]:
+      - generic [ref=f60e489]:
+        - heading "Learn More" [level=3] [ref=f60e490]
+        - list [ref=f60e491]:
+          - listitem [ref=f60e492]:
+            - link "What's New" [ref=f60e493] [cursor=pointer]:
+              - /url: https://duckduckgo.com/updates
+          - listitem [ref=f60e494]:
+            - link "About Browser" [ref=f60e495] [cursor=pointer]:
+              - /url: https://duckduckgo.com/app
+          - listitem [ref=f60e496]:
+            - link "Compare Privacy" [ref=f60e497] [cursor=pointer]:
+              - /url: https://duckduckgo.com/compare-privacy
+          - listitem [ref=f60e498]:
+            - link "Help Pages" [ref=f60e499] [cursor=pointer]:
+              - /url: https://duckduckgo.com/duckduckgo-help-pages/
+      - generic [ref=f60e500]:
+        - heading "Get More" [level=3] [ref=f60e501]
+        - list [ref=f60e502]:
+          - listitem [ref=f60e503]:
+            - link "Subscription" [ref=f60e504] [cursor=pointer]:
+              - /url: https://duckduckgo.com/pro
+          - listitem [ref=f60e505]:
+            - link "Email Protection" [ref=f60e506] [cursor=pointer]:
+              - /url: https://duckduckgo.com/email
+          - listitem [ref=f60e507]:
+            - generic [ref=f60e508]:
+              - link "Podcast" [ref=f60e510] [cursor=pointer]:
+                - /url: https://insideduckduckgo.substack.com/?showWelcome=true
+              - generic [ref=f60e511]:
+                - text: "&"
+                - link "Newsletter" [ref=f60e512] [cursor=pointer]:
+                  - /url: https://duckduckgo.com/newsletter
+          - listitem [ref=f60e513]:
+            - link "Collaborations" [ref=f60e514] [cursor=pointer]:
+              - /url: https://duckduckgo.com/collaborations
+  - button "Share Feedback" [ref=f60e519] [cursor=pointer]
+  - generic [ref=f60e520]:
+    - generic [ref=f60e522]:
+      - banner [ref=f60e523]:
+        - paragraph [ref=f60e525]: Upgrade to our browser.
+      - generic [ref=f60e526]:
+        - paragraph [ref=f60e532]:
+          - generic [ref=f60e533]:
+            - text: Try the
+            - strong [ref=f60e534]: DuckDuckGo Browser.
+            - text: Fast. Free. Private.
+        - link "Download Browser" [ref=f60e535] [cursor=pointer]:
+          - /url: https://duckduckgo.com/mac?origin=funnel_browser_searchresults__popover
+      - paragraph [ref=f60e541]:
+        - generic [ref=f60e542]: Free
+    - button [ref=f60e544] [cursor=pointer]

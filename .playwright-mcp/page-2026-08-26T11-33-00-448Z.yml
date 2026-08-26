@@ -1,0 +1,164 @@
+- main [ref=f15e5]:
+  - text: 󰅖
+  - navigation [ref=f15e6]:
+    - generic [ref=f15e7]:
+      - link [ref=f15e9] [cursor=pointer]:
+        - /url: /
+        - img "Homepage" [ref=f15e10]
+      - menu [ref=f15e12]:
+        - menuitem [ref=f15e13]:
+          - link "Back to YNAB" [ref=f15e14] [cursor=pointer]:
+            - /url: https://app.ynab.com/
+  - article [ref=f15e17]:
+    - generic [ref=f15e18]:
+      - navigation "Breadcrumbs" [ref=f15e20]:
+        - link "Help Center" [ref=f15e21] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f15e22]: 󰅂
+        - link "Accounts and Transactions" [ref=f15e23] [cursor=pointer]:
+          - /url: /en_us/categories/accounts-and-transactions-r1gWB2RT9
+      - generic [ref=f15e25]:
+        - generic [ref=f15e26]: 󰍉
+        - textbox "Search help articles" [ref=f15e27]
+    - generic [ref=f15e30]:
+      - heading "How to Add an Account" [level=2] [ref=f15e31]
+      - generic [ref=f15e32]: "July 2 2026 6:49pm • Est. Read Time: 3 MIN"
+      - generic [ref=f15e34]:
+        - paragraph [ref=f15e35]: Add an account in YNAB to record your income and track your spending. Choose to link the account for direct import or add an unlinked account, and decide on an account type.
+        - heading "How to Add an Account" [level=3] [ref=f15e36]
+        - paragraph [ref=f15e37]: Here are step-by-step instructions for creating a new bank account in YNAB!
+        - generic [ref=f15e38]:
+          - heading "Some of our account types have more specialized flows and prompts." [level=4] [ref=f15e39]
+          - paragraph [ref=f15e40]: "Because of this, we recommend using these separate and more specific instructions if you're adding any of the following accounts:"
+          - list [ref=f15e41]:
+            - listitem [ref=f15e42]:
+              - paragraph [ref=f15e43]:
+                - strong [ref=f15e44]: Credit Card
+                - text: —
+                - link "How to Add a Credit Card Account" [ref=f15e45] [cursor=pointer]:
+                  - /url: https://support.ynab.com/en_us/handling-credit-cards-overview-ry7cNub1s#process
+            - listitem [ref=f15e46]:
+              - paragraph [ref=f15e47]:
+                - strong [ref=f15e48]: Student Loan
+                - text: —
+                - link "How to Add a Student Loan" [ref=f15e49] [cursor=pointer]:
+                  - /url: https://support.ynab.com/en_us/student-loans-in-ynab-a-guide-B1rUVwKSs#add
+            - listitem [ref=f15e50]:
+              - paragraph [ref=f15e51]:
+                - text: Any of the following
+                - strong [ref=f15e52]: Loan Account
+                - text: "types:"
+                - strong [ref=f15e53]: Mortgage
+                - text: ","
+                - strong [ref=f15e54]: Auto Loan
+                - text: ","
+                - strong [ref=f15e55]: Personal Loan
+                - text: ","
+                - strong [ref=f15e56]: Medical Debt
+                - text: ","
+                - strong [ref=f15e57]: Other Debt
+                - text: —
+                - link "How to Add a Loan Account" [ref=f15e58] [cursor=pointer]:
+                  - /url: https://support.ynab.com/en_us/loan-accounts-in-ynab-a-guide-HkNSkPHJi#addaccount
+                - text: .
+        - generic [ref=f15e59]:
+          - tablist [ref=f15e61]:
+            - tab "iOS" [ref=f15e62] [cursor=pointer]
+            - tab "Android" [ref=f15e63] [cursor=pointer]
+            - tab "Web" [ref=f15e64] [cursor=pointer]
+          - tabpanel [ref=f15e66]:
+            - list [ref=f15e67]:
+              - listitem [ref=f15e68]:
+                - paragraph [ref=f15e69]:
+                  - text: Tap the
+                  - emphasis [ref=f15e70]: Accounts
+                  - text: tab at the bottom of the app.
+              - listitem [ref=f15e71]:
+                - paragraph [ref=f15e72]:
+                  - text: Tap
+                  - emphasis [ref=f15e73]: Add Account.
+              - listitem [ref=f15e74]:
+                - paragraph [ref=f15e75]:
+                  - text: Search for your financial institution or click on one of the popular options to
+                  - link "Link" [ref=f15e76] [cursor=pointer]:
+                    - /url: https://support.ynab.com/en_us/linked-accounts-B1991f2Cc
+                  - text: to a bank connection and import transactions. Or, select
+                  - emphasis [ref=f15e77]: Unlinked
+                  - text: to enter your own transactions.
+              - listitem [ref=f15e78]:
+                - paragraph [ref=f15e79]: Enter a nickname for the account.
+              - listitem [ref=f15e80]:
+                - paragraph [ref=f15e81]:
+                  - text: Select an
+                  - link "account type" [ref=f15e82] [cursor=pointer]:
+                    - /url: https://support.ynab.com/en_us/account-types-an-overview-BkmGM0qCq
+                  - text: .
+              - listitem [ref=f15e83]:
+                - paragraph [ref=f15e84]: Enter today's current balance. (If you linked the account, your balance should import automatically.)
+              - listitem [ref=f15e85]:
+                - paragraph [ref=f15e86]:
+                  - text: Tap
+                  - emphasis [ref=f15e87]: Next
+                  - text: .
+              - listitem [ref=f15e88]:
+                - paragraph [ref=f15e89]:
+                  - text: On the Success page, tap
+                  - emphasis [ref=f15e90]: Done
+                  - text: to complete the process and find your new account in your list!
+            - generic [ref=f15e91]:
+              - heading "Adding Multiple Accounts" [level=4] [ref=f15e92]
+              - paragraph [ref=f15e93]: When linking accounts, you can add multiple accounts from the same bank at once. After you connect to your bank, select the accounts from the provided list, edit the account details if necessary, and follow the prompts to finish.
+        - paragraph [ref=f15e94]:
+          - link "Back to Top" [ref=f15e95] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f15e96]
+        - heading "Help Us Help You!" [level=2] [ref=f15e97]
+        - paragraph [ref=f15e98]:
+          - text: Our Knowledge Base team reviews article feedback responses weekly, and we actively revise these articles to make them as helpful as possible. That's where you come in! Our articles are scored based on the
+          - emphasis [ref=f15e99]: "Yes"
+          - text: or
+          - emphasis [ref=f15e100]: "No"
+          - text: ratings received below. We also collect freeform feedback for any
+          - emphasis [ref=f15e101]: "No"
+          - text: ratings (so our team can focus in on what you were specifically searching for!).
+        - paragraph [ref=f15e102]:
+          - strong [ref=f15e103]: Success
+          - text: ": Found what you were searching for? It would be super helpful if you click"
+          - emphasis [ref=f15e104]: "Yes"
+          - text: below.
+        - paragraph [ref=f15e105]:
+          - strong [ref=f15e106]: Suggestions
+          - text: ": Didn't find what you're searching for and you'd like to share what terms or topics you wanted?"
+          - strong [ref=f15e107]
+          - text: Click
+          - emphasis [ref=f15e108]: "No"
+          - text: below. You'll then be able to submit your feedback about this article.
+          - strong [ref=f15e109]: "Please note:"
+          - text: the feedback submissions are anonymous, and we’re not able to respond, so make sure to use the next option if you have a specific scenario or question you would like a response to.
+        - paragraph [ref=f15e110]:
+          - strong [ref=f15e111]: Support
+          - text: ": If you have a question or would like a response to your specific question,"
+          - link "tell the chatbot you need a human or send us an email" [ref=f15e112] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/how-to-get-help-SygqcvtC5
+          - text: to ensure that your message gets to our Support team!
+    - generic [ref=f15e114]:
+      - generic [ref=f15e115]: Was this article helpful?
+      - generic [ref=f15e116]:
+        - button "Yes" [ref=f15e117]
+        - button "No" [ref=f15e118]
+  - generic [ref=f15e120]:
+    - generic [ref=f15e121]:
+      - heading "Still have questions?" [level=2] [ref=f15e122]
+      - heading [level=3]
+    - link "Contact Us" [ref=f15e125] [cursor=pointer]:
+      - /url: https://support.ynab.com/contact/contact-us-B1OG9RFfj
+  - generic [ref=f15e128]:
+    - link "Back to Top" [ref=f15e130] [cursor=pointer]:
+      - /url: "#top"
+      - generic [ref=f15e132]: 󰁝
+    - menu:
+      - listitem:
+        - link:
+          - /url: ""
+    - separator [ref=f15e133]
+    - generic [ref=f15e134]: © ynab.com 2026

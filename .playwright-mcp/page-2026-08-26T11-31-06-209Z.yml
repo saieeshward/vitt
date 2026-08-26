@@ -1,0 +1,325 @@
+- generic [active] [ref=f52e1]:
+  - link "Skip to main content" [ref=f52e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f52e3]:
+    - link "Money Manager Help Center Help Center home page Money Manager Help Center" [ref=f52e5] [cursor=pointer]:
+      - /url: /hc/en-us
+      - img "Money Manager Help Center Help Center home page" [ref=f52e6]
+      - generic [ref=f52e7]: Money Manager Help Center
+    - generic:
+      - navigation
+    - link "Submit a request" [ref=f52e9] [cursor=pointer]:
+      - /url: requests/new
+  - main [ref=f52e10]:
+    - generic [ref=f52e12]:
+      - navigation [ref=f52e13]:
+        - list [ref=f52e14]:
+          - listitem "Money Manager Help Center" [ref=f52e15]:
+            - link "Money Manager Help Center" [ref=f52e16] [cursor=pointer]:
+              - /url: /hc/en-us
+          - listitem "Search results" [ref=f52e17]: "> Search results"
+        - search [ref=f52e22]:
+          - searchbox "Search" [ref=f52e23]: initial balance
+      - generic [ref=f52e24]:
+        - complementary [ref=f52e25]:
+          - generic [ref=f52e26]:
+            - heading "By Category" [level=3] [ref=f52e27]
+            - list [ref=f52e28]:
+              - listitem [ref=f52e29]:
+                - link "All Categories (33)" [ref=f52e30] [cursor=pointer]:
+                  - /url: /hc/en-us/search?filter_by=knowledge_base&query=initial+balance&utf8=%E2%9C%93
+              - listitem [ref=f52e31]:
+                - link "Android User Guide (18)" [ref=f52e32] [cursor=pointer]:
+                  - /url: /hc/en-us/search?category=360003093993&filter_by=knowledge_base&query=initial+balance&utf8=%E2%9C%93
+              - listitem [ref=f52e33]:
+                - link "iOS User Guide (15)" [ref=f52e34] [cursor=pointer]:
+                  - /url: /hc/en-us/search?category=360003093873&filter_by=knowledge_base&query=initial+balance&utf8=%E2%9C%93
+              - text: ⌄
+        - generic [ref=f52e35]:
+          - heading "33 results for \"initial balance\" in All Categories" [level=1] [ref=f52e36]
+          - list [ref=f52e37]:
+            - listitem [ref=f52e38]:
+              - heading [level=2] [ref=f52e39]:
+                - link "How to exclude balance of certain accounts from totals" [ref=f52e40] [cursor=pointer]:
+                  - /url: /hc/en-us/search/click?data=BAh7DjoHaWRsKwjaSWzUUwA6D2FjY291bnRfaWRpAxT1iToJdHlwZUkiDGFydGljbGUGOgZFVDoIdXJsSSJ4aHR0cHM6Ly9oZWxwLnJlYWxieXRlYXBwcy5jb20vaGMvZW4tdXMvYXJ0aWNsZXMvMzYwMDQ2MTUyMTU0LUhvdy10by1leGNsdWRlLWJhbGFuY2Utb2YtY2VydGFpbi1hY2NvdW50cy1mcm9tLXRvdGFscwY7CFQ6DnNlYXJjaF9pZEkiKWJlNmI2MTdkLWIyM2UtNDdmYy04YzYyLWNjZmIxNmIyM2U3YwY7CEY6CXJhbmtpBjoLbG9jYWxlSSIKZW4tdXMGOwhUOgpxdWVyeUkiFGluaXRpYWwgYmFsYW5jZQY7CFQ6EnJlc3VsdHNfY291bnRpJg%3D%3D--f1c2703fdf9632147b24d94406a30697eb94751f
+              - generic [ref=f52e42]:
+                - generic [ref=f52e43]: 60 votes
+                - generic [ref=f52e44]: "60"
+              - article [ref=f52e49]:
+                - list [ref=f52e50]:
+                  - listitem [ref=f52e51]:
+                    - list [ref=f52e52]:
+                      - listitem "Android User Guide" [ref=f52e53]:
+                        - link "Android User Guide" [ref=f52e54] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/categories/360003093993-Android-User-Guide
+                      - listitem "Accounts Management" [ref=f52e55]:
+                        - text: ">"
+                        - link "Accounts Management" [ref=f52e56] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/sections/360007273233-Accounts-Management
+                  - listitem [ref=f52e57]: Realbyte Support
+                  - listitem [ref=f52e58]:
+                    - time [ref=f52e59]: April 14, 2020 at 9:01 AM
+                - generic [ref=f52e60]:
+                  - text: Users may set the
+                  - emphasis [ref=f52e61]: balance
+                  - text: of certain accounts not to be reflected in their total amount in the 'Accounts' tab. This feature
+            - listitem [ref=f52e62]:
+              - heading [level=2] [ref=f52e63]:
+                - link "How to exclude balance of certain accounts from totals" [ref=f52e64] [cursor=pointer]:
+                  - /url: /hc/en-us/search/click?data=BAh7DjoHaWRsKwhq0znUUwA6D2FjY291bnRfaWRpAxT1iToJdHlwZUkiDGFydGljbGUGOgZFVDoIdXJsSSJ4aHR0cHM6Ly9oZWxwLnJlYWxieXRlYXBwcy5jb20vaGMvZW4tdXMvYXJ0aWNsZXMvMzYwMDQyODQ1MDM0LUhvdy10by1leGNsdWRlLWJhbGFuY2Utb2YtY2VydGFpbi1hY2NvdW50cy1mcm9tLXRvdGFscwY7CFQ6DnNlYXJjaF9pZEkiKWJlNmI2MTdkLWIyM2UtNDdmYy04YzYyLWNjZmIxNmIyM2U3YwY7CEY6CXJhbmtpBzoLbG9jYWxlSSIKZW4tdXMGOwhUOgpxdWVyeUkiFGluaXRpYWwgYmFsYW5jZQY7CFQ6EnJlc3VsdHNfY291bnRpJg%3D%3D--a054c4c85bc63f934c2219e0621485f95f2ac44a
+              - generic [ref=f52e66]:
+                - generic [ref=f52e67]: 36 votes
+                - generic [ref=f52e68]: "36"
+              - article [ref=f52e73]:
+                - list [ref=f52e74]:
+                  - listitem [ref=f52e75]:
+                    - list [ref=f52e76]:
+                      - listitem "iOS User Guide" [ref=f52e77]:
+                        - link "iOS User Guide" [ref=f52e78] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/categories/360003093873-iOS-User-Guide
+                      - listitem "Accounts Management" [ref=f52e79]:
+                        - text: ">"
+                        - link "Accounts Management" [ref=f52e80] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/sections/360007232594-Accounts-Management
+                  - listitem [ref=f52e81]: Realbyte Support
+                  - listitem [ref=f52e82]:
+                    - time [ref=f52e83]: February 13, 2020 at 5:38 AM
+                - generic [ref=f52e84]:
+                  - text: Users may set the
+                  - emphasis [ref=f52e85]: balance
+                  - text: of certain accounts not to be reflected in their total amount in the 'Accounts' tab. This feature
+            - listitem [ref=f52e86]:
+              - heading [level=2] [ref=f52e87]:
+                - link "Android 3.8.x Update (January 2018)" [ref=f52e88] [cursor=pointer]:
+                  - /url: /hc/en-us/search/click?data=BAh7DjoHaWRsKwjOFKPUUwA6D2FjY291bnRfaWRpAxT1iToJdHlwZUkiDGFydGljbGUGOgZFVDoIdXJsSSJjaHR0cHM6Ly9oZWxwLnJlYWxieXRlYXBwcy5jb20vaGMvZW4tdXMvYXJ0aWNsZXMvMzYwMDQ5NzQzMDU0LUFuZHJvaWQtMy04LXgtVXBkYXRlLUphbnVhcnktMjAxOAY7CFQ6DnNlYXJjaF9pZEkiKWJlNmI2MTdkLWIyM2UtNDdmYy04YzYyLWNjZmIxNmIyM2U3YwY7CEY6CXJhbmtpCDoLbG9jYWxlSSIKZW4tdXMGOwhUOgpxdWVyeUkiFGluaXRpYWwgYmFsYW5jZQY7CFQ6EnJlc3VsdHNfY291bnRpJg%3D%3D--c2d91a3b78b1a9659b65c57d306cf905ec9a2a50
+              - generic [ref=f52e90]:
+                - generic [ref=f52e91]: "-8 votes"
+                - generic [ref=f52e92]: "-8"
+              - article [ref=f52e97]:
+                - list [ref=f52e98]:
+                  - listitem [ref=f52e99]:
+                    - list [ref=f52e100]:
+                      - listitem "Android User Guide" [ref=f52e101]:
+                        - link "Android User Guide" [ref=f52e102] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/categories/360003093993-Android-User-Guide
+                      - listitem "What's new" [ref=f52e103]:
+                        - text: ">"
+                        - link "What's new" [ref=f52e104] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/sections/360007273533-What-s-new
+                  - listitem [ref=f52e105]: Realbyte Support
+                  - listitem [ref=f52e106]:
+                    - time [ref=f52e107]: June 18, 2020 at 4:36 AM
+                - generic [ref=f52e108]:
+                  - text: Past Payable
+                  - emphasis [ref=f52e109]: Balance
+                  - text: ": Past – 9th of Dec Current Payable"
+                  - emphasis [ref=f52e110]: Balance
+                  - text: ": 10th of Dec – 9th of Jan. Outstanding"
+                  - emphasis [ref=f52e111]: Balance
+                  - text: ": 10th of Jan"
+            - listitem [ref=f52e112]:
+              - heading [level=2] [ref=f52e113]:
+                - link "How to use debit cards" [ref=f52e114] [cursor=pointer]:
+                  - /url: /hc/en-us/search/click?data=BAh7DjoHaWRsKwgRTaHSUwA6D2FjY291bnRfaWRpAxT1iToJdHlwZUkiDGFydGljbGUGOgZFVDoIdXJsSSJYaHR0cHM6Ly9oZWxwLnJlYWxieXRlYXBwcy5jb20vaGMvZW4tdXMvYXJ0aWNsZXMvMzYwMDE2MDcxOTUzLUhvdy10by11c2UtZGViaXQtY2FyZHMGOwhUOg5zZWFyY2hfaWRJIiliZTZiNjE3ZC1iMjNlLTQ3ZmMtOGM2Mi1jY2ZiMTZiMjNlN2MGOwhGOglyYW5raQk6C2xvY2FsZUkiCmVuLXVzBjsIVDoKcXVlcnlJIhRpbml0aWFsIGJhbGFuY2UGOwhUOhJyZXN1bHRzX2NvdW50aSY%3D--5fca188c348f85dee59d44100ca2032c408917ef
+              - generic [ref=f52e116]:
+                - generic [ref=f52e117]: 263 votes
+                - generic [ref=f52e118]: "263"
+              - article [ref=f52e123]:
+                - list [ref=f52e124]:
+                  - listitem [ref=f52e125]:
+                    - list [ref=f52e126]:
+                      - listitem "Android User Guide" [ref=f52e127]:
+                        - link "Android User Guide" [ref=f52e128] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/categories/360003093993-Android-User-Guide
+                      - listitem "Card Management" [ref=f52e129]:
+                        - text: ">"
+                        - link "Card Management" [ref=f52e130] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/sections/360007273353-Card-Management
+                  - listitem [ref=f52e131]: Realbyte Support
+                  - listitem [ref=f52e132]:
+                    - time [ref=f52e133]: January 22, 2019 at 2:54 AM
+                - generic [ref=f52e134]:
+                  - text: add an expense entry using the debit card, the
+                  - emphasis [ref=f52e135]: balance
+                  - text: will be deducted from the linked bank account automatically
+            - listitem [ref=f52e136]:
+              - heading [level=2] [ref=f52e137]:
+                - link "How to use debit cards" [ref=f52e138] [cursor=pointer]:
+                  - /url: /hc/en-us/search/click?data=BAh7DjoHaWRsKwhukjrUUwA6D2FjY291bnRfaWRpAxT1iToJdHlwZUkiDGFydGljbGUGOgZFVDoIdXJsSSJYaHR0cHM6Ly9oZWxwLnJlYWxieXRlYXBwcy5jb20vaGMvZW4tdXMvYXJ0aWNsZXMvMzYwMDQyODkzOTM0LUhvdy10by11c2UtZGViaXQtY2FyZHMGOwhUOg5zZWFyY2hfaWRJIiliZTZiNjE3ZC1iMjNlLTQ3ZmMtOGM2Mi1jY2ZiMTZiMjNlN2MGOwhGOglyYW5raQo6C2xvY2FsZUkiCmVuLXVzBjsIVDoKcXVlcnlJIhRpbml0aWFsIGJhbGFuY2UGOwhUOhJyZXN1bHRzX2NvdW50aSY%3D--3767fab6eaa6e34571a20215b0d5c4443e251a15
+              - generic [ref=f52e140]:
+                - generic [ref=f52e141]: 106 votes
+                - generic [ref=f52e142]: "106"
+              - article [ref=f52e147]:
+                - list [ref=f52e148]:
+                  - listitem [ref=f52e149]:
+                    - list [ref=f52e150]:
+                      - listitem "iOS User Guide" [ref=f52e151]:
+                        - link "iOS User Guide" [ref=f52e152] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/categories/360003093873-iOS-User-Guide
+                      - listitem "Card Management" [ref=f52e153]:
+                        - text: ">"
+                        - link "Card Management" [ref=f52e154] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/sections/360007273513-Card-Management
+                  - listitem [ref=f52e155]: Realbyte Support
+                  - listitem [ref=f52e156]:
+                    - time [ref=f52e157]: February 14, 2020 at 6:33 AM
+                - generic [ref=f52e158]:
+                  - text: add an expense entry using the debit card, the
+                  - emphasis [ref=f52e159]: balance
+                  - text: will be deducted from the linked bank account automatically
+            - listitem [ref=f52e160]:
+              - heading [level=2] [ref=f52e161]:
+                - link "How to display credit card usage amount" [ref=f52e162] [cursor=pointer]:
+                  - /url: /hc/en-us/search/click?data=BAh7DjoHaWRsKwglTaHSUwA6D2FjY291bnRfaWRpAxT1iToJdHlwZUkiDGFydGljbGUGOgZFVDoIdXJsSSJpaHR0cHM6Ly9oZWxwLnJlYWxieXRlYXBwcy5jb20vaGMvZW4tdXMvYXJ0aWNsZXMvMzYwMDE2MDcxOTczLUhvdy10by1kaXNwbGF5LWNyZWRpdC1jYXJkLXVzYWdlLWFtb3VudAY7CFQ6DnNlYXJjaF9pZEkiKWJlNmI2MTdkLWIyM2UtNDdmYy04YzYyLWNjZmIxNmIyM2U3YwY7CEY6CXJhbmtpCzoLbG9jYWxlSSIKZW4tdXMGOwhUOgpxdWVyeUkiFGluaXRpYWwgYmFsYW5jZQY7CFQ6EnJlc3VsdHNfY291bnRpJg%3D%3D--f4d24c9b050cfc84b870bb19e2c40f1f2d46faeb
+              - generic [ref=f52e164]:
+                - generic [ref=f52e165]: 49 votes
+                - generic [ref=f52e166]: "49"
+              - article [ref=f52e171]:
+                - list [ref=f52e172]:
+                  - listitem [ref=f52e173]:
+                    - list [ref=f52e174]:
+                      - listitem "Android User Guide" [ref=f52e175]:
+                        - link "Android User Guide" [ref=f52e176] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/categories/360003093993-Android-User-Guide
+                      - listitem "Card Management" [ref=f52e177]:
+                        - text: ">"
+                        - link "Card Management" [ref=f52e178] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/sections/360007273353-Card-Management
+                  - listitem [ref=f52e179]: Realbyte Support
+                  - listitem [ref=f52e180]:
+                    - time [ref=f52e181]: January 22, 2019 at 2:55 AM
+                - generic [ref=f52e182]:
+                  - text: "'Payment Date' setting indicates the"
+                  - emphasis [ref=f52e183]: balance
+                  - text: payable and outstanding
+                  - emphasis [ref=f52e184]: balance
+                  - text: separately.
+            - listitem [ref=f52e185]:
+              - heading [level=2] [ref=f52e186]:
+                - link "How to display credit card usage amount" [ref=f52e187] [cursor=pointer]:
+                  - /url: /hc/en-us/search/click?data=BAh7DjoHaWRsKwhxrVzUUwA6D2FjY291bnRfaWRpAxT1iToJdHlwZUkiDGFydGljbGUGOgZFVDoIdXJsSSJpaHR0cHM6Ly9oZWxwLnJlYWxieXRlYXBwcy5jb20vaGMvZW4tdXMvYXJ0aWNsZXMvMzYwMDQ1MTI5MDczLUhvdy10by1kaXNwbGF5LWNyZWRpdC1jYXJkLXVzYWdlLWFtb3VudAY7CFQ6DnNlYXJjaF9pZEkiKWJlNmI2MTdkLWIyM2UtNDdmYy04YzYyLWNjZmIxNmIyM2U3YwY7CEY6CXJhbmtpDDoLbG9jYWxlSSIKZW4tdXMGOwhUOgpxdWVyeUkiFGluaXRpYWwgYmFsYW5jZQY7CFQ6EnJlc3VsdHNfY291bnRpJg%3D%3D--db70f87ac1be14f1e868f898ac2bfcd62c78c8fa
+              - generic [ref=f52e189]:
+                - generic [ref=f52e190]: 27 votes
+                - generic [ref=f52e191]: "27"
+              - article [ref=f52e196]:
+                - list [ref=f52e197]:
+                  - listitem [ref=f52e198]:
+                    - list [ref=f52e199]:
+                      - listitem "iOS User Guide" [ref=f52e200]:
+                        - link "iOS User Guide" [ref=f52e201] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/categories/360003093873-iOS-User-Guide
+                      - listitem "Card Management" [ref=f52e202]:
+                        - text: ">"
+                        - link "Card Management" [ref=f52e203] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/sections/360007273513-Card-Management
+                  - listitem [ref=f52e204]: Realbyte Support
+                  - listitem [ref=f52e205]:
+                    - time [ref=f52e206]: March 17, 2020 at 12:48 AM
+                - generic [ref=f52e207]:
+                  - text: "'Payment Date' setting indicates the"
+                  - emphasis [ref=f52e208]: balance
+                  - text: payable and outstanding
+                  - emphasis [ref=f52e209]: balance
+                  - text: separately.
+            - listitem [ref=f52e210]:
+              - heading [level=2] [ref=f52e211]:
+                - link "How to settle credit card payments" [ref=f52e212] [cursor=pointer]:
+                  - /url: /hc/en-us/search/click?data=BAh7DjoHaWRsKwiipZ%2FSUwA6D2FjY291bnRfaWRpAxT1iToJdHlwZUkiDGFydGljbGUGOgZFVDoIdXJsSSJkaHR0cHM6Ly9oZWxwLnJlYWxieXRlYXBwcy5jb20vaGMvZW4tdXMvYXJ0aWNsZXMvMzYwMDE1OTYzNTU0LUhvdy10by1zZXR0bGUtY3JlZGl0LWNhcmQtcGF5bWVudHMGOwhUOg5zZWFyY2hfaWRJIiliZTZiNjE3ZC1iMjNlLTQ3ZmMtOGM2Mi1jY2ZiMTZiMjNlN2MGOwhGOglyYW5raQ06C2xvY2FsZUkiCmVuLXVzBjsIVDoKcXVlcnlJIhRpbml0aWFsIGJhbGFuY2UGOwhUOhJyZXN1bHRzX2NvdW50aSY%3D--00eb7fa36f54d1752649089f33b98d2e7c97e1ba
+              - generic [ref=f52e214]:
+                - generic [ref=f52e215]: 145 votes
+                - generic [ref=f52e216]: "145"
+              - article [ref=f52e221]:
+                - list [ref=f52e222]:
+                  - listitem [ref=f52e223]:
+                    - list [ref=f52e224]:
+                      - listitem "Android User Guide" [ref=f52e225]:
+                        - link "Android User Guide" [ref=f52e226] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/categories/360003093993-Android-User-Guide
+                      - listitem "Card Management" [ref=f52e227]:
+                        - text: ">"
+                        - link "Card Management" [ref=f52e228] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/sections/360007273353-Card-Management
+                  - listitem [ref=f52e229]: Realbyte Support
+                  - listitem [ref=f52e230]:
+                    - time [ref=f52e231]: January 22, 2019 at 2:53 AM
+                - generic [ref=f52e232]:
+                  - text: the expected payment
+                  - emphasis [ref=f52e233]: balance
+                  - text: is counted from 1st of Mar to 31st of Mar. And the outstanding
+                  - emphasis [ref=f52e234]: balance
+                  - text: is from 1st of Apr. to
+            - listitem [ref=f52e235]:
+              - heading [level=2] [ref=f52e236]:
+                - link "How to change credit card payment date" [ref=f52e237] [cursor=pointer]:
+                  - /url: /hc/en-us/search/click?data=BAh7DjoHaWRsKwjKpZ%2FSUwA6D2FjY291bnRfaWRpAxT1iToJdHlwZUkiDGFydGljbGUGOgZFVDoIdXJsSSJoaHR0cHM6Ly9oZWxwLnJlYWxieXRlYXBwcy5jb20vaGMvZW4tdXMvYXJ0aWNsZXMvMzYwMDE1OTYzNTk0LUhvdy10by1jaGFuZ2UtY3JlZGl0LWNhcmQtcGF5bWVudC1kYXRlBjsIVDoOc2VhcmNoX2lkSSIpYmU2YjYxN2QtYjIzZS00N2ZjLThjNjItY2NmYjE2YjIzZTdjBjsIRjoJcmFua2kOOgtsb2NhbGVJIgplbi11cwY7CFQ6CnF1ZXJ5SSIUaW5pdGlhbCBiYWxhbmNlBjsIVDoScmVzdWx0c19jb3VudGkm--560579314f35bd615aa557cd3e1b65d4384fe492
+              - generic [ref=f52e239]:
+                - generic [ref=f52e240]: 194 votes
+                - generic [ref=f52e241]: "194"
+              - article [ref=f52e246]:
+                - list [ref=f52e247]:
+                  - listitem [ref=f52e248]:
+                    - list [ref=f52e249]:
+                      - listitem "Android User Guide" [ref=f52e250]:
+                        - link "Android User Guide" [ref=f52e251] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/categories/360003093993-Android-User-Guide
+                      - listitem "Card Management" [ref=f52e252]:
+                        - text: ">"
+                        - link "Card Management" [ref=f52e253] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/sections/360007273353-Card-Management
+                  - listitem [ref=f52e254]: Realbyte Support
+                  - listitem [ref=f52e255]:
+                    - time [ref=f52e256]: January 22, 2019 at 2:54 AM
+                - generic [ref=f52e257]:
+                  - text: indicates the date when the division between payable
+                  - emphasis [ref=f52e258]: balance
+                  - text: and outstanding
+                  - emphasis [ref=f52e259]: balance
+                  - text: occurs. A typical credit card issuer allows
+            - listitem [ref=f52e260]:
+              - heading [level=2] [ref=f52e261]:
+                - link "How to settle credit card payments" [ref=f52e262] [cursor=pointer]:
+                  - /url: /hc/en-us/search/click?data=BAh7DjoHaWRsKwj9LELUUwA6D2FjY291bnRfaWRpAxT1iToJdHlwZUkiDGFydGljbGUGOgZFVDoIdXJsSSJkaHR0cHM6Ly9oZWxwLnJlYWxieXRlYXBwcy5jb20vaGMvZW4tdXMvYXJ0aWNsZXMvMzYwMDQzMzkyMjUzLUhvdy10by1zZXR0bGUtY3JlZGl0LWNhcmQtcGF5bWVudHMGOwhUOg5zZWFyY2hfaWRJIiliZTZiNjE3ZC1iMjNlLTQ3ZmMtOGM2Mi1jY2ZiMTZiMjNlN2MGOwhGOglyYW5raQ86C2xvY2FsZUkiCmVuLXVzBjsIVDoKcXVlcnlJIhRpbml0aWFsIGJhbGFuY2UGOwhUOhJyZXN1bHRzX2NvdW50aSY%3D--1cbce07ba5f717a5803ae66ed4f68ffd30038741
+              - generic [ref=f52e264]:
+                - generic [ref=f52e265]: 251 votes
+                - generic [ref=f52e266]: "251"
+              - article [ref=f52e271]:
+                - list [ref=f52e272]:
+                  - listitem [ref=f52e273]:
+                    - list [ref=f52e274]:
+                      - listitem "iOS User Guide" [ref=f52e275]:
+                        - link "iOS User Guide" [ref=f52e276] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/categories/360003093873-iOS-User-Guide
+                      - listitem "Card Management" [ref=f52e277]:
+                        - text: ">"
+                        - link "Card Management" [ref=f52e278] [cursor=pointer]:
+                          - /url: https://help.realbyteapps.com/hc/en-us/sections/360007273513-Card-Management
+                  - listitem [ref=f52e279]: Realbyte Support
+                  - listitem [ref=f52e280]:
+                    - time [ref=f52e281]: February 14, 2020 at 6:38 AM
+                - generic [ref=f52e282]:
+                  - text: the expected payment
+                  - emphasis [ref=f52e283]: balance
+                  - text: is counted from 1st of Mar to 31st of Mar. And the outstanding
+                  - emphasis [ref=f52e284]: balance
+                  - text: is from 1st of Apr. to
+      - navigation "Pagination" [ref=f52e285]:
+        - list [ref=f52e286]:
+          - listitem [ref=f52e287]:
+            - link "Next" [ref=f52e288] [cursor=pointer]:
+              - /url: /hc/en-us/search?page=2&query=initial+balance#results
+              - text: Next ›
+          - listitem [ref=f52e289]:
+            - link "Last" [ref=f52e290] [cursor=pointer]:
+              - /url: /hc/en-us/search?page=4&query=initial+balance#results
+              - text: »
+  - contentinfo [ref=f52e292]:
+    - button "English" [ref=f52e296] [cursor=pointer]
+    - link "Money Manager Help Center" [ref=f52e300] [cursor=pointer]:
+      - /url: /hc/en-us
+    - generic [ref=f52e302]:
+      - link "Privacy Policy" [ref=f52e303] [cursor=pointer]:
+        - /url: https://realbyteapps.com/policy/privacy.html
+      - text: "|"
+      - link "Contact Us" [ref=f52e304] [cursor=pointer]:
+        - /url: mailto:help@realbyteapps.com
+    - generic [ref=f52e305]: Copyright @2010 Realbyte Inc.

@@ -1,0 +1,25 @@
+- generic [active] [ref=f30e1]:
+  - banner [ref=f30e2]:
+    - link "BudgetBakers Help" [ref=f30e3] [cursor=pointer]:
+      - /url: /
+    - button "Toggle light/dark theme" [ref=f30e5] [cursor=pointer]: ◐
+  - main [ref=f30e6]:
+    - heading "How can we help?" [level=1] [ref=f30e7]
+    - paragraph [ref=f30e8]: Choose your app to browse its guides and answers.
+    - generic [ref=f30e9]:
+      - link "Wallet Personal & Family Finance Manager" [ref=f30e10] [cursor=pointer]:
+        - /url: /wallet
+        - generic [ref=f30e11]: Wallet
+        - generic [ref=f30e12]: Personal & Family Finance Manager
+      - link "Board Cash Flow for Small Business" [ref=f30e13] [cursor=pointer]:
+        - /url: /board
+        - generic [ref=f30e14]: Board
+        - generic [ref=f30e15]: Cash Flow for Small Business
+      - link "ShareCost Split Expenses with Groups" [ref=f30e16] [cursor=pointer]:
+        - /url: /sharecost
+        - generic [ref=f30e17]: ShareCost
+        - generic [ref=f30e18]: Split Expenses with Groups
+  - contentinfo [ref=f30e19]:
+    - text: BudgetBakers Help Center ·
+    - link "Search all articles" [ref=f30e20] [cursor=pointer]:
+      - /url: ""

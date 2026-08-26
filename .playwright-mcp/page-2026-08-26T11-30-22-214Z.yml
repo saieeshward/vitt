@@ -1,0 +1,146 @@
+- generic [active] [ref=f24e1]:
+  - link "Skip to main content" [ref=f24e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f24e3]:
+    - banner [ref=f24e5]:
+      - generic [ref=f24e7]:
+        - generic [ref=f24e8]:
+          - link [ref=f24e11] [cursor=pointer]:
+            - /url: /hc/en-us
+            - img "Logo" [ref=f24e12]
+          - paragraph [ref=f24e13]:
+            - link "Help Center" [ref=f24e14] [cursor=pointer]:
+              - /url: /hc/en-us
+        - button [ref=f24e18] [cursor=pointer]
+    - main [ref=f24e24]:
+      - generic [ref=f24e26]:
+        - list [ref=f24e29]:
+          - listitem "Help | Monarch Money" [ref=f24e30]:
+            - link "Help | Monarch Money" [ref=f24e31] [cursor=pointer]:
+              - /url: /hc/en-us
+          - listitem "Financial Accounts & Connectivity" [ref=f24e32]:
+            - link "Financial Accounts & Connectivity" [ref=f24e33] [cursor=pointer]:
+              - /url: /hc/en-us/categories/32460790174868-Financial-Accounts-Connectivity
+          - listitem "Account Management" [ref=f24e34]:
+            - link "Account Management" [ref=f24e35] [cursor=pointer]:
+              - /url: /hc/en-us/sections/32460844908692-Account-Management
+        - generic [ref=f24e36]:
+          - generic [ref=f24e37]:
+            - article [ref=f24e38]:
+              - generic [ref=f24e39]:
+                - heading "Manual Accounts" [level=1] [ref=f24e40]
+                - generic [ref=f24e43]:
+                  - generic [ref=f24e45]:
+                    - text: 
+                    - img "Avatar" [ref=f24e46]
+                  - generic [ref=f24e47]:
+                    - text: by Laura
+                    - generic [ref=f24e48]:
+                      - text: Last Updated
+                      - time [ref=f24e49]: May 14, 2026
+              - generic [ref=f24e50]:
+                - paragraph [ref=f24e51]: If you have an asset without an online connection (like a boat, jewelry, or cash), you can create a manual account to track it.
+                - paragraph [ref=f24e52]: Manual accounts can also be used for accounts that cannot be connected through our third-party aggregators. For example, mortgages, car loans, and some retirement accounts may not always work well with aggregators, and may have a hard time staying connected or syncing. Rather than continuously needing to updated your login credentials, you can simply update the balance when needed.
+                - paragraph [ref=f24e53]: These manual accounts work especially well when the asset or account doesn’t have many transactions and the balance of the account doesn’t change often.
+                - paragraph [ref=f24e54]: As the name implies, manual accounts track balances and transactions manually, so this information is updated by hand.
+                - heading "Table of Contents" [level=3] [ref=f24e55]
+                - list [ref=f24e56]:
+                  - listitem [ref=f24e57]:
+                    - link "Adding a Manual Account" [ref=f24e58] [cursor=pointer]:
+                      - /url: "#h_01KRK9S5RJGP3AP51E45PBHGPM"
+                  - listitem [ref=f24e59]:
+                    - link "Manual Account Balance Updates" [ref=f24e60] [cursor=pointer]:
+                      - /url: "#h_01K622G9PCD8NZXYYQ4GXT1PAP"
+                  - listitem [ref=f24e61]:
+                    - link "Manual Account Transaction Updates" [ref=f24e62] [cursor=pointer]:
+                      - /url: "#h_01K622GD6TGAZWZJ88Q292B120"
+                - heading "Adding a Manual Account" [level=3] [ref=f24e63]
+                - paragraph [ref=f24e64]: "To add a manual account in Monarch:"
+                - list [ref=f24e65]:
+                  - listitem [ref=f24e66]:
+                    - text: Navigate to the
+                    - strong [ref=f24e67]: Accounts
+                    - text: page
+                  - listitem [ref=f24e68]:
+                    - text: Select
+                    - strong [ref=f24e69]: +Add Account
+                  - listitem [ref=f24e70]:
+                    - text: Select
+                    - strong [ref=f24e71]: Add manual account
+                  - listitem [ref=f24e72]: Select the account type (e.g. cash, vehicles, loans, etc.)
+                  - listitem [ref=f24e73]: Enter the account name, type, and current balance
+                  - listitem [ref=f24e74]:
+                    - text: Select
+                    - strong [ref=f24e75]: Save
+                - paragraph [ref=f24e76]: Your manual account will now appear in your account list and is ready to track balances and transactions.
+                - heading "Manual Account Balance Updates" [level=3] [ref=f24e77]
+                - paragraph [ref=f24e78]:
+                  - text: Whenever the balance changes, you can update it by selecting “
+                  - link "Edit Account" [ref=f24e79] [cursor=pointer]:
+                    - /url: https://help.monarchmoney.com/hc/en-us/articles/360058636951-Edit-accounts
+                  - text: .” If you don’t need to keep track of individual transactions under the account, just changing the balance is a great way to keep manual accounts current.
+                - paragraph [ref=f24e80]:
+                  - text: Additionally, you can
+                  - link "Upload account balance history" [ref=f24e81] [cursor=pointer]:
+                    - /url: https://help.monarchmoney.com/hc/en-us/articles/14882425704212
+                  - text: into manual accounts. The upload CSV flow is the only way to change the balance history of a manual account at this time.
+                - heading "Manual Account Transaction Updates" [level=3] [ref=f24e82]
+                - paragraph [ref=f24e83]: You can add a manual transaction to any account by clicking "Add transaction" from either the account or "Add" from the transaction tab.
+                - paragraph [ref=f24e84]:
+                  - text: You can also
+                  - link "Upload a CSV" [ref=f24e85] [cursor=pointer]:
+                    - /url: https://help.monarchmoney.com/hc/en-us/articles/4409682789908
+                  - text: file of transactions to a manual account which is a great way to quickly add a lot of transactions. When you upload the CSV file, you will be able to choose to automatically update the balance of the account. If you
+                  - link "add transactions manually" [ref=f24e86] [cursor=pointer]:
+                    - /url: https://help.monarchmoney.com/hc/en-us/articles/360058441811-Creating-manual-transactions
+                  - text: ", you will also be able to update the balance of the manual account."
+                - paragraph [ref=f24e87]
+                - paragraph
+            - generic [ref=f24e89]:
+              - generic [ref=f24e90]:
+                - generic [ref=f24e91]: Was this article helpful?
+                - generic [ref=f24e92]: 122 out of 392 found this helpful
+              - generic [ref=f24e93]:
+                - button "This article was helpful" [ref=f24e94] [cursor=pointer]:
+                  - generic [ref=f24e95]: 
+                - button "This article was not helpful" [ref=f24e96] [cursor=pointer]:
+                  - generic [ref=f24e97]: 
+          - generic [ref=f24e100]:
+            - heading "Articles in this section" [level=3] [ref=f24e101]
+            - list [ref=f24e102]:
+              - listitem [ref=f24e103]:
+                - link "Importing Balances and Transactions Manually" [ref=f24e104] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/41843105489300-Importing-Balances-and-Transactions-Manually
+              - listitem [ref=f24e105]:
+                - link "Shared Views in Monarch" [ref=f24e106] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/42228648365076-Shared-Views-in-Monarch
+              - listitem [ref=f24e107]:
+                - link "Edit Accounts" [ref=f24e108] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/360058636951-Edit-Accounts
+              - listitem [ref=f24e109]:
+                - link "Manual Accounts" [ref=f24e110] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/360058187072-Manual-Accounts
+              - listitem [ref=f24e111]:
+                - link "Transfer Balance and/or Transaction History to Another Account" [ref=f24e112] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/14329385694484-Transfer-Balance-and-or-Transaction-History-to-Another-Account
+              - listitem [ref=f24e113]:
+                - link "Importing Account Balances Manually" [ref=f24e114] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/14882425704212-Importing-Account-Balances-Manually
+              - listitem [ref=f24e115]:
+                - link "Hiding an Account" [ref=f24e116] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/4407859794580-Hiding-an-Account
+              - listitem [ref=f24e117]:
+                - link "Delete a Connection (Financial Institution) vs Delete an Account" [ref=f24e118] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/360054863431-Delete-a-Connection-Financial-Institution-vs-Delete-an-Account
+    - contentinfo [ref=f24e120]:
+      - generic [ref=f24e122]:
+        - paragraph [ref=f24e124]: Copyright © 2025 Monarch Money, Inc. All rights reserved.
+        - generic [ref=f24e125]:
+          - link "" [ref=f24e126] [cursor=pointer]:
+            - /url: https://www.facebook.com/MonarchMoney/
+          - link "" [ref=f24e127] [cursor=pointer]:
+            - /url: https://twitter.com/monarch_money
+          - link "" [ref=f24e128] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/monarch-money/
+          - link "" [ref=f24e129] [cursor=pointer]:
+            - /url: https://www.instagram.com/monarch_money/

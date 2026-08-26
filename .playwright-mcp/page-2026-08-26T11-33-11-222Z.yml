@@ -1,0 +1,297 @@
+- main [ref=f16e5]:
+  - text: 󰅖
+  - navigation [ref=f16e6]:
+    - generic [ref=f16e7]:
+      - link [ref=f16e9] [cursor=pointer]:
+        - /url: /
+        - img "Homepage" [ref=f16e10]
+      - menu [ref=f16e12]:
+        - menuitem [ref=f16e13]:
+          - link "Back to YNAB" [ref=f16e14] [cursor=pointer]:
+            - /url: https://app.ynab.com/
+  - article [ref=f16e17]:
+    - generic [ref=f16e18]:
+      - navigation "Breadcrumbs" [ref=f16e20]:
+        - link "Help Center" [ref=f16e21] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f16e22]: 󰅂
+        - link "Accounts and Transactions" [ref=f16e23] [cursor=pointer]:
+          - /url: /en_us/categories/accounts-and-transactions-r1gWB2RT9
+      - generic [ref=f16e25]:
+        - generic [ref=f16e26]: 󰍉
+        - textbox "Search help articles" [ref=f16e27]
+    - generic [ref=f16e30]:
+      - heading "Reconciling Accounts" [level=2] [ref=f16e31]
+      - generic [ref=f16e32]: "July 29 2026 6:21pm • Est. Read Time: 9 MIN"
+      - generic [ref=f16e34]:
+        - paragraph [ref=f16e35]:
+          - text: Learn how reconciliation, the process of comparing the transactions and balances at the bank with the transactions and balances in YNAB to make sure they agree, is an important routine to establish. Find and use the
+          - emphasis [ref=f16e36]: Reconcile
+          - text: button regularly to trust the numbers in your plan.
+        - generic [ref=f16e37]:
+          - heading "Are You New to Reconciling (Or Has it Been a While)?" [level=4] [ref=f16e38]
+          - paragraph [ref=f16e39]:
+            - text: Review
+            - link "Getting Started with Reconciling Accounts" [ref=f16e40] [cursor=pointer]:
+              - /url: https://support.ynab.com/en_us/getting-started-with-reconciling-accounts-an-overview-Sy3JWx4Js
+            - text: first for an overview of the "why" and some of the terminology! Then, let's dig into the "how" below.
+        - generic [ref=f16e41]:
+          - heading "In This Article" [level=4] [ref=f16e42]
+          - paragraph [ref=f16e43]:
+            - link "Why Reconciling Your Account in YNAB is Important" [ref=f16e44] [cursor=pointer]:
+              - /url: "#why"
+          - paragraph [ref=f16e45]:
+            - link "How to Reconcile" [ref=f16e46] [cursor=pointer]:
+              - /url: "#process"
+          - paragraph [ref=f16e47]:
+            - link "What to Expect after Reconciling" [ref=f16e48] [cursor=pointer]:
+              - /url: "#after"
+          - paragraph [ref=f16e49]:
+            - link "Make a Mistake?" [ref=f16e50] [cursor=pointer]:
+              - /url: "#mistake"
+          - paragraph [ref=f16e51]:
+            - link "What to Expect the Next Time You Reconcile" [ref=f16e52] [cursor=pointer]:
+              - /url: "#next"
+        - separator [ref=f16e53]
+        - heading "Why Reconciling Your Account in YNAB is Important" [level=2] [ref=f16e54]
+        - paragraph [ref=f16e55]: Your plan is based on the amount and transactions in your account in YNAB. We reconcile to make sure they are correct.
+        - paragraph [ref=f16e56]:
+          - text: Clicking or tapping the
+          - emphasis [ref=f16e57]: Reconcile
+          - text: button in your account register also tells YNAB not to import previous transactions, even if the bank tries to send them again. Our anti-duplicate logic keeps any transactions from more than three days prior to the last reconciled transaction from importing, so reconciling reduces the possibility of duplicates.
+        - paragraph [ref=f16e58]:
+          - text: Clicking or tapping the
+          - emphasis [ref=f16e59]: Reconcile
+          - text: button in YNAB puts green lock icons next to reconciled transactions, so you know how recently your balance and transactions in YNAB agreed with your bank.
+        - heading [level=3] [ref=f16e60]:
+          - text: How to Find the
+          - emphasis [ref=f16e61]: Reconcile
+          - text: Button in YNAB
+        - generic [ref=f16e62]:
+          - tablist [ref=f16e64]:
+            - tab "iOS" [ref=f16e65] [cursor=pointer]
+            - tab "Android" [ref=f16e66] [cursor=pointer]
+            - tab "Web" [ref=f16e67] [cursor=pointer]
+          - tabpanel [ref=f16e69]:
+            - img "Tapping the three dots in the upper right hand corner of the mobile apps shows the option to tap Reconcile" [ref=f16e70]
+            - paragraph
+            - list [ref=f16e71]:
+              - listitem [ref=f16e72]:
+                - paragraph [ref=f16e73]: From within your account register, tap the horizontal three dots icon in the upper right corner.
+              - listitem [ref=f16e74]:
+                - paragraph [ref=f16e75]:
+                  - text: Tap
+                  - emphasis [ref=f16e76]: Reconcile
+                  - text: .
+              - listitem [ref=f16e77]:
+                - paragraph [ref=f16e78]:
+                  - text: A
+                  - strong [ref=f16e79]: Reconcile Balance
+                  - text: window will pop up, asking you to confirm your current cleared account balance.
+            - generic [ref=f16e80]:
+              - heading "Loan Accounts Work Differently" [level=4] [ref=f16e81]
+              - paragraph [ref=f16e82]:
+                - text: Things work a bit differently with loan accounts, so you won't have a
+                - emphasis [ref=f16e83]: Reconcile
+                - text: button or use the same cleared balance. Follow
+                - link "these steps to confirm or update your balance periodically" [ref=f16e84] [cursor=pointer]:
+                  - /url: https://support.ynab.com/en_us/finding-your-cleared-balance-to-reconcile-an-overview-BkH27l_A9#loans
+                - text: "!"
+        - paragraph [ref=f16e85]:
+          - link "Back to Top" [ref=f16e86] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f16e87]
+        - heading "How to Reconcile" [level=2] [ref=f16e88]
+        - paragraph [ref=f16e89]: "To get started with reconciling your accounts, you'll need three things for this process: your account register in YNAB, your current balance at your bank, and a list of your bank transactions."
+        - generic [ref=f16e90]:
+          - tablist [ref=f16e92]:
+            - tab "iOS" [ref=f16e93] [cursor=pointer]
+            - tab "Android" [ref=f16e94] [cursor=pointer]
+            - tab "Web" [ref=f16e95] [cursor=pointer]
+          - tabpanel [ref=f16e97]:
+            - list [ref=f16e98]:
+              - listitem [ref=f16e99]:
+                - paragraph [ref=f16e100]: Open the YNAB app and log in to your online banking on your mobile device.
+              - listitem [ref=f16e101]:
+                - paragraph [ref=f16e102]: Add recent transactions into YNAB.
+                - list [ref=f16e103]:
+                  - listitem [ref=f16e104]:
+                    - paragraph [ref=f16e105]: Import and approve or manually enter transactions that appear at the bank but aren't in YNAB yet. If they have cleared at the bank, mark them as cleared in YNAB. If they are pending, leave them uncleared.
+              - listitem [ref=f16e106]:
+                - paragraph [ref=f16e107]:
+                  - text: Review your uncleared transactions by tapping the banner displaying “Show [#] uncleared transactions" in your account register. This banner will be dismissed once
+                  - strong [ref=f16e108]: all
+                  - text: transactions cleared at the bank have been marked as cleared or reconciled in YNAB.
+                - img "Tapping the uncleared transactions banner in the mobile app shows two uncleared transactions in the account register" [ref=f16e109]
+                - list [ref=f16e110]:
+                  - listitem [ref=f16e111]:
+                    - paragraph [ref=f16e112]: Uncleared transactions in YNAB should only be very recent transactions that show as pending at the bank, or that your bank doesn't know about yet.
+                    - list [ref=f16e113]:
+                      - listitem [ref=f16e114]:
+                        - paragraph [ref=f16e115]:
+                          - text: If uncleared transactions have cleared the bank, or are dated over a month ago and would be difficult to compare them to your banking records, change the status to cleared by tapping on the transaction, tapping
+                          - emphasis [ref=f16e116]: Show more
+                          - text: ", and toggling the"
+                          - emphasis [ref=f16e117]: Cleared
+                          - text: status on. Then, tap
+                          - emphasis [ref=f16e118]: Save
+                          - text: .
+                      - listitem [ref=f16e119]:
+                        - paragraph [ref=f16e120]: If they are pending at the bank, or your bank doesn't know about them yet, leave them uncleared.
+              - listitem [ref=f16e121]:
+                - paragraph [ref=f16e122]:
+                  - text: When you're done, find your
+                  - link "current cleared balance" [ref=f16e123] [cursor=pointer]:
+                    - /url: https://support.ynab.com/en_us/finding-your-cleared-balance-to-reconcile-an-overview-BkH27l_A9
+                  - text: at the bank.
+                - list [ref=f16e124]:
+                  - listitem [ref=f16e125]:
+                    - paragraph [ref=f16e126]:
+                      - text: The number you want won’t include any pending transactions and is most often called the Current Balance. If you need help finding it,
+                      - link "tell the chatbot you need a human or send us an email" [ref=f16e127] [cursor=pointer]:
+                        - /url: https://support.ynab.com/en_us/how-to-get-help-SygqcvtC5
+                      - text: .
+              - listitem [ref=f16e128]:
+                - paragraph [ref=f16e129]:
+                  - text: Tap the
+                  - emphasis [ref=f16e130]: Accounts
+                  - text: tab at the bottom of the app and choose the account you're reconciling. Then, tap the three dots icon in the top right corner.
+              - listitem [ref=f16e131]:
+                - paragraph [ref=f16e132]:
+                  - text: Tap
+                  - emphasis [ref=f16e133]: Reconcile
+                  - text: (actually clicking or tapping the
+                  - emphasis [ref=f16e134]: Reconcile
+                  - text: button and completing the steps is important—it does some work behind the scenes to keep everything running correctly.)
+                - list [ref=f16e135]:
+                  - listitem [ref=f16e136]:
+                    - paragraph [ref=f16e137]:
+                      - text: A pop up will ask if your bank's balance
+                      - strong [ref=f16e138]: matches
+                      - text: the Cleared balance that YNAB is showing you. If it is, tap
+                      - emphasis [ref=f16e139]: "Yes"
+                      - text: . If YNAB and the bank match, you're reconciled!
+                  - listitem [ref=f16e140]:
+                    - paragraph [ref=f16e141]:
+                      - text: If your cleared balance at the bank
+                      - strong [ref=f16e142]: does not match
+                      - text: the cleared balance, you'll tap
+                      - emphasis [ref=f16e143]: "No"
+                      - text: and enter your current cleared balance. Toggle to the minus sign for a negative balance, if applicable. Tap
+                      - emphasis [ref=f16e144]: Next
+                      - text: and then
+                      - emphasis [ref=f16e145]: Create Adjustment and Finish
+                      - text: .
+            - generic [ref=f16e146]:
+              - heading "Linked versus Unlinked Accounts" [level=4] [ref=f16e147]
+              - paragraph [ref=f16e148]:
+                - text: We use different phrasing when prompting you to reconcile linked accounts (versus unlinked accounts)
+                - strong [ref=f16e149]: in the iOS app
+                - text: . Here's why. For linked accounts, we're able to import a recent balance from your bank, and this requires a slightly different workflow.
+              - paragraph [ref=f16e150]:
+                - text: There are three paths you can encounter when reconciling
+                - strong [ref=f16e151]: "linked accounts:"
+              - list [ref=f16e152]:
+                - listitem [ref=f16e153]:
+                  - paragraph [ref=f16e154]:
+                    - text: If the cleared balance matches the imported balance, you'll click the
+                    - emphasis [ref=f16e155]: Looks Good
+                    - text: button.
+                - listitem [ref=f16e156]:
+                  - paragraph [ref=f16e157]: If the bank includes pending transactions in the balance we're importing, we will show the difference with a prompt for the next steps.
+                - listitem [ref=f16e158]:
+                  - paragraph [ref=f16e159]:
+                    - text: If the balance doesn't match the imported balance, clicking the
+                    - emphasis [ref=f16e160]: Reconcile
+                    - text: button will only display the Cleared YNAB Balance. You'll click
+                    - emphasis [ref=f16e161]: "Yes"
+                    - text: or
+                    - emphasis [ref=f16e162]: "No"
+                    - text: to move through the rest of the flow.
+              - paragraph [ref=f16e163]: Rest assured, by following the onscreen prompts, you'll be able to successfully reconcile all of your accounts, regardless of whether they're linked or unlinked.
+        - paragraph [ref=f16e164]:
+          - link "Back to Top" [ref=f16e165] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f16e166]
+        - heading "What to Expect after Reconciling" [level=2] [ref=f16e167]
+        - paragraph [ref=f16e168]: Your cleared balance in YNAB will match the cleared balance at the bank (to the penny), and your uncleared transactions will be limited to those you've manually entered in the past few days and will clear the bank in the near future. All of your reconciled transactions will have little lock icons. After a transaction has been reconciled, it will remain reconciled. There is no way to reverse this, and the lock icons will remain in place.Moving forward, YNAB will only import transactions dated up to three days prior to your last reconciled transaction. This is good news, as it helps to prevent duplicates from importing!
+        - paragraph [ref=f16e169]:
+          - text: If you created a
+          - link "Reconciliation Balance Adjustment" [ref=f16e170] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/balance-adjustments-a-guide-rko4OwILs
+          - text: ", that may affect your numbers because the amount of money in your plan is based off the amount of your cash-positive accounts in YNAB."
+        - paragraph [ref=f16e171]: Head over to your plan and move money where you need it. If you created a balance adjustment in a credit card account, double-check that the card's Credit Card Payment category in YNAB has the amount you want set aside for your next payment. If you pay your card in full that means you should have the exact amount in your Credit Card Payment category as the working balance of the card. If those differ, move money to or from the category as needed until they match.
+        - paragraph [ref=f16e172]:
+          - link "Back to Top" [ref=f16e173] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f16e174]
+        - heading "Make a Mistake?" [level=2] [ref=f16e175]
+        - paragraph [ref=f16e176]:
+          - text: Did you notice a mistake after you reconciled? Once an individual transaction has been reconciled, it will remain reconciled, and this can not be changed. But, you
+          - strong [ref=f16e177]: can
+          - link "fix other errors and reconcile again" [ref=f16e178] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/can-i-unreconcile-a-transaction-SJ0NquLye
+          - text: "! The important thing is that you reconcile to the accurate amount at your bank, not that you get it perfect the first time."
+        - paragraph [ref=f16e179]:
+          - link "Back to Top" [ref=f16e180] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f16e181]
+        - heading "What to Expect the Next Time You Reconcile" [level=2] [ref=f16e182]
+        - paragraph [ref=f16e183]:
+          - text: The next time you reconcile, you'll follow the same steps but you’ll only need to reconcile the transactions that don't yet have the lock symbol.
+          - strong [ref=f16e184]: We recommend reconciling your spending accounts at least once a week.
+          - text: The more often you reconcile, the quicker and easier it is each time!
+        - paragraph [ref=f16e185]:
+          - link "Back to Top" [ref=f16e186] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f16e187]
+        - heading "Help Us Help You!" [level=2] [ref=f16e188]
+        - paragraph [ref=f16e189]:
+          - text: Our Knowledge Base team reviews article feedback responses weekly, and we actively revise these articles to make them as helpful as possible. That's where you come in! Our articles are scored based on the
+          - emphasis [ref=f16e190]: "Yes"
+          - text: or
+          - emphasis [ref=f16e191]: "No"
+          - text: ratings received below. We also collect freeform feedback for any
+          - emphasis [ref=f16e192]: "No"
+          - text: ratings (so our team can focus in on what you were specifically searching for!).
+        - paragraph [ref=f16e193]:
+          - strong [ref=f16e194]: Success
+          - text: ": Found what you were searching for? It would be super helpful if you click"
+          - emphasis [ref=f16e195]: "Yes"
+          - text: below.
+        - paragraph [ref=f16e196]:
+          - strong [ref=f16e197]: Suggestions
+          - text: ": Didn't find what you're searching for and you'd like to share what terms or topics you wanted?"
+          - strong [ref=f16e198]
+          - text: Click
+          - emphasis [ref=f16e199]: "No"
+          - text: below. You'll then be able to submit your feedback about this article.
+          - strong [ref=f16e200]: "Please note:"
+          - text: the feedback submissions are anonymous, and we’re not able to respond, so make sure to use the next option if you have a specific scenario or question you would like a response to.
+        - paragraph [ref=f16e201]:
+          - strong [ref=f16e202]: Support
+          - text: ": If you have a question or would like a response to your specific question,"
+          - link "tell the chatbot you need a human or send us an email" [ref=f16e203] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/how-to-get-help-SygqcvtC5
+          - text: to ensure that your message gets to our Support team!
+    - generic [ref=f16e205]:
+      - generic [ref=f16e206]: Was this article helpful?
+      - generic [ref=f16e207]:
+        - button "Yes" [ref=f16e208]
+        - button "No" [ref=f16e209]
+  - generic [ref=f16e211]:
+    - generic [ref=f16e212]:
+      - heading "Still have questions?" [level=2] [ref=f16e213]
+      - heading [level=3]
+    - link "Contact Us" [ref=f16e216] [cursor=pointer]:
+      - /url: https://support.ynab.com/contact/contact-us-B1OG9RFfj
+  - generic [ref=f16e219]:
+    - link "Back to Top" [ref=f16e221] [cursor=pointer]:
+      - /url: "#top"
+      - generic [ref=f16e223]: 󰁝
+    - menu:
+      - listitem:
+        - link:
+          - /url: ""
+    - separator [ref=f16e224]
+    - generic [ref=f16e225]: © ynab.com 2026

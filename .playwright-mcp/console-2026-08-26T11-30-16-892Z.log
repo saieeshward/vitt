@@ -1,0 +1,4 @@
+[     386ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ https://www.reddit.com/r/ynab/comments/wnaseg/only_a_single_currency_seriously/:0
+[     857ms] [WARNING] useTranslation: DISMISS is not available @ https://duckduckgo.com/dist/wpm.main.b4af5e7156fc2e7e9114.js:0
+[     859ms] [WARNING] useTranslation: DISMISS is not available @ https://duckduckgo.com/dist/wpm.main.b4af5e7156fc2e7e9114.js:0
+[     860ms] [WARNING] useTranslation: DISMISS is not available @ https://duckduckgo.com/dist/wpm.main.b4af5e7156fc2e7e9114.js:0

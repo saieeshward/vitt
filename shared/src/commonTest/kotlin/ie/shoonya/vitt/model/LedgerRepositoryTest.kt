@@ -164,3 +164,42 @@ class LedgerRepositoryTest {
         assertEquals(0, r.transactions().size)
     }
 }
+
+class CurrencyOrderTest {
+
+    private val node = "a219e7a71cc18912"
+
+    private fun repo(): LedgerRepository {
+        var t = 1_000L
+        return LedgerRepository(EventStore.open(testDriver(), node) { t++ }) { t }
+    }
+
+    @Test
+    fun `colour order follows the oldest transaction — not how ids sort`() {
+        // The bug this covers: the order came from reversing a list sorted by id
+        // descending, so a currency's assigned colour depended on id ordering
+        // rather than on which currency the user actually used first.
+        val r = repo()
+        // EUR is used first, on the earlier day, but sorts later by id.
+        r.record("zzz-eur", Money(-100, Currency.EUR), day = 20_000)
+        r.record("aaa-inr", Money(-100, Currency.INR), day = 20_005)
+
+        val ledgers = r.ledgers()
+        assertEquals(Currency.EUR, ledgers.first { it.index == 0 }.currency)
+        assertEquals(Currency.INR, ledgers.first { it.index == 1 }.currency)
+    }
+
+    @Test
+    fun `a later currency takes the next index — it does not displace the first`() {
+        val r = repo()
+        r.record("a", Money(-100, Currency.EUR), day = 20_000)
+        val before = r.ledgers().single { it.currency == Currency.EUR }.index
+
+        r.record("b", Money(-100, Currency.INR), day = 20_001)
+        r.record("c", Money(-100, Currency.GBP), day = 20_002)
+
+        assertEquals(before, r.ledgers().single { it.currency == Currency.EUR }.index)
+        assertEquals(1, r.ledgers().single { it.currency == Currency.INR }.index)
+        assertEquals(2, r.ledgers().single { it.currency == Currency.GBP }.index)
+    }
+}

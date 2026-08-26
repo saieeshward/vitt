@@ -1,0 +1,240 @@
+- generic [active] [ref=f12e1]:
+  - link "Skip to content" [ref=f12e2] [cursor=pointer]:
+    - /url: "#exchange-rate"
+  - banner [ref=f12e3]:
+    - navigation "Header" [ref=f12e4]:
+      - link "Firefly III documentation" [ref=f12e5] [cursor=pointer]:
+        - /url: ../../..
+        - img "logo" [ref=f12e6]
+      - generic [ref=f12e8]:
+        - generic [ref=f12e9]: Firefly III documentation
+        - generic: Exchange rates
+      - dialog [ref=f12e11]:
+        - search [ref=f12e12]:
+          - generic [ref=f12e13]:
+            - textbox "Search" [ref=f12e14]
+            - navigation "Search":
+              - button "Clear"
+          - generic: Initializing search
+      - link [ref=f12e18] [cursor=pointer]:
+        - /url: https://github.com/firefly-iii/firefly-iii/
+        - generic [ref=f12e22]:
+          - text: GitHub
+          - list [ref=f12e23]:
+            - listitem [ref=f12e24]: v6.6.6
+            - listitem [ref=f12e25]: 24.4k
+            - listitem [ref=f12e26]: 2.3k
+  - generic [ref=f12e27]:
+    - navigation "Tabs" [ref=f12e28]:
+      - list [ref=f12e30]:
+        - listitem [ref=f12e31]:
+          - link "Home" [ref=f12e32] [cursor=pointer]:
+            - /url: ../../..
+        - listitem [ref=f12e33]:
+          - link "Tutorials" [ref=f12e34] [cursor=pointer]:
+            - /url: ../../../tutorials/
+        - listitem [ref=f12e35]:
+          - link "How-to guides" [ref=f12e36] [cursor=pointer]:
+            - /url: ../../../how-to/
+        - listitem [ref=f12e37]:
+          - link "Reference guides" [ref=f12e38] [cursor=pointer]:
+            - /url: ../../../references/
+        - listitem [ref=f12e39]:
+          - link "Explanation" [ref=f12e40] [cursor=pointer]:
+            - /url: ../../
+    - main [ref=f12e41]:
+      - generic [ref=f12e42]:
+        - navigation "Navigation" [ref=f12e46]:
+          - list [ref=f12e47]:
+            - listitem [ref=f12e48]:
+              - generic: Explanation
+              - navigation "Explanation" [ref=f12e49]:
+                - list [ref=f12e50]:
+                  - listitem [ref=f12e51]:
+                    - link "Home" [ref=f12e52] [cursor=pointer]:
+                      - /url: ../../
+                  - listitem [ref=f12e54]:
+                    - generic [ref=f12e55]: Data organization
+                  - listitem [ref=f12e58]:
+                    - generic [ref=f12e59]: Financial concepts
+                    - navigation "Financial concepts" [ref=f12e62]:
+                      - list [ref=f12e63]:
+                        - listitem [ref=f12e64]:
+                          - link "Administrations" [ref=f12e65] [cursor=pointer]:
+                            - /url: ../administrations/
+                        - listitem [ref=f12e67]:
+                          - link "Transactions" [ref=f12e68] [cursor=pointer]:
+                            - /url: ../transactions/
+                        - listitem [ref=f12e70]:
+                          - link "Accounts" [ref=f12e71] [cursor=pointer]:
+                            - /url: ../accounts/
+                        - listitem [ref=f12e73]:
+                          - link "Budgets" [ref=f12e74] [cursor=pointer]:
+                            - /url: ../budgets/
+                        - listitem [ref=f12e76]:
+                          - link "Liabilities" [ref=f12e77] [cursor=pointer]:
+                            - /url: ../liabilities/
+                        - listitem [ref=f12e79]:
+                          - link "Currencies" [ref=f12e80] [cursor=pointer]:
+                            - /url: ../currencies/
+                        - listitem [ref=f12e82]:
+                          - link "Piggy banks" [ref=f12e83] [cursor=pointer]:
+                            - /url: ../piggy-banks/
+                        - listitem [ref=f12e85]:
+                          - link "Subscriptions" [ref=f12e86] [cursor=pointer]:
+                            - /url: ../subscriptions/
+                        - listitem [ref=f12e88]:
+                          - link "Recurring transactions" [ref=f12e89] [cursor=pointer]:
+                            - /url: ../recurring/
+                        - listitem [ref=f12e91]:
+                          - link "Exchange rates" [ref=f12e92] [cursor=pointer]:
+                            - /url: ./
+                  - listitem [ref=f12e94]:
+                    - generic [ref=f12e95]: Firefly III
+                  - listitem [ref=f12e98]:
+                    - generic [ref=f12e99]: Data Importer
+                  - listitem [ref=f12e102]:
+                    - generic [ref=f12e103]: More information
+                  - listitem [ref=f12e106]:
+                    - link "Other tools" [ref=f12e107] [cursor=pointer]:
+                      - /url: ../../other-tools/
+                  - listitem [ref=f12e109]:
+                    - link "Code of conduct" [ref=f12e110] [cursor=pointer]:
+                      - /url: ../../code-of-conduct/
+                  - listitem [ref=f12e112]:
+                    - link "Contribution guidelines" [ref=f12e113] [cursor=pointer]:
+                      - /url: ../../contributing/
+                  - listitem [ref=f12e115]:
+                    - link "Support" [ref=f12e116] [cursor=pointer]:
+                      - /url: ../../support/
+        - navigation "Table of contents" [ref=f12e121]:
+          - list [ref=f12e123]:
+            - listitem [ref=f12e124]:
+              - link "Configuration" [ref=f12e125] [cursor=pointer]:
+                - /url: "#configuration"
+            - listitem [ref=f12e127]:
+              - link "Initialization" [ref=f12e128] [cursor=pointer]:
+                - /url: "#initialization"
+            - listitem [ref=f12e130]:
+              - link "Recalculate amounts in your primary currency" [ref=f12e131] [cursor=pointer]:
+                - /url: "#recalculate-amounts-in-your-primary-currency"
+            - listitem [ref=f12e133]:
+              - link "Changing your base (default) currency" [ref=f12e134] [cursor=pointer]:
+                - /url: "#changing-your-base-default-currency"
+            - listitem [ref=f12e136]:
+              - link "Default exchange rate" [ref=f12e137] [cursor=pointer]:
+                - /url: "#default-exchange-rate"
+            - listitem [ref=f12e139]:
+              - link "Changing the exchange rates" [ref=f12e140] [cursor=pointer]:
+                - /url: "#changing-the-exchange-rates"
+            - listitem [ref=f12e142]:
+              - link "Conversion versus \"foreign amount\"" [ref=f12e143] [cursor=pointer]:
+                - /url: "#conversion-versus-foreign-amount"
+            - listitem [ref=f12e145]:
+              - link "Downloading exchange rates" [ref=f12e146] [cursor=pointer]:
+                - /url: "#downloading-exchange-rates"
+            - listitem [ref=f12e148]:
+              - link "Setting your own rates" [ref=f12e149] [cursor=pointer]:
+                - /url: "#setting-your-own-rates"
+        - generic [ref=f12e151]:
+          - navigation "Navigation" [ref=f12e152]:
+            - list [ref=f12e153]:
+              - listitem [ref=f12e154]:
+                - link "Home" [ref=f12e155] [cursor=pointer]:
+                  - /url: ../../..
+              - listitem [ref=f12e157]:
+                - link "Explanation" [ref=f12e158] [cursor=pointer]:
+                  - /url: ../../
+              - listitem [ref=f12e160]:
+                - link "Financial concepts" [ref=f12e161] [cursor=pointer]:
+                  - /url: ../administrations/
+          - article [ref=f12e163]:
+            - link "Edit this page" [ref=f12e164] [cursor=pointer]:
+              - /url: https://github.com/firefly-iii/docs/tree/main/docs/docs/explanation/financial-concepts/exchange-rates.md
+            - heading "Exchange rate" [level=1] [ref=f12e167]
+            - paragraph [ref=f12e168]: Firefly III can dynamically convert amounts from one currency into another using exchange rates. You can set the exchange rates yourself or allow Firefly III to download exchange rates for you.
+            - generic [ref=f12e169]:
+              - paragraph [ref=f12e170]: Warning
+              - paragraph [ref=f12e171]:
+                - text: Firefly III can only download the exchange rates of
+                - link "the standard, built-in currencies" [ref=f12e172] [cursor=pointer]:
+                  - /url: https://github.com/firefly-iii/firefly-iii/blob/main/database/seeders/TransactionCurrencySeeder.php#L38
+                - text: .
+            - paragraph [ref=f12e173]: This is useful for some of the charts that Firefly III shows you. All monetary amounts will be calculated back to your base currency.
+            - heading "Configuration" [level=2] [ref=f12e174]
+            - paragraph [ref=f12e175]:
+              - text: Firefly III supports three options that allow you to use exchange rates in the application. The following settings are disabled by default. You can change them on the
+              - code [ref=f12e176]: /settings/configuration
+              - text: "-page of your Firefy III installation."
+            - list [ref=f12e177]:
+              - listitem [ref=f12e178]: "\"Enable exchange rates.\" This setting enables the feature in the first place. It will not be available otherwise."
+              - listitem [ref=f12e179]: "\"Download exchange rates from the web.\" Firefly III will not download exchange rates unless you allow it to. Exchange rates can only be downloaded for the default currencies in Firefly III. They will be downloaded from a Firefly III Azure bucket."
+              - listitem [ref=f12e180]:
+                - text: In your preferences (
+                - code [ref=f12e181]: /preferences
+                - text: ) set the checkbox at "Display amounts in your primary currency".
+            - heading "Initialization" [level=2] [ref=f12e182]
+            - paragraph [ref=f12e183]: If you turn this on, transaction amounts will automatically be calculated in your primary currency whenever necessary. This happens when Firefly III boots. However, you may want to initialize this yourself if you want to.
+            - paragraph [ref=f12e184]: By default, Firefly III ships with one or two sets of exchange rates for the built-in currencies. You can add new exchange rates yourself.
+            - heading "Recalculate amounts in your primary currency" [level=2] [ref=f12e185]
+            - paragraph [ref=f12e186]: Use the following command to recalculate all amounts. This may take some time if you have a lot of transactions in other currencies than your primary currency.
+            - generic [ref=f12e188]:
+              - navigation [ref=f12e189]:
+                - button "Toggle line selection" [ref=f12e190] [cursor=pointer]
+                - button "Copy to clipboard" [ref=f12e191] [cursor=pointer]
+              - code [ref=f12e192]:
+                - generic [ref=f12e193]: "# self managed"
+                - generic [ref=f12e194]: php artisan correction:recalculate-pc-amounts
+                - generic [ref=f12e196]: "# docker"
+                - generic [ref=f12e197]: docker exec -it [container-id] php artisan correction:recalculate-pc-amounts
+            - heading "Changing your base (default) currency" [level=2] [ref=f12e198]
+            - paragraph [ref=f12e199]:
+              - text: Firefly III only converts amounts back to your base (default) currency. You can set this currency on the
+              - code [ref=f12e200]: /administrations
+              - text: page. Other conversions are not supported. For example, if your base currency is the Euro, you cannot see your British Pounds in US Dollars. The conversion will go back to the Euro only.
+            - paragraph [ref=f12e201]: If you change your primary currency, all amounts will have to be recalculated. This may take some time if you have a lot of transactions in other currencies than your default currencies.
+            - paragraph [ref=f12e202]: You can do this manually as well, using the command mentioned earlier.
+            - heading "Default exchange rate" [level=2] [ref=f12e203]
+            - paragraph [ref=f12e204]: If Firefly III has no exchange rate data for either currency or when the conversion hasn't been calculated yet, the exchange rate is 1.
+            - heading "Changing the exchange rates" [level=2] [ref=f12e205]
+            - paragraph [ref=f12e206]: If you (significantly) change the exchange rates, you may want to recalculate the amounts to your primary currency again using the command mentioned earlier. This is not necessary, but it may be useful.
+            - heading "Conversion versus \"foreign amount\"" [level=2] [ref=f12e207]
+            - paragraph [ref=f12e208]: Firefly III transactions also have a "foreign amount"-field. If you set a foreign amount in your primary currency, that amount will be used instead of any calculated amount. Firefly III assumes that you know better what the converted amount is. This is especially useful when you have a bank that has steep exchange rates.
+            - heading "Downloading exchange rates" [level=2] [ref=f12e209]
+            - generic [ref=f12e210]:
+              - paragraph [ref=f12e211]: Info
+              - paragraph [ref=f12e212]: This only works for the default system provided currencies because free exchange rate data is hard to come by.
+            - paragraph [ref=f12e213]:
+              - text: Make sure that you have enabled the settings at
+              - code [ref=f12e214]: /settings/configuration
+              - text: ", and run the"
+              - link "cron job" [ref=f12e215] [cursor=pointer]:
+                - /url: ../../../how-to/firefly-iii/advanced/cron/
+              - text: daily.
+            - paragraph [ref=f12e216]: Firefly III will download new rates about every week. You should see the list of available rates expand slowly. Firefly III will not download historical rates, ie. the rates for last year or last month.
+            - heading "Setting your own rates" [level=2] [ref=f12e217]
+            - paragraph [ref=f12e218]:
+              - text: Go to the
+              - code [ref=f12e219]: /exchange-rates
+              - text: and find your currency. You can set any rate you want to, in both directions.
+            - complementary [ref=f12e220]:
+              - generic [ref=f12e221]:
+                - generic "Last update" [ref=f12e222]
+                - text: 2026-08-25
+            - group "Was this page helpful?" [ref=f12e226]:
+              - generic [ref=f12e229]:
+                - button "This page was helpful" [ref=f12e230] [cursor=pointer]
+                - button "This page could be improved" [ref=f12e233] [cursor=pointer]
+    - contentinfo [ref=f12e236]:
+      - generic [ref=f12e239]:
+        - generic [ref=f12e240]:
+          - text: ©
+          - link "James Cole" [ref=f12e241] [cursor=pointer]:
+            - /url: mailto:james@firefly-iii.org
+          - text: ", licensed under"
+          - link "Attribution-ShareAlike 4.0 International" [ref=f12e242] [cursor=pointer]:
+            - /url: https://github.com/firefly-iii/docs/blob/main/license
+          - text: .
+        - text: Made with
+        - link "Material for MkDocs" [ref=f12e243] [cursor=pointer]:
+          - /url: https://squidfunk.github.io/mkdocs-material/

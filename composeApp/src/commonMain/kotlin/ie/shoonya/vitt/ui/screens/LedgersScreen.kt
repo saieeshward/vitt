@@ -54,7 +54,7 @@ fun LedgersScreen(
         item {
             ie.shoonya.vitt.ui.Pip(
                 daysRecorded = daysRecorded,
-                currencyCount = ledgers.size.coerceAtLeast(1),
+                currencyCount = ledgers.size,
                 modifier = Modifier.fillMaxWidth().height(140.dp),
             )
         }
@@ -99,9 +99,14 @@ private fun LedgerCard(ledger: Ledger) {
             )
         }
 
-        // Room remaining, not overspend — actionable rather than a verdict.
+        // Room remaining when a budget exists; otherwise what was spent.
+        //
+        // Never a negative hero figure. The one loud number on a screen must not
+        // be bad news with a minus sign in front of it — that is the shape the
+        // tone rules exist to prevent. Spending is stated as a positive amount
+        // out, which is the same fact without the verdict.
         Text(
-            text = (remaining ?: ledger.net).display(),
+            text = (remaining?.abs() ?: ledger.spent).display(),
             style = Vitt.type.moneyHero,
             color = colors.ink,
             textAlign = TextAlign.Start,
@@ -111,8 +116,8 @@ private fun LedgerCard(ledger: Ledger) {
                 remaining != null && remaining.minor >= 0 ->
                     "left of ${ledger.budget!!.display()}"
                 remaining != null ->
-                    "${remaining.abs().display()} past ${ledger.budget!!.display()}"
-                else -> "in and out this month"
+                    "past ${ledger.budget!!.display()}"
+                else -> "out this month"
             },
             style = Vitt.type.label,
             color = colors.inkMuted,
@@ -120,12 +125,15 @@ private fun LedgerCard(ledger: Ledger) {
 
         pressure?.let { HealthBar(it) }
 
+        // Only what the hero figure does not already say. Repeating the same
+        // number twice on one card wastes the "one loud number" rule it is
+        // there to serve.
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(Vitt.space.loose),
         ) {
-            Figure("In", ledger.received)
-            Figure("Out", ledger.spent)
+            if (ledger.received.minor != 0L) Figure("In", ledger.received)
+            if (remaining != null) Figure("Out", ledger.spent)
         }
     }
 }

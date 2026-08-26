@@ -1,0 +1,279 @@
+- main [ref=f17e5]:
+  - text: 󰅖
+  - navigation [ref=f17e6]:
+    - generic [ref=f17e7]:
+      - link [ref=f17e9] [cursor=pointer]:
+        - /url: /
+        - img "Homepage" [ref=f17e10]
+      - menu [ref=f17e12]:
+        - menuitem [ref=f17e13]:
+          - link "Back to YNAB" [ref=f17e14] [cursor=pointer]:
+            - /url: https://app.ynab.com/
+  - article [ref=f17e17]:
+    - generic [ref=f17e18]:
+      - navigation "Breadcrumbs" [ref=f17e20]:
+        - link "Help Center" [ref=f17e21] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f17e22]: 󰅂
+        - link "Accounts and Transactions" [ref=f17e23] [cursor=pointer]:
+          - /url: /en_us/categories/accounts-and-transactions-r1gWB2RT9
+      - generic [ref=f17e25]:
+        - generic [ref=f17e26]: 󰍉
+        - textbox "Search help articles" [ref=f17e27]
+    - generic [ref=f17e30]:
+      - heading "Balance Adjustments" [level=2] [ref=f17e31]
+      - generic [ref=f17e32]: "July 10 2026 3:25pm • Est. Read Time: 7 MIN"
+      - generic [ref=f17e34]:
+        - paragraph [ref=f17e35]: Address discrepancies between your YNAB account balance and real-world balance with a Reconciliation Balance Adjustment. Understand when to make balance adjustments and how they affect your plan numbers. Learn the process of creating and removing a Reconciliation Balance Adjustment, and why it's preferred over a Manual Balance Adjustment.
+        - generic [ref=f17e36]:
+          - heading "In This Article" [level=4] [ref=f17e37]
+          - paragraph [ref=f17e38]:
+            - link "When Should I Make a Balance Adjustment?" [ref=f17e39] [cursor=pointer]:
+              - /url: "#when"
+          - paragraph [ref=f17e40]:
+            - link "How to Create a Reconciliation Balance Adjustment" [ref=f17e41] [cursor=pointer]:
+              - /url: "#how"
+          - paragraph [ref=f17e42]:
+            - link "How to Remove a Balance Adjustment" [ref=f17e43] [cursor=pointer]:
+              - /url: "#remove"
+          - paragraph [ref=f17e44]:
+            - link "How Do Balance Adjustments Affect My Plan Numbers?" [ref=f17e45] [cursor=pointer]:
+              - /url: "#numbers"
+          - paragraph [ref=f17e46]:
+            - link "Why Should I Use a Reconciliation Balance Adjustment Instead of a Manual Balance Adjustment?" [ref=f17e47] [cursor=pointer]:
+              - /url: "#why"
+        - separator [ref=f17e48]
+        - heading "When Should I Make a Balance Adjustment?" [level=2] [ref=f17e49]
+        - paragraph [ref=f17e50]: When assigning money in your plan, it's important to know the balances in YNAB are accurate. Balance adjustments are used to correct the balance in your YNAB account if and when you can’t find the discrepancy causing the difference from what shows in your actual account register.
+        - paragraph [ref=f17e51]:
+          - text: The process of creating a Reconciliation Balance Adjustment occurs organically (if needed) as you go through the Reconciliation process. We highly recommend working through the steps laid out in
+          - link "Reconciling Accounts" [ref=f17e52] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/reconciling-accounts-a-guide-BJFE3fHys
+          - strong [ref=f17e53]: regularly
+          - text: going forward! We recommend reconciling at least once a week. This will prevent you from needing to make balance adjustments as often (if ever!).
+        - paragraph [ref=f17e54]:
+          - text: If you’re finding that you’re repeatedly needing to make a Reconciliation Balance Adjustment each time you go through the steps, that’s not expected, so we’d love to help! Check out our
+          - link "Troubleshooting Reconciliation Issues" [ref=f17e55] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/troubleshooting-reconciliation-issues-rJkijlVki#everytime
+          - text: article to find your scenario, and don’t hesitate to
+          - link "tell the chatbot you need a human or send us an email" [ref=f17e56] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/how-to-get-help-SygqcvtC5
+          - text: if you’re still stuck.
+        - paragraph [ref=f17e57]:
+          - link "Back to Top" [ref=f17e58] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f17e59]
+        - heading "How to Create a Reconciliation Balance Adjustment" [level=2] [ref=f17e60]
+        - generic [ref=f17e61]:
+          - tablist [ref=f17e63]:
+            - tab "iOS" [ref=f17e64] [cursor=pointer]
+            - tab "Android" [ref=f17e65] [cursor=pointer]
+            - tab "Web" [ref=f17e66] [cursor=pointer]
+          - tabpanel [ref=f17e68]:
+            - list [ref=f17e69]:
+              - listitem [ref=f17e70]:
+                - paragraph [ref=f17e71]: First, process all of your uncleared transactions.
+                - list [ref=f17e72]:
+                  - listitem [ref=f17e73]:
+                    - paragraph [ref=f17e74]:
+                      - text: Go to your account register and tap the banner displaying “Show [#] uncleared transactions." This banner will be dismissed once
+                      - strong [ref=f17e75]: all
+                      - text: transactions cleared at the bank have been marked as cleared or reconciled in YNAB.
+                  - listitem [ref=f17e76]:
+                    - paragraph [ref=f17e77]:
+                      - text: If you need to change the status of a transaction, tap on the transaction, tap
+                      - emphasis [ref=f17e78]: Show more
+                      - text: ", toggle the correct status (cleared or uncleared), and then tap"
+                      - emphasis [ref=f17e79]: Save
+                      - text: .
+                  - listitem [ref=f17e80]:
+                    - paragraph [ref=f17e81]: "Remember: the transactions’ status should match with the bank."
+                    - list [ref=f17e82]:
+                      - listitem [ref=f17e83]:
+                        - paragraph [ref=f17e84]:
+                          - text: If they have cleared the bank (or are very old), they should have a filled C. If they don't, tap the transaction, tap
+                          - emphasis [ref=f17e85]: Show more
+                          - text: ", and toggle"
+                          - emphasis [ref=f17e86]: Cleared
+                          - text: on. Then, tap
+                          - emphasis [ref=f17e87]: Save
+                          - text: .
+                      - listitem [ref=f17e88]:
+                        - paragraph [ref=f17e89]: If they are pending at the bank, or your bank doesn't even know about them yet, they should have an unfilled C. Leave them uncleared.
+              - listitem [ref=f17e90]:
+                - paragraph [ref=f17e91]: Tap on the three dots icon button in the top right corner.
+              - listitem [ref=f17e92]:
+                - paragraph [ref=f17e93]:
+                  - text: Tap
+                  - emphasis [ref=f17e94]: Reconcile
+                  - text: .
+              - listitem [ref=f17e95]:
+                - paragraph [ref=f17e96]:
+                  - text: A pop-up will ask if your bank’s balance matches the current Cleared balance that YNAB is showing.
+                  - strong [ref=f17e97]:
+                    - text: Tap
+                    - emphasis [ref=f17e98]: Enter Updated Balance
+                    - text: and enter your current cleared balance
+                  - text: ", tapping"
+                  - emphasis [ref=f17e99]: Next
+                  - text: when you’re done. Make sure the toggle is set to red if you're entering a negative balance.
+              - listitem [ref=f17e100]:
+                - paragraph [ref=f17e101]:
+                  - text: Tap
+                  - emphasis [ref=f17e102]: Next
+                  - text: again in the upper right corner.
+              - listitem [ref=f17e103]:
+                - paragraph [ref=f17e104]:
+                  - text: Tap
+                  - emphasis [ref=f17e105]: Create Adjustment and Finish
+                  - text: .
+            - paragraph [ref=f17e106]: Your account balance in YNAB should now match your current cleared account balance! We recommend reconciling at least once a week since it makes it easier to keep up with (and can prevent Reconciliation Balance Adjustments from being needed at all!).
+        - paragraph [ref=f17e107]:
+          - link "Back to Top" [ref=f17e108] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f17e109]
+        - heading "How to Remove a Balance Adjustment" [level=2] [ref=f17e110]
+        - paragraph [ref=f17e111]: You can undo a balance adjustment by deleting the actual balance adjustment transaction.
+        - generic [ref=f17e112]:
+          - tablist [ref=f17e114]:
+            - tab "iOS" [ref=f17e115] [cursor=pointer]
+            - tab "Android" [ref=f17e116] [cursor=pointer]
+            - tab "Web" [ref=f17e117] [cursor=pointer]
+          - tabpanel [ref=f17e119]:
+            - list [ref=f17e120]:
+              - listitem [ref=f17e121]:
+                - paragraph [ref=f17e122]:
+                  - text: Tap the
+                  - emphasis [ref=f17e123]: Accounts
+                  - text: tab.
+              - listitem [ref=f17e124]:
+                - paragraph [ref=f17e125]: Tap the account name that contains the balance adjustment.
+              - listitem [ref=f17e126]:
+                - paragraph [ref=f17e127]: Long-press (tap and hold) the specific balance adjustment transaction to access the options menu.
+              - listitem [ref=f17e128]:
+                - paragraph [ref=f17e129]:
+                  - text: Tap
+                  - emphasis [ref=f17e130]: Delete
+                  - text: .
+              - listitem [ref=f17e131]:
+                - paragraph [ref=f17e132]:
+                  - text: Confirm by tapping
+                  - emphasis [ref=f17e133]: Delete
+                  - emphasis [ref=f17e134]: Anyway
+                  - text: .
+        - paragraph [ref=f17e135]:
+          - link "Back to Top" [ref=f17e136] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f17e137]
+        - heading "How Do Balance Adjustments Affect My Plan Numbers?" [level=2] [ref=f17e138]
+        - paragraph [ref=f17e139]:
+          - text: Balance adjustments don’t just affect your account balances—they affect your plan numbers, too! Because the money in your plan in YNAB is
+          - strong [ref=f17e140]: based
+          - text: "on the balances of your cash-positive accounts in YNAB, adjusting your account balances may adjust the amount of money in your overall plan. Here’s what happens:"
+        - list [ref=f17e141]:
+          - listitem [ref=f17e142]:
+            - paragraph [ref=f17e143]:
+              - strong [ref=f17e144]: For Cash accounts like checking and savings
+              - text: ", the adjustment amount will be added to or deducted from your Ready to Assign amount. Review your categories and"
+              - link "move money" [ref=f17e145] [cursor=pointer]:
+                - /url: https://support.ynab.com/en_us/moving-money-in-your-plan-a-guide-ryyCKbBJi
+              - text: to where it needs to be now.
+          - listitem [ref=f17e146]:
+            - paragraph [ref=f17e147]:
+              - strong [ref=f17e148]: For credit card accounts
+              - text: ", your plan won’t be affected, but you will want to double check that you have the amount you want set aside to pay your card’s bill in your Credit Card Payment category."
+        - paragraph [ref=f17e149]:
+          - text: Numbers still seem off? Try working through a
+          - link "YNAB Checkup" [ref=f17e150] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/checkup-S1vJzWGzo
+          - text: to make sure everything is adding up correctly. Feel free to "undo" the balance adjustment by following the steps in the section above to delete it.
+        - paragraph [ref=f17e151]:
+          - link "Back to Top" [ref=f17e152] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f17e153]
+        - heading "Why Should I Use a Reconciliation Balance Adjustment Instead of a Manual Balance Adjustment?" [level=2] [ref=f17e154]
+        - paragraph [ref=f17e155]:
+          - text: You may be wondering, “Can’t I just change my balance from in my Account Details? There’s a section there to update the working balance.” Good question! This is
+          - strong [ref=f17e156]: NOT
+          - text: the same thing as a Reconciliation Balance Adjustment, and this will show in your register as a Manual Balance Adjustment instead.
+        - paragraph [ref=f17e157]:
+          - text: We
+          - strong [ref=f17e158]: don’t recommend
+          - text: the Manual Balance Adjustment process since it creates an adjustment to the working balance (rather than the cleared balance). It doesn’t have the same protective behavior for your plan and overall numbers as a Reconciliation Balance Adjustment. We
+          - strong [ref=f17e159]: recommend
+          - text: Reconciliation Balance Adjustments
+          - strong [ref=f17e160]
+          - text: "because this process:"
+        - list [ref=f17e161]:
+          - listitem [ref=f17e162]:
+            - paragraph [ref=f17e163]:
+              - text: Assures the account balances match today (with no pending transaction confusion) and that you can trust your plan. Reconciliation Balance Adjustments change the
+              - strong [ref=f17e164]: cleared
+              - text: balance of the account, keeping your balances accurate.
+          - listitem [ref=f17e165]:
+            - paragraph [ref=f17e166]: Makes it easier to check next time if the account balance is off. You’ll know when you last reconciled, and you’ll only have to check transactions since that time. (Any previously reconciled transactions will show with a lock icon).
+          - listitem [ref=f17e167]:
+            - paragraph [ref=f17e168]: Prevents past, incorrect transactions from importing. (Transactions more than three days prior to the last reconciliation date will not import.)
+          - listitem [ref=f17e169]:
+            - paragraph [ref=f17e170]: Speeds up plan loading if completed regularly. Each time you reconcile, you can then hide reconciled transactions. Once they are filtered out, they won't load every time you load your plan.
+        - generic [ref=f17e171]:
+          - heading "Reconciliation Balance Adjustments for Tracking Accounts" [level=4] [ref=f17e172]
+          - paragraph [ref=f17e173]:
+            - text: Do you use this manual balance adjustment process for your tracking accounts? Go ahead and try making a reconciliation balance adjustment instead so you can reap these protective benefits for your balance and transactions. Check out our instructions in
+            - 'link "Tracking Investment Accounts: A Guide" [ref=f17e174] [cursor=pointer]':
+              - /url: https://support.ynab.com/en_us/tracking-investment-accounts-a-guide-r1Bzjxd05
+            - text: for more!
+        - paragraph [ref=f17e175]:
+          - link "Back to Top" [ref=f17e176] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f17e177]
+        - heading "Help Us Help You!" [level=2] [ref=f17e178]
+        - paragraph [ref=f17e179]:
+          - text: Our Knowledge Base team reviews article feedback responses weekly, and we actively revise these articles to make them as helpful as possible. That's where you come in! Our articles are scored based on the
+          - emphasis [ref=f17e180]: "Yes"
+          - text: or
+          - emphasis [ref=f17e181]: "No"
+          - text: ratings received below. We also collect freeform feedback for any
+          - emphasis [ref=f17e182]: "No"
+          - text: ratings (so our team can focus in on what you were specifically searching for!).
+        - paragraph [ref=f17e183]:
+          - strong [ref=f17e184]: Success
+          - text: ": Found what you were searching for? It would be super helpful if you click"
+          - emphasis [ref=f17e185]: "Yes"
+          - text: below.
+        - paragraph [ref=f17e186]:
+          - strong [ref=f17e187]: Suggestions
+          - text: ": Didn't find what you're searching for and you'd like to share what terms or topics you wanted?"
+          - strong [ref=f17e188]
+          - text: Click
+          - emphasis [ref=f17e189]: "No"
+          - text: below. You'll then be able to submit your feedback about this article.
+          - strong [ref=f17e190]: "Please note:"
+          - text: the feedback submissions are anonymous, and we’re not able to respond, so make sure to use the next option if you have a specific scenario or question you would like a response to.
+        - paragraph [ref=f17e191]:
+          - strong [ref=f17e192]: Support
+          - text: ": If you have a question or would like a response to your specific question,"
+          - link "tell the chatbot you need a human or send us an email" [ref=f17e193] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/how-to-get-help-SygqcvtC5
+          - text: to ensure that your message gets to our Support team!
+    - generic [ref=f17e195]:
+      - generic [ref=f17e196]: Was this article helpful?
+      - generic [ref=f17e197]:
+        - button "Yes" [ref=f17e198]
+        - button "No" [ref=f17e199]
+  - generic [ref=f17e201]:
+    - generic [ref=f17e202]:
+      - heading "Still have questions?" [level=2] [ref=f17e203]
+      - heading [level=3]
+    - link "Contact Us" [ref=f17e206] [cursor=pointer]:
+      - /url: https://support.ynab.com/contact/contact-us-B1OG9RFfj
+  - generic [ref=f17e209]:
+    - link "Back to Top" [ref=f17e211] [cursor=pointer]:
+      - /url: "#top"
+      - generic [ref=f17e213]: 󰁝
+    - menu:
+      - listitem:
+        - link:
+          - /url: ""
+    - separator [ref=f17e214]
+    - generic [ref=f17e215]: © ynab.com 2026

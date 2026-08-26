@@ -77,7 +77,14 @@ class LedgerRepository(
      */
     fun ledgers(budgets: Map<Currency, Money> = emptyMap()): List<Ledger> {
         val all = transactions()
-        val order = all.asReversed().map { it.amount.currency }.distinct()
+        // True first appearance: oldest day first, and within a day the order
+        // the rows were written. Reversing the display list instead made the
+        // order depend on how ids happened to sort, so a currency's colour was
+        // effectively arbitrary.
+        val order = all
+            .sortedWith(compareBy<Transaction> { it.day }.thenBy { it.id })
+            .map { it.amount.currency }
+            .distinct()
 
         return order.mapIndexed { index, currency ->
             val forCurrency = all.filter { it.amount.currency == currency }

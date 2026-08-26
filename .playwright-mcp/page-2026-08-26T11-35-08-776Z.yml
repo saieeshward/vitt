@@ -1,0 +1,174 @@
+- generic [active] [ref=f31e1]:
+  - link "Skip to main content" [ref=f31e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f31e3]:
+    - banner [ref=f31e5]:
+      - generic [ref=f31e7]:
+        - generic [ref=f31e8]:
+          - link [ref=f31e11] [cursor=pointer]:
+            - /url: /hc/en-us
+            - img "Logo" [ref=f31e12]
+          - paragraph [ref=f31e13]:
+            - link "Help Center" [ref=f31e14] [cursor=pointer]:
+              - /url: /hc/en-us
+        - button [ref=f31e18] [cursor=pointer]
+    - main [ref=f31e24]:
+      - generic [ref=f31e26]:
+        - list [ref=f31e29]:
+          - listitem "Help | Monarch Money" [ref=f31e30]:
+            - link "Help | Monarch Money" [ref=f31e31] [cursor=pointer]:
+              - /url: /hc/en-us
+          - listitem "Product Feature Guides" [ref=f31e32]:
+            - link "Product Feature Guides" [ref=f31e33] [cursor=pointer]:
+              - /url: /hc/en-us/categories/32460945233812-Product-Feature-Guides
+          - listitem "Transactions" [ref=f31e34]:
+            - link "Transactions" [ref=f31e35] [cursor=pointer]:
+              - /url: /hc/en-us/sections/32460964879380-Transactions
+        - generic [ref=f31e36]:
+          - generic [ref=f31e37]:
+            - article [ref=f31e38]:
+              - generic [ref=f31e39]:
+                - heading "Creating Manual Transactions" [level=1] [ref=f31e40]
+                - generic [ref=f31e43]:
+                  - generic [ref=f31e45]:
+                    - text: 
+                    - img "Avatar" [ref=f31e46]
+                  - generic [ref=f31e47]:
+                    - text: by Liz
+                    - generic [ref=f31e48]:
+                      - text: Last Updated
+                      - time [ref=f31e49]: March 16, 2026
+              - generic [ref=f31e50]:
+                - paragraph [ref=f31e51]: Creating manual transactions is a helpful way to keep your budgeting up to date if your financial institution isn’t sending transactions automatically, if you spend cash that you want to keep track of in Monarch, or if you simply want to track a transaction before it gets imported from your financial institution.
+                - paragraph [ref=f31e52]:
+                  - strong [ref=f31e53]: "Please Note:"
+                  - emphasis [ref=f31e54]: Monarch does not have a reconciling feature. So, if a manual transaction is created and a matching transaction syncs, the manual transaction will not be removed from your records.
+                - paragraph [ref=f31e55]:
+                  - strong [ref=f31e56]: Table of Contents
+                - list [ref=f31e57]:
+                  - listitem [ref=f31e58]:
+                    - link "Creating manual transactions on desktop" [ref=f31e59] [cursor=pointer]:
+                      - /url: "#h_01JCKEWAVTX3T4KB82GRAK0TNT"
+                  - listitem [ref=f31e60]:
+                    - link "Creating manual transactions on mobile" [ref=f31e61] [cursor=pointer]:
+                      - /url: "#h_01JCKEWAVT3DQ1E9Z7G7WAJNSA"
+                - heading [level=3] [ref=f31e62]:
+                  - strong [ref=f31e63]: Creating manual transactions on desktop
+                - paragraph [ref=f31e64]:
+                  - text: Manual transactions can be added to manual accounts or synced accounts. When you add a manual transaction to a synced account, it will not change the balance of that account. When you add a manual transaction to a
+                  - link "manual account" [ref=f31e65] [cursor=pointer]:
+                    - /url: https://help.monarchmoney.com/hc/en-us/articles/360058187072-Manual-accounts
+                  - text: ", you can choose to change the balance when creating that transaction."
+                - list [ref=f31e66]:
+                  - listitem [ref=f31e67]:
+                    - text: Navigate to the desired account for the new manual transaction.
+                    - list [ref=f31e68]:
+                      - listitem [ref=f31e69]:
+                        - text: Alternatively, navigate to
+                        - link [ref=f31e70] [cursor=pointer]:
+                          - /url: https://app.monarchmoney.com/transactions
+                          - strong [ref=f31e71]: Transactions
+                        - text: and select
+                        - strong [ref=f31e72]: Add
+                        - text: .
+                  - listitem [ref=f31e73]:
+                    - text: Select
+                    - strong [ref=f31e74]: Add transaction
+                    - text: .
+                  - listitem [ref=f31e75]: Select if the transaction will be a debit or credit.
+                  - listitem [ref=f31e76]: Enter the amount.
+                  - listitem [ref=f31e77]: Set the merchant.
+                  - listitem [ref=f31e78]: Set the date.
+                  - listitem [ref=f31e79]: Choose an account.
+                  - listitem [ref=f31e80]: Select a category.
+                  - listitem [ref=f31e81]: Add a note (optional).
+                  - listitem [ref=f31e82]: Add tags (optional).
+                  - listitem [ref=f31e83]: Select the toggle to adjust the account balance if you choose a manual account. The toggle is set to adjust the manual account balance by default, so if you don’t want to adjust the balance, you can disable it.
+                  - listitem [ref=f31e84]:
+                    - text: Select
+                    - strong [ref=f31e85]: Add transaction
+                    - text: .
+                - heading [level=3] [ref=f31e86]:
+                  - strong [ref=f31e87]: Creating manual transactions on mobile
+                - list [ref=f31e88]:
+                  - listitem [ref=f31e89]:
+                    - text: Navigate to the desired account for the new manual transaction.
+                    - list [ref=f31e90]:
+                      - listitem [ref=f31e91]:
+                        - text: Alternatively, navigate to
+                        - strong [ref=f31e92]: Transactions
+                        - text: and tap the "+"
+                  - listitem [ref=f31e93]: Tap the “…” in the top right corner.
+                  - listitem [ref=f31e94]:
+                    - text: Select
+                    - strong [ref=f31e95]: Add transaction.
+                  - listitem [ref=f31e96]: Select if the transaction will be a debit or credit.
+                  - listitem [ref=f31e97]: Enter the amount.
+                  - listitem [ref=f31e98]: Set the merchant.
+                  - listitem [ref=f31e99]: Set the date.
+                  - listitem [ref=f31e100]: Choose an account.
+                  - listitem [ref=f31e101]: Select a category.
+                  - listitem [ref=f31e102]: Add a note (optional).
+                  - listitem [ref=f31e103]: Add tags (optional).
+                  - listitem [ref=f31e104]: Select the toggle to adjust the account balance if you choose a manual account. The toggle is set to adjust the manual account balance by default, so if you don’t want to adjust the balance, you can disable it.
+                  - listitem [ref=f31e105]:
+                    - text: Select
+                    - strong [ref=f31e106]: Add transaction
+                    - text: .
+                - paragraph
+            - generic [ref=f31e108]:
+              - generic [ref=f31e109]:
+                - generic [ref=f31e110]: Was this article helpful?
+                - generic [ref=f31e111]: 47 out of 212 found this helpful
+              - generic [ref=f31e112]:
+                - button "This article was helpful" [ref=f31e113] [cursor=pointer]:
+                  - generic [ref=f31e114]: 
+                - button "This article was not helpful" [ref=f31e115] [cursor=pointer]:
+                  - generic [ref=f31e116]: 
+          - generic [ref=f31e119]:
+            - heading "Articles in this section" [level=3] [ref=f31e120]
+            - list [ref=f31e121]:
+              - listitem [ref=f31e122]:
+                - link "Importing Receipts into Monarch" [ref=f31e123] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/44244210547860-Importing-Receipts-into-Monarch
+              - listitem [ref=f31e124]:
+                - link "Using the Retail Sync Extension" [ref=f31e125] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/36463599367188-Using-the-Retail-Sync-Extension
+              - listitem [ref=f31e126]:
+                - link "Creating Custom Categories and Groups" [ref=f31e127] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/360048883771-Creating-Custom-Categories-and-Groups
+              - listitem [ref=f31e128]:
+                - link "Importing Transactions Manually" [ref=f31e129] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/4409682789908-Importing-Transactions-Manually
+              - listitem [ref=f31e130]:
+                - link "Hiding or Unhiding Transactions" [ref=f31e131] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/4405041904916-Hiding-or-Unhiding-Transactions
+              - listitem [ref=f31e132]:
+                - link "Organizing Transactions with Tags" [ref=f31e133] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/4409690120596-Organizing-Transactions-with-Tags
+              - listitem [ref=f31e134]:
+                - link "Tracking Recurring Expenses and Bills" [ref=f31e135] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/4890751141908-Tracking-Recurring-Expenses-and-Bills
+              - listitem [ref=f31e136]:
+                - link "Adding Notes and Attachments to a Transaction" [ref=f31e137] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/360056422791-Adding-Notes-and-Attachments-to-a-Transaction
+              - listitem [ref=f31e138]:
+                - link "Reviewing Transactions" [ref=f31e139] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/5528707082516-Reviewing-Transactions
+              - listitem [ref=f31e140]:
+                - link "Editing Transactions" [ref=f31e141] [cursor=pointer]:
+                  - /url: /hc/en-us/articles/360048393532-Editing-Transactions
+            - link "See more" [ref=f31e142] [cursor=pointer]:
+              - /url: /hc/en-us/sections/32460964879380-Transactions
+    - contentinfo [ref=f31e144]:
+      - generic [ref=f31e146]:
+        - paragraph [ref=f31e148]: Copyright © 2025 Monarch Money, Inc. All rights reserved.
+        - generic [ref=f31e149]:
+          - link "" [ref=f31e150] [cursor=pointer]:
+            - /url: https://www.facebook.com/MonarchMoney/
+          - link "" [ref=f31e151] [cursor=pointer]:
+            - /url: https://twitter.com/monarch_money
+          - link "" [ref=f31e152] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/monarch-money/
+          - link "" [ref=f31e153] [cursor=pointer]:
+            - /url: https://www.instagram.com/monarch_money/

@@ -1,0 +1,375 @@
+- generic [active] [ref=f36e1]:
+  - link "Skip to main content" [ref=f36e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f36e144]:
+    - generic:
+      - generic: YNAB
+      - banner [ref=f36e8]:
+        - navigation [ref=f36e9]:
+          - link "Home" [ref=f36e13] [cursor=pointer]:
+            - /url: https://www.reddit.com/
+          - search [ref=f36e150]:
+            - generic [ref=f36e152]:
+              - textbox "Ask" [ref=f36e159]:
+                - /placeholder: Find anything
+              - separator [ref=f36e160]
+              - link "Ask" [ref=f36e164] [cursor=pointer]:
+                - /url: /answers/
+              - generic: Find anything
+          - generic [ref=f36e34]:
+            - link "Sign Up" [ref=f36e40] [cursor=pointer]:
+              - /url: https://www.reddit.com/register/
+            - link "Log In" [ref=f36e46] [cursor=pointer]:
+              - /url: https://www.reddit.com/login/
+            - button "Expand user menu" [ref=f36e53] [cursor=pointer]
+      - generic [ref=f36e59]:
+        - generic [ref=f36e60]:
+          - region "Community actions" [ref=f36e64]:
+            - generic [ref=f36e65]:
+              - heading "r/ynab" [level=1] [ref=f36e71]
+              - generic [ref=f36e72]:
+                - button "Create Post" [ref=f36e76] [cursor=pointer]
+                - button "Join" [ref=f36e174] [cursor=pointer]
+          - generic [ref=f36e82]:
+            - generic:
+              - generic:
+                - link "Skip to Sign up" [ref=f36e175] [cursor=pointer]:
+                  - /url: "#left-sidebar-container"
+                - link "Skip to Right Sidebar" [ref=f36e176] [cursor=pointer]:
+                  - /url: "#right-sidebar-container"
+          - generic [ref=f36e83]:
+            - main [ref=f36e84]:
+              - generic [ref=f36e87]:
+                - generic "Sort by" [ref=f36e179]:
+                  - 'button "Sort by: Best" [ref=f36e181] [cursor=pointer]':
+                    - generic [ref=f36e182]: Best
+                - generic "View" [ref=f36e188]:
+                  - 'button "View: Card" [ref=f36e190] [cursor=pointer]'
+              - generic [ref=f36e90]:
+                - button "collapse/expand community highlights" [ref=f36e196] [cursor=pointer]:
+                  - heading "Community highlights" [level=3] [ref=f36e91]
+                  - button "collapse/expand community highlights" [ref=f36e198]
+                - list [ref=f36e204]:
+                  - generic:
+                    - listitem [ref=f36e96]:
+                      - link "Behind-The-Scenes Improvements to Credit Card Payment Handling Announcement" [ref=f36e205] [cursor=pointer]:
+                        - /url: /r/ynab/comments/1vy0qfx/behindthescenes_improvements_to_credit_card/
+                        - generic [ref=f36e210]:
+                          - heading "Behind-The-Scenes Improvements to Credit Card Payment Handling" [level=2] [ref=f36e213]
+                          - generic [ref=f36e214]: Announcement
+                    - listitem [ref=f36e98]:
+                      - link "[Update] We're adjusting how auto-categorization works Announcement" [ref=f36e221] [cursor=pointer]:
+                        - /url: /r/ynab/comments/1vrt3ac/update_were_adjusting_how_autocategorization_works/
+                        - generic [ref=f36e224]:
+                          - heading "[Update] We're adjusting how auto-categorization works" [level=2] [ref=f36e227]
+                          - generic [ref=f36e228]: Announcement
+                    - listitem [ref=f36e100]:
+                      - link [ref=f36e235] [cursor=pointer]:
+                        - /url: /r/ynab/comments/1vckeh8/ynab_referral_thread_august_edition/
+                        - generic [ref=f36e240]:
+                          - 'heading "YNAB Referral Thread: August Edition" [level=2] [ref=f36e243]'
+                          - img "AutoModerator" [ref=f36e250]
+              - generic [ref=f36e103]:
+                - generic "YNAB"
+                - separator [ref=f36e104]
+                - generic [ref=f36e105]:
+                  - heading "Feed" [level=1] [ref=f36e252]
+                  - generic:
+                    - article [ref=f36e106]:
+                      - generic [ref=f36e107] [cursor=pointer]:
+                        - link "YNAB price evolution" [ref=f36e108]:
+                          - /url: https://www.reddit.com/r/ynab/comments/1vxrcq6/ynab_price_evolution/
+                        - generic [ref=f36e110]:
+                          - generic [ref=f36e111]:
+                            - 'link "Author: u/fvilers" [ref=f36e116]':
+                              - /url: https://www.reddit.com/user/fvilers/
+                              - generic [ref=f36e117]:
+                                - img "u/fvilers avatar" [ref=f36e120]
+                                - generic [ref=f36e121]: u/fvilers
+                            - generic [ref=f36e122]: •
+                            - time [ref=f36e254]: 1 day ago
+                          - button "Open user actions" [ref=f36e127]
+                        - generic [ref=f36e258]:
+                          - heading [level=2] [ref=f36e259]:
+                            - link "YNAB price evolution" [ref=f36e132]:
+                              - /url: https://www.reddit.com/r/ynab/comments/1vxrcq6/ynab_price_evolution/
+                          - 'link "Flair: Meta" [ref=f36e134]':
+                            - /url: /r/ynab/?f=flair_name%3A%22Meta%22
+                            - 'generic "Flair: Meta" [ref=f36e136]': Meta
+                        - img "r/ynab - YNAB price evolution" [ref=f36e142]
+                        - generic "Actions available for this post" [ref=f36e262]:
+                          - generic [ref=f36e265]:
+                            - button "Upvote" [ref=f36e266]
+                            - generic [ref=f36e271]: "750"
+                            - button "Downvote" [ref=f36e273]
+                          - link "382 Go to comments" [ref=f36e278]:
+                            - /url: /r/ynab/comments/1vxrcq6/ynab_price_evolution/
+                            - generic [ref=f36e279]: "382"
+                            - generic [ref=f36e285]: Go to comments
+                          - button "Share" [ref=f36e289]
+                    - separator [ref=f36e143]
+                    - generic [ref=f36e296]:
+                      - link [ref=f36e298] [cursor=pointer]:
+                        - /url: https://alb.reddit.com/cr?za=R-RAT_xVWyc8PA21K-2QWSOHkoCJiC0sW9dZC2Xoo3EeSZiJKGO96DVNenuez31FG5q1CBbNx24Ou3UU9XLvTD0kHqr3mjuJXlsF7URVRE539DaQyYv9ZUHwOimf8r2io-YXHVULk7NFNy3zP6oVXrQ_xBvMmlqdWS2GYXxniGMMAE08JJuoZxjnln5EAJuV67CxaWYB8XvAc3H5XRzT7F0nIl7AsuUVH4fjdm4BFrWoXzKOsvWD3YecdyjqtaLrcHDRJ0Zp4B0LQ2sYD5UQCwOyg695FiFjG4mECO4fga2kSvAfM0oOhJsteTvX8OvrZ_k9YUqUaniKQO2mGz-RiasDEbLrw-tLIaT22qmGVzThYTUHLkEishatCcVn06AAhrpotPPdWCcOK97pHFNXiYm7Vjx3hqVV_Mp25-6zZ7e5aKGhmjbmDcVpB4Dw7VGD-S7eIT0iRrNvrXuStDW-iKi6KUygaGV1tDoF-Z0G-EjGWk-jmzHH0JJ1C2S6ThRM4Hi-c1_zEfQfTG2-jU0wYslh6aXl17PhEcpweuQh5aVQZbxo1eqe1H7R0itP0AbLs4a-EhxMdkDYrTH4Z90HHpvIVm_LAcOBCwhrTgNjFseHiHr2x435VudshuGsZf3RC4EEdB6-U9GYJ5JoRiuXAIANve1x5xhT_A3qBOCjrWjPnicncJrU99-sRfETq-tFP35GaWTVWwXXW2eoQ5plZN4YzepixPRHx3OjwioThaSDG_Y1SO_705W5-amskqBHxTPZD71JDrB6oAMCJcp4Xt1MH_IhV4f7tB-1ciqF0aQJk6t5rfQDGL1EmxewaZT_OrwrYwTSRHoEU8DgwpQWpDYbiwo8T7uVbDLjvvrqBO5e9Lv8QKsVuOOl0lVZSbiwItj7YEKqStRy_0K_Ic23k0XbJZ9klNkatX3P51If2O-sKM3AetscT_Nx7mRVC55nPX26ZOHLWmxnCH6DSboAKi5q8QJpH7G6IyUP7ljidXaiG-4Wk4ETgxROc3b5RkvG1p6dWbqpDTn4YSwpQPyk6LZEhRMlnH__3XipaH9eGNRJJgRVEZJDAI_tLPgMyqhpy5EHbEKtTWsSe1jaHz1A2k3SsMFHfkE45qpeqKewLx1-UewbaFmy7zPT1mKUHWaUjw&zp=B89rRmgUrFnJwxTq3WMogPF8DwjFSBLKcrphLA9LQPxHOsXEr8PVElWvlhsYzxAI1LqmczR6mjvNdzGGIJxGW53fyNZJYleLQH84OAQpee_HP8meOHZE989yW_dxY4kgGpBx-r1FpWC26AsB5xPaE22EkRvwPP7Z2NxgTyzffoOcCypTerOY7T7CNOO3nCcGfTTN7p8KGM_ezr3rF6_oGTRH5SMmlftX6TsHQPtvZlxqlk6eRsn-PxdesIbt96UESTOrw74fau2Wg7vpGmpgXO3WB4PCS2s4QKiLB0K7Qb9yF2Gdi1DLXMoO1ONfRvhHMnAb007aLcBG_KzFNA4hvbWvDZvFiHc7RvaOspIDsdXR5nRGf9mWsIhBXRP2sy6Ht0G4zEBYxTlKdWMz7Aud3rbHW89crSU
+                      - generic [ref=f36e300]:
+                        - generic [ref=f36e301]:
+                          - link "u/NOWIreland" [ref=f36e304] [cursor=pointer]:
+                            - /url: /user/NOWIreland/
+                            - img "u/NOWIreland avatar" [ref=f36e307]
+                          - generic [ref=f36e309]: •
+                          - link "Ad" [ref=f36e311] [cursor=pointer]:
+                            - /url: /user/NOWIreland/
+                          - link [ref=f36e313] [cursor=pointer]:
+                            - /url: https://alb.reddit.com/cr?za=R-RAT_xVWyc8PA21K-2QWSOHkoCJiC0sW9dZC2Xoo3EeSZiJKGO96DVNenuez31FG5q1CBbNx24Ou3UU9XLvTD0kHqr3mjuJXlsF7URVRE539DaQyYv9ZUHwOimf8r2io-YXHVULk7NFNy3zP6oVXrQ_xBvMmlqdWS2GYXxniGMMAE08JJuoZxjnln5EAJuV67CxaWYB8XvAc3H5XRzT7F0nIl7AsuUVH4fjdm4BFrWoXzKOsvWD3YecdyjqtaLrcHDRJ0Zp4B0LQ2sYD5UQCwOyg695FiFjG4mECO4fga2kSvAfM0oOhJsteTvX8OvrZ_k9YUqUaniKQO2mGz-RiasDEbLrw-tLIaT22qmGVzThYTUHLkEishatCcVn06AAhrpotPPdWCcOK97pHFNXiYm7Vjx3hqVV_Mp25-6zZ7e5aKGhmjbmDcVpB4Dw7VGD-S7eIT0iRrNvrXuStDW-iKi6KUygaGV1tDoF-Z0G-EjGWk-jmzHH0JJ1C2S6ThRM4Hi-c1_zEfQfTG2-jU0wYslh6aXl17PhEcpweuQh5aVQZbxo1eqe1H7R0itP0AbLs4a-EhxMdkDYrTH4Z90HHpvIVm_LAcOBCwhrTgNjFseHiHr2x435VudshuGsZf3RC4EEdB6-U9GYJ5JoRiuXAIANve1x5xhT_A3qBOCjrWjPnicncJrU99-sRfETq-tFP35GaWTVWwXXW2eoQ5plZN4YzepixPRHx3OjwioThaSDG_Y1SO_705W5-amskqBHxTPZD71JDrB6oAMCJcp4Xt1MH_IhV4f7tB-1ciqF0aQJk6t5rfQDGL1EmxewaZT_OrwrYwTSRHoEU8DgwpQWpDYbiwo8T7uVbDLjvvrqBO5e9Lv8QKsVuOOl0lVZSbiwItj7YEKqStRy_0K_Ic23k0XbJZ9klNkatX3P51If2O-sKM3AetscT_Nx7mRVC55nPX26ZOHLWmxnCH6DSboAKi5q8QJpH7G6IyUP7ljidXaiG-4Wk4ETgxROc3b5RkvG1p6dWbqpDTn4YSwpQPyk6LZEhRMlnH__3XipaH9eGNRJJgRVEZJDAI_tLPgMyqhpy5EHbEKtTWsSe1jaHz1A2k3SsMFHfkE45qpeqKewLx1-UewbaFmy7zPT1mKUHWaUjw&zp=B89rRmgUrFnJwxTq3WMogPF8DwjFSBLKcrphLA9LQPxHOsXEr8PVElWvlhsYzxAI1LqmczR6mjvNdzGGIJxGW53fyNZJYleLQH84OAQpee_HP8meOHZE989yW_dxY4kgGpBx-r1FpWC26AsB5xPaE22EkRvwPP7Z2NxgTyzffoOcCypTerOY7T7CNOO3nCcGfTTN7p8KGM_ezr3rF6_oGTRH5SMmlftX6TsHQPtvZlxqlk6eRsn-PxdesIbt96UESTOrw74fau2Wg7vpGmpgXO3WB4PCS2s4QKiLB0K7Qb9yF2Gdi1DLXMoO1ONfRvhHMnAb007aLcBG_KzFNA4hvbWvDZvFiHc7RvaOspIDsdXR5nRGf9mWsIhBXRP2sy6Ht0G4zEBYxTlKdWMz7Aud3rbHW89crSU
+                        - button "Open user actions" [ref=f36e319] [cursor=pointer]
+                      - heading [level=2] [ref=f36e326]:
+                        - 'link "Watch every live Premier League match with NOW: Sports & Sports Extra Membership €27/mth for 12mths" [ref=f36e329] [cursor=pointer]':
+                          - /url: https://alb.reddit.com/cr?za=R-RAT_xVWyc8PA21K-2QWSOHkoCJiC0sW9dZC2Xoo3EeSZiJKGO96DVNenuez31FG5q1CBbNx24Ou3UU9XLvTD0kHqr3mjuJXlsF7URVRE539DaQyYv9ZUHwOimf8r2io-YXHVULk7NFNy3zP6oVXrQ_xBvMmlqdWS2GYXxniGMMAE08JJuoZxjnln5EAJuV67CxaWYB8XvAc3H5XRzT7F0nIl7AsuUVH4fjdm4BFrWoXzKOsvWD3YecdyjqtaLrcHDRJ0Zp4B0LQ2sYD5UQCwOyg695FiFjG4mECO4fga2kSvAfM0oOhJsteTvX8OvrZ_k9YUqUaniKQO2mGz-RiasDEbLrw-tLIaT22qmGVzThYTUHLkEishatCcVn06AAhrpotPPdWCcOK97pHFNXiYm7Vjx3hqVV_Mp25-6zZ7e5aKGhmjbmDcVpB4Dw7VGD-S7eIT0iRrNvrXuStDW-iKi6KUygaGV1tDoF-Z0G-EjGWk-jmzHH0JJ1C2S6ThRM4Hi-c1_zEfQfTG2-jU0wYslh6aXl17PhEcpweuQh5aVQZbxo1eqe1H7R0itP0AbLs4a-EhxMdkDYrTH4Z90HHpvIVm_LAcOBCwhrTgNjFseHiHr2x435VudshuGsZf3RC4EEdB6-U9GYJ5JoRiuXAIANve1x5xhT_A3qBOCjrWjPnicncJrU99-sRfETq-tFP35GaWTVWwXXW2eoQ5plZN4YzepixPRHx3OjwioThaSDG_Y1SO_705W5-amskqBHxTPZD71JDrB6oAMCJcp4Xt1MH_IhV4f7tB-1ciqF0aQJk6t5rfQDGL1EmxewaZT_OrwrYwTSRHoEU8DgwpQWpDYbiwo8T7uVbDLjvvrqBO5e9Lv8QKsVuOOl0lVZSbiwItj7YEKqStRy_0K_Ic23k0XbJZ9klNkatX3P51If2O-sKM3AetscT_Nx7mRVC55nPX26ZOHLWmxnCH6DSboAKi5q8QJpH7G6IyUP7ljidXaiG-4Wk4ETgxROc3b5RkvG1p6dWbqpDTn4YSwpQPyk6LZEhRMlnH__3XipaH9eGNRJJgRVEZJDAI_tLPgMyqhpy5EHbEKtTWsSe1jaHz1A2k3SsMFHfkE45qpeqKewLx1-UewbaFmy7zPT1mKUHWaUjw&zp=B89rRmgUrFnJwxTq3WMogPF8DwjFSBLKcrphLA9LQPxHOsXEr8PVElWvlhsYzxAI1LqmczR6mjvNdzGGIJxGW53fyNZJYleLQH84OAQpee_HP8meOHZE989yW_dxY4kgGpBx-r1FpWC26AsB5xPaE22EkRvwPP7Z2NxgTyzffoOcCypTerOY7T7CNOO3nCcGfTTN7p8KGM_ezr3rF6_oGTRH5SMmlftX6TsHQPtvZlxqlk6eRsn-PxdesIbt96UESTOrw74fau2Wg7vpGmpgXO3WB4PCS2s4QKiLB0K7Qb9yF2Gdi1DLXMoO1ONfRvhHMnAb007aLcBG_KzFNA4hvbWvDZvFiHc7RvaOspIDsdXR5nRGf9mWsIhBXRP2sy6Ht0G4zEBYxTlKdWMz7Aud3rbHW89crSU
+                      - generic [ref=f36e330]:
+                        - generic [ref=f36e335]:
+                          - generic "video player" [ref=f36e336]
+                          - button "Play" [ref=f36e337] [cursor=pointer]
+                        - separator [ref=f36e340]
+                        - generic [ref=f36e341]:
+                          - link [ref=f36e342] [cursor=pointer]:
+                            - /url: https://alb.reddit.com/cr?za=R-RAT_xVWyc8PA21K-2QWSOHkoCJiC0sW9dZC2Xoo3EeSZiJKGO96DVNenuez31FG5q1CBbNx24Ou3UU9XLvTD0kHqr3mjuJXlsF7URVRE539DaQyYv9ZUHwOimf8r2io-YXHVULk7NFNy3zP6oVXrQ_xBvMmlqdWS2GYXxniGMMAE08JJuoZxjnln5EAJuV67CxaWYB8XvAc3H5XRzT7F0nIl7AsuUVH4fjdm4BFrWoXzKOsvWD3YecdyjqtaLrcHDRJ0Zp4B0LQ2sYD5UQCwOyg695FiFjG4mECO4fga2kSvAfM0oOhJsteTvX8OvrZ_k9YUqUaniKQO2mGz-RiasDEbLrw-tLIaT22qmGVzThYTUHLkEishatCcVn06AAhrpotPPdWCcOK97pHFNXiYm7Vjx3hqVV_Mp25-6zZ7e5aKGhmjbmDcVpB4Dw7VGD-S7eIT0iRrNvrXuStDW-iKi6KUygaGV1tDoF-Z0G-EjGWk-jmzHH0JJ1C2S6ThRM4Hi-c1_zEfQfTG2-jU0wYslh6aXl17PhEcpweuQh5aVQZbxo1eqe1H7R0itP0AbLs4a-EhxMdkDYrTH4Z90HHpvIVm_LAcOBCwhrTgNjFseHiHr2x435VudshuGsZf3RC4EEdB6-U9GYJ5JoRiuXAIANve1x5xhT_A3qBOCjrWjPnicncJrU99-sRfETq-tFP35GaWTVWwXXW2eoQ5plZN4YzepixPRHx3OjwioThaSDG_Y1SO_705W5-amskqBHxTPZD71JDrB6oAMCJcp4Xt1MH_IhV4f7tB-1ciqF0aQJk6t5rfQDGL1EmxewaZT_OrwrYwTSRHoEU8DgwpQWpDYbiwo8T7uVbDLjvvrqBO5e9Lv8QKsVuOOl0lVZSbiwItj7YEKqStRy_0K_Ic23k0XbJZ9klNkatX3P51If2O-sKM3AetscT_Nx7mRVC55nPX26ZOHLWmxnCH6DSboAKi5q8QJpH7G6IyUP7ljidXaiG-4Wk4ETgxROc3b5RkvG1p6dWbqpDTn4YSwpQPyk6LZEhRMlnH__3XipaH9eGNRJJgRVEZJDAI_tLPgMyqhpy5EHbEKtTWsSe1jaHz1A2k3SsMFHfkE45qpeqKewLx1-UewbaFmy7zPT1mKUHWaUjw&zp=B89rRmgUrFnJwxTq3WMogPF8DwjFSBLKcrphLA9LQPxHOsXEr8PVElWvlhsYzxAI1LqmczR6mjvNdzGGIJxGW53fyNZJYleLQH84OAQpee_HP8meOHZE989yW_dxY4kgGpBx-r1FpWC26AsB5xPaE22EkRvwPP7Z2NxgTyzffoOcCypTerOY7T7CNOO3nCcGfTTN7p8KGM_ezr3rF6_oGTRH5SMmlftX6TsHQPtvZlxqlk6eRsn-PxdesIbt96UESTOrw74fau2Wg7vpGmpgXO3WB4PCS2s4QKiLB0K7Qb9yF2Gdi1DLXMoO1ONfRvhHMnAb007aLcBG_KzFNA4hvbWvDZvFiHc7RvaOspIDsdXR5nRGf9mWsIhBXRP2sy6Ht0G4zEBYxTlKdWMz7Aud3rbHW89crSU
+                          - generic [ref=f36e343]:
+                            - link "nowtv.com" [ref=f36e345] [cursor=pointer]:
+                              - /url: https://alb.reddit.com/cr?za=R-RAT_xVWyc8PA21K-2QWSOHkoCJiC0sW9dZC2Xoo3EeSZiJKGO96DVNenuez31FG5q1CBbNx24Ou3UU9XLvTD0kHqr3mjuJXlsF7URVRE539DaQyYv9ZUHwOimf8r2io-YXHVULk7NFNy3zP6oVXrQ_xBvMmlqdWS2GYXxniGMMAE08JJuoZxjnln5EAJuV67CxaWYB8XvAc3H5XRzT7F0nIl7AsuUVH4fjdm4BFrWoXzKOsvWD3YecdyjqtaLrcHDRJ0Zp4B0LQ2sYD5UQCwOyg695FiFjG4mECO4fga2kSvAfM0oOhJsteTvX8OvrZ_k9YUqUaniKQO2mGz-RiasDEbLrw-tLIaT22qmGVzThYTUHLkEishatCcVn06AAhrpotPPdWCcOK97pHFNXiYm7Vjx3hqVV_Mp25-6zZ7e5aKGhmjbmDcVpB4Dw7VGD-S7eIT0iRrNvrXuStDW-iKi6KUygaGV1tDoF-Z0G-EjGWk-jmzHH0JJ1C2S6ThRM4Hi-c1_zEfQfTG2-jU0wYslh6aXl17PhEcpweuQh5aVQZbxo1eqe1H7R0itP0AbLs4a-EhxMdkDYrTH4Z90HHpvIVm_LAcOBCwhrTgNjFseHiHr2x435VudshuGsZf3RC4EEdB6-U9GYJ5JoRiuXAIANve1x5xhT_A3qBOCjrWjPnicncJrU99-sRfETq-tFP35GaWTVWwXXW2eoQ5plZN4YzepixPRHx3OjwioThaSDG_Y1SO_705W5-amskqBHxTPZD71JDrB6oAMCJcp4Xt1MH_IhV4f7tB-1ciqF0aQJk6t5rfQDGL1EmxewaZT_OrwrYwTSRHoEU8DgwpQWpDYbiwo8T7uVbDLjvvrqBO5e9Lv8QKsVuOOl0lVZSbiwItj7YEKqStRy_0K_Ic23k0XbJZ9klNkatX3P51If2O-sKM3AetscT_Nx7mRVC55nPX26ZOHLWmxnCH6DSboAKi5q8QJpH7G6IyUP7ljidXaiG-4Wk4ETgxROc3b5RkvG1p6dWbqpDTn4YSwpQPyk6LZEhRMlnH__3XipaH9eGNRJJgRVEZJDAI_tLPgMyqhpy5EHbEKtTWsSe1jaHz1A2k3SsMFHfkE45qpeqKewLx1-UewbaFmy7zPT1mKUHWaUjw&zp=B89rRmgUrFnJwxTq3WMogPF8DwjFSBLKcrphLA9LQPxHOsXEr8PVElWvlhsYzxAI1LqmczR6mjvNdzGGIJxGW53fyNZJYleLQH84OAQpee_HP8meOHZE989yW_dxY4kgGpBx-r1FpWC26AsB5xPaE22EkRvwPP7Z2NxgTyzffoOcCypTerOY7T7CNOO3nCcGfTTN7p8KGM_ezr3rF6_oGTRH5SMmlftX6TsHQPtvZlxqlk6eRsn-PxdesIbt96UESTOrw74fau2Wg7vpGmpgXO3WB4PCS2s4QKiLB0K7Qb9yF2Gdi1DLXMoO1ONfRvhHMnAb007aLcBG_KzFNA4hvbWvDZvFiHc7RvaOspIDsdXR5nRGf9mWsIhBXRP2sy6Ht0G4zEBYxTlKdWMz7Aud3rbHW89crSU
+                            - link "Sign Up" [ref=f36e346] [cursor=pointer]:
+                              - /url: https://alb.reddit.com/cr?za=R-RAT_xVWyc8PA21K-2QWSOHkoCJiC0sW9dZC2Xoo3EeSZiJKGO96DVNenuez31FG5q1CBbNx24Ou3UU9XLvTD0kHqr3mjuJXlsF7URVRE539DaQyYv9ZUHwOimf8r2io-YXHVULk7NFNy3zP6oVXrQ_xBvMmlqdWS2GYXxniGMMAE08JJuoZxjnln5EAJuV67CxaWYB8XvAc3H5XRzT7F0nIl7AsuUVH4fjdm4BFrWoXzKOsvWD3YecdyjqtaLrcHDRJ0Zp4B0LQ2sYD5UQCwOyg695FiFjG4mECO4fga2kSvAfM0oOhJsteTvX8OvrZ_k9YUqUaniKQO2mGz-RiasDEbLrw-tLIaT22qmGVzThYTUHLkEishatCcVn06AAhrpotPPdWCcOK97pHFNXiYm7Vjx3hqVV_Mp25-6zZ7e5aKGhmjbmDcVpB4Dw7VGD-S7eIT0iRrNvrXuStDW-iKi6KUygaGV1tDoF-Z0G-EjGWk-jmzHH0JJ1C2S6ThRM4Hi-c1_zEfQfTG2-jU0wYslh6aXl17PhEcpweuQh5aVQZbxo1eqe1H7R0itP0AbLs4a-EhxMdkDYrTH4Z90HHpvIVm_LAcOBCwhrTgNjFseHiHr2x435VudshuGsZf3RC4EEdB6-U9GYJ5JoRiuXAIANve1x5xhT_A3qBOCjrWjPnicncJrU99-sRfETq-tFP35GaWTVWwXXW2eoQ5plZN4YzepixPRHx3OjwioThaSDG_Y1SO_705W5-amskqBHxTPZD71JDrB6oAMCJcp4Xt1MH_IhV4f7tB-1ciqF0aQJk6t5rfQDGL1EmxewaZT_OrwrYwTSRHoEU8DgwpQWpDYbiwo8T7uVbDLjvvrqBO5e9Lv8QKsVuOOl0lVZSbiwItj7YEKqStRy_0K_Ic23k0XbJZ9klNkatX3P51If2O-sKM3AetscT_Nx7mRVC55nPX26ZOHLWmxnCH6DSboAKi5q8QJpH7G6IyUP7ljidXaiG-4Wk4ETgxROc3b5RkvG1p6dWbqpDTn4YSwpQPyk6LZEhRMlnH__3XipaH9eGNRJJgRVEZJDAI_tLPgMyqhpy5EHbEKtTWsSe1jaHz1A2k3SsMFHfkE45qpeqKewLx1-UewbaFmy7zPT1mKUHWaUjw&zp=B89rRmgUrFnJwxTq3WMogPF8DwjFSBLKcrphLA9LQPxHOsXEr8PVElWvlhsYzxAI1LqmczR6mjvNdzGGIJxGW53fyNZJYleLQH84OAQpee_HP8meOHZE989yW_dxY4kgGpBx-r1FpWC26AsB5xPaE22EkRvwPP7Z2NxgTyzffoOcCypTerOY7T7CNOO3nCcGfTTN7p8KGM_ezr3rF6_oGTRH5SMmlftX6TsHQPtvZlxqlk6eRsn-PxdesIbt96UESTOrw74fau2Wg7vpGmpgXO3WB4PCS2s4QKiLB0K7Qb9yF2Gdi1DLXMoO1ONfRvhHMnAb007aLcBG_KzFNA4hvbWvDZvFiHc7RvaOspIDsdXR5nRGf9mWsIhBXRP2sy6Ht0G4zEBYxTlKdWMz7Aud3rbHW89crSU
+                      - generic "Actions available for this post" [ref=f36e350]:
+                        - generic [ref=f36e353]:
+                          - button "Upvote" [ref=f36e354] [cursor=pointer]
+                          - text: Vote
+                          - button "Downvote" [ref=f36e359] [cursor=pointer]
+                        - link "0 Go to comments" [ref=f36e364] [cursor=pointer]:
+                          - /url: /user/NOWIreland/comments/1vrkmk4/watch_every_live_premier_league_match_with_now/?p=1&impressionid=6026791691816545611&action_bar_refresh_eligible=1
+                          - generic [ref=f36e365]: "0"
+                          - generic [ref=f36e371]: Go to comments
+                        - button "Share" [ref=f36e375] [cursor=pointer]
+                        - link [ref=f36e382] [cursor=pointer]:
+                          - /url: https://alb.reddit.com/cr?za=R-RAT_xVWyc8PA21K-2QWSOHkoCJiC0sW9dZC2Xoo3EeSZiJKGO96DVNenuez31FG5q1CBbNx24Ou3UU9XLvTD0kHqr3mjuJXlsF7URVRE539DaQyYv9ZUHwOimf8r2io-YXHVULk7NFNy3zP6oVXrQ_xBvMmlqdWS2GYXxniGMMAE08JJuoZxjnln5EAJuV67CxaWYB8XvAc3H5XRzT7F0nIl7AsuUVH4fjdm4BFrWoXzKOsvWD3YecdyjqtaLrcHDRJ0Zp4B0LQ2sYD5UQCwOyg695FiFjG4mECO4fga2kSvAfM0oOhJsteTvX8OvrZ_k9YUqUaniKQO2mGz-RiasDEbLrw-tLIaT22qmGVzThYTUHLkEishatCcVn06AAhrpotPPdWCcOK97pHFNXiYm7Vjx3hqVV_Mp25-6zZ7e5aKGhmjbmDcVpB4Dw7VGD-S7eIT0iRrNvrXuStDW-iKi6KUygaGV1tDoF-Z0G-EjGWk-jmzHH0JJ1C2S6ThRM4Hi-c1_zEfQfTG2-jU0wYslh6aXl17PhEcpweuQh5aVQZbxo1eqe1H7R0itP0AbLs4a-EhxMdkDYrTH4Z90HHpvIVm_LAcOBCwhrTgNjFseHiHr2x435VudshuGsZf3RC4EEdB6-U9GYJ5JoRiuXAIANve1x5xhT_A3qBOCjrWjPnicncJrU99-sRfETq-tFP35GaWTVWwXXW2eoQ5plZN4YzepixPRHx3OjwioThaSDG_Y1SO_705W5-amskqBHxTPZD71JDrB6oAMCJcp4Xt1MH_IhV4f7tB-1ciqF0aQJk6t5rfQDGL1EmxewaZT_OrwrYwTSRHoEU8DgwpQWpDYbiwo8T7uVbDLjvvrqBO5e9Lv8QKsVuOOl0lVZSbiwItj7YEKqStRy_0K_Ic23k0XbJZ9klNkatX3P51If2O-sKM3AetscT_Nx7mRVC55nPX26ZOHLWmxnCH6DSboAKi5q8QJpH7G6IyUP7ljidXaiG-4Wk4ETgxROc3b5RkvG1p6dWbqpDTn4YSwpQPyk6LZEhRMlnH__3XipaH9eGNRJJgRVEZJDAI_tLPgMyqhpy5EHbEKtTWsSe1jaHz1A2k3SsMFHfkE45qpeqKewLx1-UewbaFmy7zPT1mKUHWaUjw&zp=B89rRmgUrFnJwxTq3WMogPF8DwjFSBLKcrphLA9LQPxHOsXEr8PVElWvlhsYzxAI1LqmczR6mjvNdzGGIJxGW53fyNZJYleLQH84OAQpee_HP8meOHZE989yW_dxY4kgGpBx-r1FpWC26AsB5xPaE22EkRvwPP7Z2NxgTyzffoOcCypTerOY7T7CNOO3nCcGfTTN7p8KGM_ezr3rF6_oGTRH5SMmlftX6TsHQPtvZlxqlk6eRsn-PxdesIbt96UESTOrw74fau2Wg7vpGmpgXO3WB4PCS2s4QKiLB0K7Qb9yF2Gdi1DLXMoO1ONfRvhHMnAb007aLcBG_KzFNA4hvbWvDZvFiHc7RvaOspIDsdXR5nRGf9mWsIhBXRP2sy6Ht0G4zEBYxTlKdWMz7Aud3rbHW89crSU
+                    - separator [ref=f36e383]
+                    - article [ref=f36e384]:
+                      - generic [ref=f36e385] [cursor=pointer]:
+                        - 'link "We did it again #YNABwin" [ref=f36e386]':
+                          - /url: https://www.reddit.com/r/ynab/comments/1vumsay/we_did_it_again_ynabwin/
+                        - generic [ref=f36e388]:
+                          - generic [ref=f36e389]:
+                            - 'link "Author: u/callmeking220" [ref=f36e394]':
+                              - /url: https://www.reddit.com/user/callmeking220/
+                              - generic [ref=f36e395]: u/callmeking220
+                            - generic [ref=f36e403]: •
+                            - time [ref=f36e405]: 5 days ago
+                          - button "Open user actions" [ref=f36e411]
+                        - generic [ref=f36e417]:
+                          - heading [level=2] [ref=f36e418]:
+                            - 'link "We did it again #YNABwin" [ref=f36e419]':
+                              - /url: https://www.reddit.com/r/ynab/comments/1vumsay/we_did_it_again_ynabwin/
+                          - 'link "Flair: Success Story" [ref=f36e422]':
+                            - /url: /r/ynab/?f=flair_name%3A%22Success%20Story%22
+                            - 'generic "Flair: Success Story" [ref=f36e424]': Success Story
+                        - 'img "r/ynab - We did it again #YNABwin" [ref=f36e430]'
+                        - generic "Actions available for this post" [ref=f36e432]:
+                          - generic [ref=f36e435]:
+                            - button "Upvote" [ref=f36e436]
+                            - generic [ref=f36e441]: "238"
+                            - button "Downvote" [ref=f36e443]
+                          - link "11 Go to comments" [ref=f36e448]:
+                            - /url: /r/ynab/comments/1vumsay/we_did_it_again_ynabwin/
+                            - generic [ref=f36e449]: "11"
+                            - generic [ref=f36e455]: Go to comments
+                          - button "Share" [ref=f36e459]
+                    - separator [ref=f36e466]
+                    - article [ref=f36e467]:
+                      - generic [ref=f36e468] [cursor=pointer]:
+                        - link "Married, and need to keep my inheritance funds separate, YNABers please give me some ideas!" [ref=f36e469]:
+                          - /url: https://www.reddit.com/r/ynab/comments/1vyh52a/married_and_need_to_keep_my_inheritance_funds/
+                        - generic [ref=f36e471]:
+                          - generic [ref=f36e472]:
+                            - 'link "Author: u/MissBlossomz" [ref=f36e477]':
+                              - /url: https://www.reddit.com/user/MissBlossomz/
+                              - generic [ref=f36e478]: u/MissBlossomz
+                            - generic [ref=f36e486]: •
+                            - time [ref=f36e488]: 11 hr. ago
+                          - button "Open user actions" [ref=f36e494]
+                        - generic [ref=f36e500]:
+                          - heading [level=2] [ref=f36e501]:
+                            - link "Married, and need to keep my inheritance funds separate, YNABers please give me some ideas!" [ref=f36e502]:
+                              - /url: https://www.reddit.com/r/ynab/comments/1vyh52a/married_and_need_to_keep_my_inheritance_funds/
+                          - generic [ref=f36e503]:
+                            - generic:
+                              - link "Hello all! I recently received a very large inheritance, and my lawyer advised me that if I were to ever get divorced, I need to keep the funds separate from my marital funds to avoid them being considered a martial asset. I am YNABING with my husband. How would you advise I set up my inheritance accounts and YNAB categories? The money is being kept in a trust checking account right now.":
+                                - /url: /r/ynab/comments/1vyh52a/married_and_need_to_keep_my_inheritance_funds/
+                                - generic:
+                                  - generic:
+                                    - paragraph: Hello all!
+                                    - paragraph: I recently received a very large inheritance, and my lawyer advised me that if I were to ever get divorced, I need to keep the funds separate from my marital funds to avoid them being considered a martial asset.
+                                    - paragraph: I am YNABING with my husband. How would you advise I set up my inheritance accounts and YNAB categories? The money is being kept in a trust checking account right now.
+                        - generic "Actions available for this post" [ref=f36e505]:
+                          - generic [ref=f36e508]:
+                            - button "Upvote" [ref=f36e509]
+                            - generic [ref=f36e514]: "9"
+                            - button "Downvote" [ref=f36e516]
+                          - link "50 Go to comments" [ref=f36e521]:
+                            - /url: /r/ynab/comments/1vyh52a/married_and_need_to_keep_my_inheritance_funds/
+                            - generic [ref=f36e522]: "50"
+                            - generic [ref=f36e528]: Go to comments
+                          - button "Share" [ref=f36e532]
+                    - separator [ref=f36e539]
+            - generic [ref=f36e558]:
+              - complementary "Community information" [ref=f36e563]:
+                - generic [ref=f36e564]:
+                  - generic [ref=f36e566]:
+                    - heading "Community Info Section" [level=1] [ref=f36e567]
+                    - generic [ref=f36e568]:
+                      - generic [ref=f36e569]: YNAB
+                      - generic [ref=f36e570]: An unofficial discussion subreddit for popular budgeting app YNAB. Feel free to post any news, questions, budget strategies, tips & tricks and advice related to YNAB.
+                      - generic [ref=f36e571]:
+                        - generic [ref=f36e572]: Created Dec 6, 2012
+                        - generic [ref=f36e576]: Public
+                    - generic [ref=f36e580]:
+                      - generic [ref=f36e581]:
+                        - strong [ref=f36e583]:
+                          - generic: 46K
+                        - generic [ref=f36e584]: YNABers
+                      - generic [ref=f36e585]:
+                        - strong [ref=f36e587]:
+                          - generic: "805"
+                        - generic [ref=f36e588]: Weekly contributions
+                  - separator [ref=f36e589]
+                  - generic [ref=f36e590]:
+                    - heading "Community Bookmarks" [level=2] [ref=f36e592]
+                    - generic [ref=f36e594]:
+                      - link "Get Started Guide" [ref=f36e596] [cursor=pointer]:
+                        - /url: https://www.ynab.com/guide/the-ultimate-get-started-guide
+                      - link "FAQ & Help Guides" [ref=f36e601] [cursor=pointer]:
+                        - /url: https://www.ynab.com/help-center
+                      - link "Credit Cards in YNAB" [ref=f36e606] [cursor=pointer]:
+                        - /url: https://support.ynab.com/en_us/handling-credit-cards-overview-ry7cNub1s#how
+                      - link "YNAB Extensions" [ref=f36e611] [cursor=pointer]:
+                        - /url: https://api.ynab.com/#works-with-ynab
+                  - separator [ref=f36e615]
+                  - generic [ref=f36e616]:
+                    - heading "r/ynab Rules" [level=2] [ref=f36e618]
+                    - generic [ref=f36e620]:
+                      - group [ref=f36e622]:
+                        - generic "1 Keep the conversation constructive and on-topic" [ref=f36e623] [cursor=pointer]:
+                          - generic [ref=f36e626]:
+                            - generic [ref=f36e627]: "1"
+                            - heading "Keep the conversation constructive and on-topic" [level=2] [ref=f36e632]
+                        - paragraph [ref=f36e641]: Posts must be related to YNAB or the YNAB method. Comments should be respectful and add to the conversation.
+                      - group [ref=f36e643]:
+                        - generic "2 No soliciting" [ref=f36e644] [cursor=pointer]:
+                          - generic [ref=f36e647]:
+                            - generic [ref=f36e648]: "2"
+                            - heading "No soliciting" [level=2] [ref=f36e653]
+                        - paragraph [ref=f36e662]:
+                          - text: Self-promotion of apps, services, or AI tools, or requesting feedback for those in development, is not allowed without prior
+                          - link "mod approval" [ref=f36e663] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/ynab/wiki/submit-app-for-mod-review/
+                          - text: . Deceptive tactics or excessive promotion will be treated as spam.
+                      - group [ref=f36e665]:
+                        - generic "3 YNAB referral links" [ref=f36e666] [cursor=pointer]:
+                          - generic [ref=f36e669]:
+                            - generic [ref=f36e670]: "3"
+                            - heading "YNAB referral links" [level=2] [ref=f36e675]
+                        - paragraph [ref=f36e684]: YNAB referral links may only be shared in the designated thread.
+                  - separator [ref=f36e685]
+                  - separator [ref=f36e686]
+                  - generic [ref=f36e687]:
+                    - heading "Installed Apps" [level=2] [ref=f36e689]
+                    - link "Bot Bouncer" [ref=f36e691] [cursor=pointer]:
+                      - /url: https://developers.reddit.com/apps/bot-bouncer
+              - list [ref=f36e700]:
+                - listitem [ref=f36e701]:
+                  - link "Home" [ref=f36e703] [cursor=pointer]:
+                    - /url: /?feed=home
+                - listitem [ref=f36e704]:
+                  - link "Popular" [ref=f36e706] [cursor=pointer]:
+                    - /url: /r/popular/
+                - listitem [ref=f36e707]:
+                  - link "News" [ref=f36e709] [cursor=pointer]:
+                    - /url: /news/
+                - listitem [ref=f36e710]:
+                  - link "Explore" [ref=f36e712] [cursor=pointer]:
+                    - /url: /explore/
+                - listitem [ref=f36e713]:
+                  - link "Best of Reddit" [ref=f36e715] [cursor=pointer]:
+                    - /url: https://www.reddit.com/posts/2026/global/
+                - listitem [ref=f36e716]:
+                  - link "Best of Reddit in Portuguese" [ref=f36e718] [cursor=pointer]:
+                    - /url: https://www.reddit.com/posts/2026/tl-pt-BR/
+                - listitem [ref=f36e719]:
+                  - link "Best of Reddit in German" [ref=f36e721] [cursor=pointer]:
+                    - /url: https://www.reddit.com/posts/2026/tl-de/
+                - listitem [ref=f36e722]:
+                  - link "Reddit Rules" [ref=f36e724] [cursor=pointer]:
+                    - /url: https://www.redditinc.com/policies/content-policy
+                - listitem [ref=f36e725]:
+                  - link "Privacy Policy" [ref=f36e727] [cursor=pointer]:
+                    - /url: https://www.reddit.com/policies/privacy-policy
+                - listitem [ref=f36e728]:
+                  - link "User Agreement" [ref=f36e730] [cursor=pointer]:
+                    - /url: https://www.redditinc.com/policies/user-agreement
+                - listitem [ref=f36e731]:
+                  - link "Accessibility" [ref=f36e733] [cursor=pointer]:
+                    - /url: https://support.reddithelp.com/hc/sections/38303584022676-Accessibility
+                - listitem [ref=f36e734]:
+                  - link "Reddit, Inc. © 2026. All rights reserved." [ref=f36e735] [cursor=pointer]:
+                    - /url: https://redditinc.com
+        - generic [ref=f36e738]:
+          - paragraph [ref=f36e739]: Join the most real place on the internet
+          - generic [ref=f36e741]:
+            - generic [ref=f36e744]:
+              - iframe [ref=f36e749]:
+                - button "Continue with Google. Opens in new tab" [ref=f37e3] [cursor=pointer]:
+                  - generic [ref=f37e5]: Continue with Google
+              - generic [ref=f36e751] [cursor=pointer]:
+                - generic [ref=f36e752]: Continue with Apple
+                - button "Sign in with Apple" [ref=f36e758]:
+                  - generic [ref=f36e759]:
+                    - img:
+                      - generic:
+                        - img:
+                          - generic:  Sign in with Apple
+            - link "Continue with Phone Number" [ref=f36e764] [cursor=pointer]:
+              - /url: https://www.reddit.com/login/
+            - link "Continue with Email" [ref=f36e773] [cursor=pointer]:
+              - /url: https://www.reddit.com/register/
+          - paragraph [ref=f36e780]:
+            - text: By continuing, you agree to our
+            - link "User Agreement" [ref=f36e781] [cursor=pointer]:
+              - /url: https://www.redditinc.com/policies/user-agreement
+            - text: and acknowledge that you understand the
+            - link "Privacy Policy" [ref=f36e782] [cursor=pointer]:
+              - /url: https://www.redditinc.com/policies/privacy-policy
+            - text: .
+      - dialog "Data Protection Consent" [ref=f36e784]:
+        - generic [ref=f36e785]:
+          - generic [ref=f36e787]:
+            - generic:
+              - button "Close" [ref=f36e791] [cursor=pointer]
+              - generic [ref=f36e796]:
+                - generic [ref=f36e797]: Let us know your cookie preferences
+                - generic [ref=f36e800]:
+                  - paragraph [ref=f36e801]: "Reddit uses cookies and similar technologies to:"
+                  - list [ref=f36e802]:
+                    - listitem [ref=f36e803]: Keep the website operational and running properly
+                    - listitem [ref=f36e804]: Prevent fraud and abuse
+                    - listitem [ref=f36e805]: Monitor site usage and performance metrics
+                  - paragraph [ref=f36e806]: "If you choose “Accept All” we’ll also use cookies to:"
+                  - list [ref=f36e807]:
+                    - listitem [ref=f36e808]: Personalize your recommendations and ads
+                    - listitem [ref=f36e809]: Measure the performance of ads
+                    - listitem [ref=f36e810]: Develop and improve new features and services
+                  - paragraph [ref=f36e811]: If you choose “Reject Optional Cookies” we won’t use cookies for these additional uses. You can update your cookie preference from your settings.
+                  - paragraph [ref=f36e812]:
+                    - text: Learn more about
+                    - link "how Reddit uses cookies" [ref=f36e813] [cursor=pointer]:
+                      - /url: /en-us/policies/cookies
+                    - text: .
+          - generic [ref=f36e815]:
+            - button "Reject Optional Cookies" [ref=f36e816] [cursor=pointer]
+            - button "Accept All" [ref=f36e819] [cursor=pointer]

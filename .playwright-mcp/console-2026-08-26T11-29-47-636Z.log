@@ -1,0 +1,5 @@
+[    1248ms] [WARNING] useTranslation: DISMISS is not available @ https://duckduckgo.com/dist/wpm.main.b4af5e7156fc2e7e9114.js:0
+[    1250ms] [WARNING] useTranslation: DISMISS is not available @ https://duckduckgo.com/dist/wpm.main.b4af5e7156fc2e7e9114.js:0
+[    1252ms] [WARNING] useTranslation: DISMISS is not available @ https://duckduckgo.com/dist/wpm.main.b4af5e7156fc2e7e9114.js:0
+[    1449ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://external-content.duckduckgo.com/ip3/support.ynab.com.ico:0
+[    5540ms] [WARNING] The resource https://duckduckgo.com/dist/wpm.duckassist-ia.fa316ba101da9abf947e.css was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://duckduckgo.com/?q=reddit+r%2Fynab+multiple+currencies+deal+breaker+one+currency+per+budget&ia=web:0

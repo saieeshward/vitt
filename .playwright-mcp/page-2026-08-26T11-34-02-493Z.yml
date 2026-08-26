@@ -1,0 +1,203 @@
+- generic [ref=f23e2]:
+  - generic [ref=f23e3]:
+    - link "DuckDuckGo" [ref=f23e4] [cursor=pointer]:
+      - /url: /html/
+    - generic [ref=f23e5]:
+      - generic [ref=f23e6]:
+        - textbox [ref=f23e7]: site:support.ynab.com currency multiple currencies separate plan
+        - button "Submit" [ref=f23e8] [cursor=pointer]
+      - combobox [ref=f23e10] [cursor=pointer]:
+        - option "All Regions" [selected]
+        - option "Argentina"
+        - option "Australia"
+        - option "Austria"
+        - option "Belgium (fr)"
+        - option "Belgium (nl)"
+        - option "Brazil"
+        - option "Bulgaria"
+        - option "Canada (en)"
+        - option "Canada (fr)"
+        - option "Catalonia"
+        - option "Chile"
+        - option "China"
+        - option "Colombia"
+        - option "Croatia"
+        - option "Czech Republic"
+        - option "Denmark"
+        - option "Estonia"
+        - option "Finland"
+        - option "France"
+        - option "Germany"
+        - option "Greece"
+        - option "Hong Kong"
+        - option "Hungary"
+        - option "Iceland"
+        - option "India (en)"
+        - option "Indonesia (en)"
+        - option "Ireland"
+        - option "Israel (en)"
+        - option "Italy"
+        - option "Japan"
+        - option "Korea"
+        - option "Latvia"
+        - option "Lithuania"
+        - option "Malaysia (en)"
+        - option "Mexico"
+        - option "Netherlands"
+        - option "New Zealand"
+        - option "Norway"
+        - option "Pakistan (en)"
+        - option "Peru"
+        - option "Philippines (en)"
+        - option "Poland"
+        - option "Portugal"
+        - option "Romania"
+        - option "Russia"
+        - option "Saudi Arabia"
+        - option "Singapore"
+        - option "Slovakia"
+        - option "Slovenia"
+        - option "South Africa"
+        - option "Spain (ca)"
+        - option "Spain (es)"
+        - option "Sweden"
+        - option "Switzerland (de)"
+        - option "Switzerland (fr)"
+        - option "Taiwan"
+        - option "Thailand (en)"
+        - option "Turkey"
+        - option "US (English)"
+        - option "US (Spanish)"
+        - option "Ukraine"
+        - option "United Kingdom"
+        - option "Vietnam (en)"
+      - combobox [ref=f23e12] [cursor=pointer]:
+        - option "Any Time" [selected]
+        - option "Past Day"
+        - option "Past Week"
+        - option "Past Month"
+        - option "Past Year"
+  - generic [ref=f23e15]:
+    - generic [ref=f23e17]:
+      - heading [level=2] [ref=f23e18]:
+        - 'link "Using Multiple Currencies in YNAB: A Guide" [ref=f23e19] [cursor=pointer]':
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fusing%2Dmultiple%2Dcurrencies%2Din%2Dynab%2Da%2Dguide%2DSyBF6PHno&rut=4eae2c70233bb72e8f9a13b2ae8b3064ce1d4a7ed483e7864fdf97b1c12eb962
+      - generic [ref=f23e21]:
+        - link [ref=f23e23] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fusing%2Dmultiple%2Dcurrencies%2Din%2Dynab%2Da%2Dguide%2DSyBF6PHno&rut=4eae2c70233bb72e8f9a13b2ae8b3064ce1d4a7ed483e7864fdf97b1c12eb962
+        - link "support.ynab.com/en_us/using-multiple-currencies-in-ynab-a-guide-SyBF6PHno" [ref=f23e24] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fusing%2Dmultiple%2Dcurrencies%2Din%2Dynab%2Da%2Dguide%2DSyBF6PHno&rut=4eae2c70233bb72e8f9a13b2ae8b3064ce1d4a7ed483e7864fdf97b1c12eb962
+        - text: 2026-07-09T00:00:00.0000000
+      - link "Learn how to manage multiple currencies in YNAB depending on your situation, and review tips for managing them. When using multiple currencies (like US dollars and Canadian dollars), we recommend creating a separate plan for each. You record what you send, and you record what you receive." [ref=f23e25] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fusing%2Dmultiple%2Dcurrencies%2Din%2Dynab%2Da%2Dguide%2DSyBF6PHno&rut=4eae2c70233bb72e8f9a13b2ae8b3064ce1d4a7ed483e7864fdf97b1c12eb962
+    - generic [ref=f23e27]:
+      - heading [level=2] [ref=f23e28]:
+        - link "Navigating Multiple Plans in YNAB" [ref=f23e29] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fnavigating%2Dmultiple%2Dplans%2Dr1qeOvbC5&rut=8653fe4abab21744261ac26c7a3757407b1209a5b9d099d9c0c92930e0c8c4ce
+      - generic [ref=f23e31]:
+        - link [ref=f23e33] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fnavigating%2Dmultiple%2Dplans%2Dr1qeOvbC5&rut=8653fe4abab21744261ac26c7a3757407b1209a5b9d099d9c0c92930e0c8c4ce
+        - link "support.ynab.com/en_us/navigating-multiple-plans-r1qeOvbC5" [ref=f23e34] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fnavigating%2Dmultiple%2Dplans%2Dr1qeOvbC5&rut=8653fe4abab21744261ac26c7a3757407b1209a5b9d099d9c0c92930e0c8c4ce
+        - text: 2026-07-02T00:00:00.0000000
+      - link "Or maybe you're working with more than one plan currently (multiple currencies, business plans, sharing plans through YNAB Together, etc.). Here's how to easily switch between plans to always access the view of YNAB you need, regardless of what platform you're on!" [ref=f23e35] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fnavigating%2Dmultiple%2Dplans%2Dr1qeOvbC5&rut=8653fe4abab21744261ac26c7a3757407b1209a5b9d099d9c0c92930e0c8c4ce
+    - generic [ref=f23e37]:
+      - heading [level=2] [ref=f23e38]:
+        - link "How to Adjust Your Plan Settings in YNAB" [ref=f23e39] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fhow%2Dto%2Dadjust%2Dyour%2Dplan%2Dsettings%2DSyFt35cAq&rut=c8e271d7bd88e0de7f2b69a259f4b195dfb3e8a91b5bcf8bca05c70e1fe23e3b
+      - generic [ref=f23e41]:
+        - link [ref=f23e43] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fhow%2Dto%2Dadjust%2Dyour%2Dplan%2Dsettings%2DSyFt35cAq&rut=c8e271d7bd88e0de7f2b69a259f4b195dfb3e8a91b5bcf8bca05c70e1fe23e3b
+        - link "support.ynab.com/en_us/how-to-adjust-your-plan-settings-SyFt35cAq" [ref=f23e44] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fhow%2Dto%2Dadjust%2Dyour%2Dplan%2Dsettings%2DSyFt35cAq&rut=c8e271d7bd88e0de7f2b69a259f4b195dfb3e8a91b5bcf8bca05c70e1fe23e3b
+        - text: 2026-07-27T00:00:00.0000000
+      - link "Adjust the options in this menu to customize your plan name, currency, number format, and date format. While the app itself is only available in the English language, you can still adjust your plan settings to suit your preferences." [ref=f23e45] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fhow%2Dto%2Dadjust%2Dyour%2Dplan%2Dsettings%2DSyFt35cAq&rut=c8e271d7bd88e0de7f2b69a259f4b195dfb3e8a91b5bcf8bca05c70e1fe23e3b
+    - generic [ref=f23e47]:
+      - heading [level=2] [ref=f23e48]:
+        - link "Creating a New Plan in YNAB" [ref=f23e49] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fcreating%2Da%2Dnew%2Dplan%2DHyl4uc5Cq&rut=593d2a2d618b4bd7618bc842c4ff71e736ae1047261805a2988de629c0ff460a
+      - generic [ref=f23e51]:
+        - link [ref=f23e53] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fcreating%2Da%2Dnew%2Dplan%2DHyl4uc5Cq&rut=593d2a2d618b4bd7618bc842c4ff71e736ae1047261805a2988de629c0ff460a
+        - link "support.ynab.com/en_us/creating-a-new-plan-Hyl4uc5Cq" [ref=f23e54] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fcreating%2Da%2Dnew%2Dplan%2DHyl4uc5Cq&rut=593d2a2d618b4bd7618bc842c4ff71e736ae1047261805a2988de629c0ff460a
+        - text: 2026-08-06T00:00:00.0000000
+      - link "Learn the difference between creating a brand new plan and making a Plan Reset or Fresh Start (and decide which is best for you!). Follow the outlined steps to create a new plan from scratch, including naming it and adjusting settings." [ref=f23e55] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fcreating%2Da%2Dnew%2Dplan%2DHyl4uc5Cq&rut=593d2a2d618b4bd7618bc842c4ff71e736ae1047261805a2988de629c0ff460a
+    - generic [ref=f23e57]:
+      - heading [level=2] [ref=f23e58]:
+        - link "Creating a Plan Template in YNAB" [ref=f23e59] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fcreating%2Da%2Dplan%2Dtemplate%2DByZJZx_R9&rut=c54c13b8d6fb3112a207683d0630564a778e62fd2ff6259f509d1f66038b097e
+      - generic [ref=f23e61]:
+        - link [ref=f23e63] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fcreating%2Da%2Dplan%2Dtemplate%2DByZJZx_R9&rut=c54c13b8d6fb3112a207683d0630564a778e62fd2ff6259f509d1f66038b097e
+        - link "support.ynab.com/en_us/creating-a-plan-template-ByZJZx_R9" [ref=f23e64] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fcreating%2Da%2Dplan%2Dtemplate%2DByZJZx_R9&rut=c54c13b8d6fb3112a207683d0630564a778e62fd2ff6259f509d1f66038b097e
+        - text: 2026-07-02T00:00:00.0000000
+      - link "This article explains how to create a plan template by following the YNAB Method. A plan template allows you to assign only the dollars you have right now." [ref=f23e65] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fcreating%2Da%2Dplan%2Dtemplate%2DByZJZx_R9&rut=c54c13b8d6fb3112a207683d0630564a778e62fd2ff6259f509d1f66038b097e
+    - generic [ref=f23e67]:
+      - heading [level=2] [ref=f23e68]:
+        - link "How to Adjust Your Plan on Any Pay Cycle - YNAB" [ref=f23e69] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fhow%2Dto%2Dadjust%2Dyour%2Dplan%2Don%2Dany%2Dpay%2Dcycle%2DHkpGZdW1o&rut=4387d22197a85e656dcc147c278376d78aed0f9c2de1a13ca3527417d037810d
+      - generic [ref=f23e71]:
+        - link [ref=f23e73] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fhow%2Dto%2Dadjust%2Dyour%2Dplan%2Don%2Dany%2Dpay%2Dcycle%2DHkpGZdW1o&rut=4387d22197a85e656dcc147c278376d78aed0f9c2de1a13ca3527417d037810d
+        - link "support.ynab.com/en_us/how-to-adjust-your-plan-on-any-pay-cycle-HkpGZdW1o" [ref=f23e74] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fhow%2Dto%2Dadjust%2Dyour%2Dplan%2Don%2Dany%2Dpay%2Dcycle%2DHkpGZdW1o&rut=4387d22197a85e656dcc147c278376d78aed0f9c2de1a13ca3527417d037810d
+        - text: 2026-07-02T00:00:00.0000000
+      - link "Learn how the YNAB method uses a monthly plan to accommodate all pay cycles, including folks with variable incomes. Create a Plan Template which will allow you to plan for your monthly expenses and guide your decisions each time you assign dollars. Enter your income - whenever it arrives." [ref=f23e75] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fhow%2Dto%2Dadjust%2Dyour%2Dplan%2Don%2Dany%2Dpay%2Dcycle%2DHkpGZdW1o&rut=4387d22197a85e656dcc147c278376d78aed0f9c2de1a13ca3527417d037810d
+    - generic [ref=f23e77]:
+      - heading [level=2] [ref=f23e78]:
+        - link "Using YNAB as Partners" [ref=f23e79] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fpartner%2DHJqX5Br1j&rut=176a23420b26131887f52dfd3c8473a832b5d7f8228c8e5e2ec4d592b32a487a
+      - generic [ref=f23e81]:
+        - link [ref=f23e83] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fpartner%2DHJqX5Br1j&rut=176a23420b26131887f52dfd3c8473a832b5d7f8228c8e5e2ec4d592b32a487a
+        - link "support.ynab.com/en_us/partner-HJqX5Br1j" [ref=f23e84] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fpartner%2DHJqX5Br1j&rut=176a23420b26131887f52dfd3c8473a832b5d7f8228c8e5e2ec4d592b32a487a
+        - text: 2026-07-07T00:00:00.0000000
+      - 'link "Manage Money as a Couple: This guide provides three scenarios for setting up your YNAB plan with separate or shared accounts. It also offers tips for finding common ground when you have different mindsets around money." [ref=f23e85] [cursor=pointer]':
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fpartner%2DHJqX5Br1j&rut=176a23420b26131887f52dfd3c8473a832b5d7f8228c8e5e2ec4d592b32a487a
+    - generic [ref=f23e87]:
+      - heading [level=2] [ref=f23e88]:
+        - link "Split Transactions in YNAB" [ref=f23e89] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fsplit%2Dtransactions%2Da%2Dguide%2DSJLEKwY0q&rut=f8f0fd28c47f5dd30d13861772966a92155b6e6a1037bbfbd08791dcd9e8d8d1
+      - generic [ref=f23e91]:
+        - link [ref=f23e93] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fsplit%2Dtransactions%2Da%2Dguide%2DSJLEKwY0q&rut=f8f0fd28c47f5dd30d13861772966a92155b6e6a1037bbfbd08791dcd9e8d8d1
+        - link "support.ynab.com/en_us/split-transactions-a-guide-SJLEKwY0q" [ref=f23e94] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fsplit%2Dtransactions%2Da%2Dguide%2DSJLEKwY0q&rut=f8f0fd28c47f5dd30d13861772966a92155b6e6a1037bbfbd08791dcd9e8d8d1
+        - text: 2026-07-28T00:00:00.0000000
+      - link "Each split line can have its own payee, category, and memo, or be turned into a transfer. Use the sections below to make changes to a single split without affecting the others." [ref=f23e95] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fsplit%2Dtransactions%2Da%2Dguide%2DSJLEKwY0q&rut=f8f0fd28c47f5dd30d13861772966a92155b6e6a1037bbfbd08791dcd9e8d8d1
+    - generic [ref=f23e97]:
+      - heading [level=2] [ref=f23e98]:
+        - link "Moving Money in Your Plan - support.ynab.com" [ref=f23e99] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fmoving%2Dmoney%2Din%2Dyour%2Dplan%2DryyCKbBJi&rut=71e5e38c6d83eb53a677782075097c551aa86ed38b2d6dc6fc3a9bc4b99c566f
+      - generic [ref=f23e101]:
+        - link [ref=f23e103] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fmoving%2Dmoney%2Din%2Dyour%2Dplan%2DryyCKbBJi&rut=71e5e38c6d83eb53a677782075097c551aa86ed38b2d6dc6fc3a9bc4b99c566f
+        - link "support.ynab.com/moving-money-in-your-plan-ryyCKbBJi" [ref=f23e104] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fmoving%2Dmoney%2Din%2Dyour%2Dplan%2DryyCKbBJi&rut=71e5e38c6d83eb53a677782075097c551aa86ed38b2d6dc6fc3a9bc4b99c566f
+        - text: 2026-07-02T00:00:00.0000000
+      - link "This article shows you how to move money from category to category, allowing your plan to change as your needs and priorities change." [ref=f23e105] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fmoving%2Dmoney%2Din%2Dyour%2Dplan%2DryyCKbBJi&rut=71e5e38c6d83eb53a677782075097c551aa86ed38b2d6dc6fc3a9bc4b99c566f
+    - generic [ref=f23e107]:
+      - heading [level=2] [ref=f23e108]:
+        - link "How to Add Transactions in YNAB" [ref=f23e109] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fhow%2Dto%2Dadd%2Dtransactions%2Din%2Dynab%2DHyDwA_byi&rut=453875680d218f46d1b6929d8ca44b5101e8d91f9c9bf1b70bc94c9f87346c87
+      - generic [ref=f23e111]:
+        - link [ref=f23e113] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fhow%2Dto%2Dadd%2Dtransactions%2Din%2Dynab%2DHyDwA_byi&rut=453875680d218f46d1b6929d8ca44b5101e8d91f9c9bf1b70bc94c9f87346c87
+        - link "support.ynab.com/en_us/how-to-add-transactions-in-ynab-HyDwA_byi" [ref=f23e114] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fhow%2Dto%2Dadd%2Dtransactions%2Din%2Dynab%2DHyDwA_byi&rut=453875680d218f46d1b6929d8ca44b5101e8d91f9c9bf1b70bc94c9f87346c87
+        - text: 2026-07-10T00:00:00.0000000
+      - link "Learn how to add transactions, import transactions from your linked bank accounts, and use File-Based Importing in YNAB. Keep your plan up to date by utilizing a mix of these manual entry and importing options. Whether you're at home or on the go, YNAB offers many ways to add transactions." [ref=f23e115] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fsupport.ynab.com%2Fen_us%2Fhow%2Dto%2Dadd%2Dtransactions%2Din%2Dynab%2DHyDwA_byi&rut=453875680d218f46d1b6929d8ca44b5101e8d91f9c9bf1b70bc94c9f87346c87
+    - button "Next" [ref=f23e118] [cursor=pointer]
+    - link "Feedback" [ref=f23e120] [cursor=pointer]:
+      - /url: //duckduckgo.com/feedback.html

@@ -1,0 +1,217 @@
+- main [ref=f14e5]:
+  - text: 󰅖
+  - navigation [ref=f14e6]:
+    - generic [ref=f14e7]:
+      - link [ref=f14e9] [cursor=pointer]:
+        - /url: /
+        - img "Homepage" [ref=f14e10]
+      - menu [ref=f14e12]:
+        - menuitem [ref=f14e13]:
+          - link "Back to YNAB" [ref=f14e14] [cursor=pointer]:
+            - /url: https://app.ynab.com/
+  - article [ref=f14e17]:
+    - generic [ref=f14e18]:
+      - navigation "Breadcrumbs" [ref=f14e20]:
+        - link "Help Center" [ref=f14e21] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f14e22]: 󰅂
+        - link "Accounts and Transactions" [ref=f14e23] [cursor=pointer]:
+          - /url: /en_us/categories/accounts-and-transactions-r1gWB2RT9
+      - generic [ref=f14e25]:
+        - generic [ref=f14e26]: 󰍉
+        - textbox "Search help articles" [ref=f14e27]
+    - generic [ref=f14e30]:
+      - heading "The Starting Balance" [level=2] [ref=f14e31]
+      - generic [ref=f14e32]: "July 28 2026 9:27pm • Est. Read Time: 3 MIN"
+      - generic [ref=f14e34]:
+        - paragraph [ref=f14e35]: Review useful information about the starting balance for each of your accounts. Learn what it encompasses, what to do if it is incorrect, and how to include past transactions in it.
+        - generic [ref=f14e36]:
+          - heading "In This Article" [level=4] [ref=f14e37]
+          - paragraph [ref=f14e38]:
+            - link "What is the Starting Balance?" [ref=f14e39] [cursor=pointer]:
+              - /url: "#definition"
+          - paragraph [ref=f14e40]:
+            - link "My Starting Balance is Wrong" [ref=f14e41] [cursor=pointer]:
+              - /url: "#wrong"
+          - paragraph [ref=f14e42]:
+            - link "Can I Import Past Transactions from before My Starting Balance?" [ref=f14e43] [cursor=pointer]:
+              - /url: "#past"
+          - paragraph [ref=f14e44]:
+            - link "What if I Deleted my Starting Balance?" [ref=f14e45] [cursor=pointer]:
+              - /url: "#deleted"
+        - separator [ref=f14e46]
+        - heading "What is the Starting Balance?" [level=2] [ref=f14e47]
+        - paragraph [ref=f14e48]:
+          - text: The Starting Balance is the transaction with the earliest date in your YNAB account register that represents
+          - strong [ref=f14e49]: all
+          - text: of your previous transaction history in one number. Because it's composed of past transaction history, you
+          - strong [ref=f14e50]: don’t
+          - text: want to include any
+          - link "pending transactions" [ref=f14e51] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/pending-transactions-an-overview-Bk0WoOcA5
+          - text: .
+        - paragraph [ref=f14e52]:
+          - text: After the Starting Balance is added, your money is ready and waiting in Ready to Assign.
+          - strong [ref=f14e53]: "Note:"
+          - text: If the amount in Ready to Assign seems off, try our
+          - link "YNAB Checkup" [ref=f14e54] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/checkup-S1vJzWGzo
+          - text: process to confirm your numbers are accurate.
+        - paragraph [ref=f14e55]:
+          - link "Back to Top" [ref=f14e56] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f14e57]
+        - heading "My Starting Balance is Wrong" [level=2] [ref=f14e58]
+        - paragraph [ref=f14e59]:
+          - text: If you've linked your account for Direct Import, the account will bring in the current balance as your Starting Balance. Sometimes Starting Balances pull in incorrectly, but it's easily fixable by editing the transaction date and amount. It's also
+          - strong [ref=f14e60]: not
+          - text: an indication that you'll have importing issues going forward. Review our
+          - link "troubleshooting steps for an incorrect starting balance" [ref=f14e61] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/troubleshooting-linked-accounts-BJ9Mv9b1s
+          - text: in our general Direct Import guide!
+        - paragraph [ref=f14e62]:
+          - link "Back to Top" [ref=f14e63] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f14e64]
+        - heading "Can I Import Past Transactions from before My Starting Balance?" [level=2] [ref=f14e65]
+        - paragraph [ref=f14e66]:
+          - text: Yes, but you’ll need to use
+          - link "File-Based Import" [ref=f14e67] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/file-based-import-a-guide-Bkj4Sszyo
+          - text: to do so.
+        - paragraph [ref=f14e68]:
+          - text: Because YNAB is built around prioritizing the money you have now and looking
+          - strong [ref=f14e69]: forward
+          - text: ", we highly recommend making a"
+          - link "Fresh Start" [ref=f14e70] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/plan-resets-and-fresh-starts-HkXYR_c0q
+          - text: after bringing in past transactions. Why? This allows you to be informed by the past (the historical transactions in an archived plan) while focusing on the future in your current plan—without having to spend all that time categorizing past spending.
+        - paragraph [ref=f14e71]:
+          - link "Back to Top" [ref=f14e72] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f14e73]
+        - heading "What if I Deleted my Starting Balance?" [level=2] [ref=f14e74]
+        - paragraph [ref=f14e75]: If you deleted your Starting Balance transaction, you can follow these steps to create a new one.
+        - generic [ref=f14e76]:
+          - tablist [ref=f14e78]:
+            - tab "iOS" [ref=f14e79] [cursor=pointer]
+            - tab "Android" [ref=f14e80] [cursor=pointer]
+            - tab "Web" [ref=f14e81] [cursor=pointer]
+          - tabpanel [ref=f14e83]:
+            - list [ref=f14e84]:
+              - listitem [ref=f14e85]:
+                - paragraph [ref=f14e86]:
+                  - text: Tap the
+                  - emphasis [ref=f14e87]: Accounts
+                  - text: tab at the bottom of the app.
+              - listitem [ref=f14e88]:
+                - paragraph [ref=f14e89]: Tap an account.
+              - listitem [ref=f14e90]:
+                - paragraph [ref=f14e91]: Tap the three dots icon in the top right corner.
+              - listitem [ref=f14e92]:
+                - paragraph [ref=f14e93]:
+                  - text: Tap
+                  - emphasis [ref=f14e94]: Reconcile
+                  - text: .
+              - listitem [ref=f14e95]:
+                - paragraph [ref=f14e96]:
+                  - text: Tap
+                  - emphasis [ref=f14e97]: "No"
+                  - text: .
+              - listitem [ref=f14e98]:
+                - paragraph [ref=f14e99]: Enter your current balance. Do not include pending transactions.
+              - listitem [ref=f14e100]:
+                - paragraph [ref=f14e101]:
+                  - text: Tap
+                  - emphasis [ref=f14e102]: Next
+                  - text: .
+              - listitem [ref=f14e103]:
+                - paragraph [ref=f14e104]:
+                  - text: Tap
+                  - emphasis [ref=f14e105]: Next
+                  - text: a second time.
+              - listitem [ref=f14e106]:
+                - paragraph [ref=f14e107]:
+                  - text: Tap
+                  - emphasis [ref=f14e108]: Done
+                  - text: or
+                  - emphasis [ref=f14e109]: Create Adjustment and Finish
+                  - text: .
+              - listitem [ref=f14e110]:
+                - paragraph [ref=f14e111]:
+                  - text: Tap
+                  - emphasis [ref=f14e112]: OK
+                  - text: .
+            - paragraph [ref=f14e113]:
+              - text: Once you've finished, YNAB will enter a "Reconciliation Balance Adjustment" transaction. If you can't find it, tap the three dots icon in the top right corner and tap
+              - emphasis [ref=f14e114]: Show Reconciled
+              - text: ". Then, edit the adjustment transaction:"
+            - list [ref=f14e115]:
+              - listitem [ref=f14e116]:
+                - paragraph [ref=f14e117]: Tap the Reconciliation Balance Adjustment transaction to edit.
+              - listitem [ref=f14e118]:
+                - paragraph [ref=f14e119]: Change the date of the Reconciliation Balance Adjustment transaction to the day before your first transaction in that account.
+              - listitem [ref=f14e120]:
+                - paragraph [ref=f14e121]:
+                  - text: Rename the Payee to "Starting Balance" and tap
+                  - emphasis [ref=f14e122]: Save
+                  - text: .
+              - listitem [ref=f14e123]:
+                - paragraph [ref=f14e124]:
+                  - text: If prompted to "Edit Reconciled Transaction," tap
+                  - emphasis [ref=f14e125]: Save Anyway
+                  - text: .
+        - paragraph [ref=f14e126]:
+          - link "Back to Top" [ref=f14e127] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f14e128]
+        - heading "Help Us Help You!" [level=2] [ref=f14e129]
+        - paragraph [ref=f14e130]:
+          - text: Our Knowledge Base team reviews article feedback responses weekly, and we actively revise these articles to make them as helpful as possible. That's where you come in! Our articles are scored based on the
+          - emphasis [ref=f14e131]: "Yes"
+          - text: or
+          - emphasis [ref=f14e132]: "No"
+          - text: ratings received below. We also collect freeform feedback for any
+          - emphasis [ref=f14e133]: "No"
+          - text: ratings (so our team can focus in on what you were specifically searching for!).
+        - paragraph [ref=f14e134]:
+          - strong [ref=f14e135]: Success
+          - text: ": Found what you were searching for? It would be super helpful if you click"
+          - emphasis [ref=f14e136]: "Yes"
+          - text: below.
+        - paragraph [ref=f14e137]:
+          - strong [ref=f14e138]: Suggestions
+          - text: ": Didn't find what you're searching for and you'd like to share what terms or topics you wanted?"
+          - strong [ref=f14e139]
+          - text: Click
+          - emphasis [ref=f14e140]: "No"
+          - text: below. You'll then be able to submit your feedback about this article.
+          - strong [ref=f14e141]: "Please note:"
+          - text: the feedback submissions are anonymous, and we’re not able to respond, so make sure to use the next option if you have a specific scenario or question you would like a response to.
+        - paragraph [ref=f14e142]:
+          - strong [ref=f14e143]: Support
+          - text: ": If you have a question or would like a response to your specific question,"
+          - link "tell the chatbot you need a human or send us an email" [ref=f14e144] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/how-to-get-help-SygqcvtC5
+          - text: to ensure that your message gets to our Support team!
+    - generic [ref=f14e146]:
+      - generic [ref=f14e147]: Was this article helpful?
+      - generic [ref=f14e148]:
+        - button "Yes" [ref=f14e149]
+        - button "No" [ref=f14e150]
+  - generic [ref=f14e152]:
+    - generic [ref=f14e153]:
+      - heading "Still have questions?" [level=2] [ref=f14e154]
+      - heading [level=3]
+    - link "Contact Us" [ref=f14e157] [cursor=pointer]:
+      - /url: https://support.ynab.com/contact/contact-us-B1OG9RFfj
+  - generic [ref=f14e160]:
+    - link "Back to Top" [ref=f14e162] [cursor=pointer]:
+      - /url: "#top"
+      - generic [ref=f14e164]: 󰁝
+    - menu:
+      - listitem:
+        - link:
+          - /url: ""
+    - separator [ref=f14e165]
+    - generic [ref=f14e166]: © ynab.com 2026

@@ -1,0 +1,238 @@
+- main [ref=f18e5]:
+  - text: 󰅖
+  - navigation [ref=f18e6]:
+    - generic [ref=f18e7]:
+      - link [ref=f18e9] [cursor=pointer]:
+        - /url: /
+        - img "Homepage" [ref=f18e10]
+      - menu [ref=f18e12]:
+        - menuitem [ref=f18e13]:
+          - link "Back to YNAB" [ref=f18e14] [cursor=pointer]:
+            - /url: https://app.ynab.com/
+  - generic [ref=f18e16]:
+    - generic [ref=f18e17]:
+      - heading "Settings and Subscription" [level=2] [ref=f18e19]
+      - generic [ref=f18e21]:
+        - generic [ref=f18e22]: 󰍉
+        - textbox "Search help articles" [ref=f18e23]
+    - menu [ref=f18e27]:
+      - listitem [ref=f18e28]:
+        - link [ref=f18e29] [cursor=pointer]:
+          - /url: /en_us/how-to-get-help-SygqcvtC5
+          - heading "How to Get Help in YNAB" [level=2] [ref=f18e30]
+        - generic [ref=f18e31]: July 2 2026 6:35pm
+        - generic [ref=f18e32]: Learn how to contact our Support team using either our in-app widget in the web, iOS, and Android versions of YNAB, or through electronic mail, which the youths...
+      - listitem [ref=f18e34]:
+        - link [ref=f18e35] [cursor=pointer]:
+          - /url: /en_us/how-to-manage-your-subscription-BJXBVDb0q
+          - heading "How to Manage Your Subscription" [level=2] [ref=f18e36]
+        - generic [ref=f18e37]: August 10 2026 8:25pm
+        - generic [ref=f18e38]: Learn how to change your billing info, download an invoice or receipt, or cancel your subscription. The steps depend on which platform you subscribed through (i...
+      - listitem [ref=f18e40]:
+        - link [ref=f18e41] [cursor=pointer]:
+          - /url: /en_us/ynab-together-B1nS78Cki
+          - heading "YNAB Together" [level=2] [ref=f18e42]
+        - generic [ref=f18e43]: July 30 2026 4:21pm
+        - generic [ref=f18e44]: Invite up to five trusted individuals to join your YNAB Together group (all for the price of a single subscription). Navigate YNAB Together as a group manager o...
+      - listitem [ref=f18e46]:
+        - link [ref=f18e47] [cursor=pointer]:
+          - /url: /en_us/joining-ynab-together-as-an-existing-user-an-overview-SJZ7E8Cys
+          - heading "Joining YNAB Together as an Existing User" [level=2] [ref=f18e48]
+        - generic [ref=f18e49]: July 2 2026 6:27pm
+        - generic [ref=f18e50]: Accept an email invite to join YNAB Together as an existing user, and decide how you'd like to handle your existing plans. Create a new YNAB account to keep you...
+      - listitem [ref=f18e52]:
+        - link [ref=f18e53] [cursor=pointer]:
+          - /url: /en_us/how-to-sign-in-with-google-or-apple-BkE7jElRq
+          - heading "How to Sign In with Google or Apple" [level=2] [ref=f18e54]
+        - generic [ref=f18e55]: July 2 2026 6:39pm
+        - generic [ref=f18e56]: Access or share your plan without using or sharing your password with Single Sign-On (SSO). Enable SSO in YNAB to log in using Google or Apple credentials, elim...
+      - listitem [ref=f18e58]:
+        - link [ref=f18e59] [cursor=pointer]:
+          - /url: /en_us/how-to-protect-your-account-with-two-step-verification-rkKHuLlRc
+          - heading "How to Protect Your Account With Two-Step Verification" [level=2] [ref=f18e60]
+        - generic [ref=f18e61]: July 2 2026 6:24pm
+        - generic [ref=f18e62]: Use two-step verification to add an additional layer of protection and security to your YNAB account. Follow the steps in this article to enable, disable, or tr...
+      - listitem [ref=f18e64]:
+        - link [ref=f18e65] [cursor=pointer]:
+          - /url: /en_us/troubleshooting-bugs-or-issues-in-ynab-an-overview-ByiMG2fAc
+          - heading "Troubleshooting Bugs or Issues in YNAB" [level=2] [ref=f18e66]
+        - generic [ref=f18e67]: July 27 2026 7:53pm
+        - generic [ref=f18e68]: "Troubleshoot the following issues in YNAB: visual issues, broken functionality, slow performance, syncing and crashing issues, and number-related concerns. Cont..."
+      - listitem [ref=f18e70]:
+        - link [ref=f18e71] [cursor=pointer]:
+          - /url: /en_us/subscription-sales-tax-an-overview-Hy2dRCGCq
+          - heading "Subscription Sales Tax" [level=2] [ref=f18e72]
+        - generic [ref=f18e73]: July 2 2026 6:31pm
+        - generic [ref=f18e74]: Review the list of US states requiring us to collect sales tax on monthly and annual YNAB subscription prices. Note that your tax rate may also vary based on po...
+      - listitem [ref=f18e76]:
+        - link [ref=f18e77] [cursor=pointer]:
+          - /url: /en_us/creating-a-new-plan-Hyl4uc5Cq
+          - heading "Creating a New Plan" [level=2] [ref=f18e78]
+        - generic [ref=f18e79]: August 6 2026 5:19pm
+        - generic [ref=f18e80]: Learn the difference between creating a brand new plan and making a Plan Reset or Fresh Start (and decide which is best for you!). Follow the outlined steps to ...
+      - listitem [ref=f18e82]:
+        - link [ref=f18e83] [cursor=pointer]:
+          - /url: /en_us/how-to-delete-a-plan-BJxeij505
+          - heading "How to Delete a Plan" [level=2] [ref=f18e84]
+        - generic [ref=f18e85]: July 28 2026 9:15pm
+        - generic [ref=f18e86]: Delete unused plans to focus your intentions on your current priorities and declutter your dashboard in YNAB. Follow the steps in this article to delete plans o...
+      - listitem [ref=f18e88]:
+        - link [ref=f18e89] [cursor=pointer]:
+          - /url: /en_us/your-ynab-trial-ry87vWAc
+          - heading "Your YNAB Trial" [level=2] [ref=f18e90]
+        - generic [ref=f18e91]: August 20 2026 11:15pm
+        - generic [ref=f18e92]: Learn what to expect during the first few weeks of your free trial, and how YNAB Support can help you get started. Find out how to manage your trial based on ...
+      - listitem [ref=f18e94]:
+        - link [ref=f18e95] [cursor=pointer]:
+          - /url: /en_us/changing-your-email-and-password-a-guide-SJq60jfRq
+          - heading "Changing Your Email and Password" [level=2] [ref=f18e96]
+        - generic [ref=f18e97]: July 2 2026 6:43pm
+        - generic [ref=f18e98]: Follow our step-by-step instructions to update your email address or reset your password through your YNAB Account Settings. Feel free to set up a single sign-o...
+      - listitem [ref=f18e100]:
+        - link [ref=f18e101] [cursor=pointer]:
+          - /url: /en_us/requesting-a-refund-SyNvz1I5
+          - heading "How to Request a Refund" [level=2] [ref=f18e102]
+        - generic [ref=f18e103]: August 18 2026 5:51pm
+        - generic [ref=f18e104]: Follow these specific steps to request a refund if YNAB is not for you at the moment—and thanks for giving us a try! Identify your subscription type first, beca...
+      - listitem [ref=f18e106]:
+        - link [ref=f18e107] [cursor=pointer]:
+          - /url: /en_us/navigating-multiple-plans-r1qeOvbC5
+          - heading "Navigating Multiple Plans in YNAB" [level=2] [ref=f18e108]
+        - generic [ref=f18e109]: July 2 2026 6:33pm
+        - generic [ref=f18e110]: Learn how to view and switch between any of your existing plans. Set your browser bookmark to the correct YNAB URL so that you always land in the current month ...
+      - listitem [ref=f18e112]:
+        - link [ref=f18e113] [cursor=pointer]:
+          - /url: /en_us/how-to-adjust-your-plan-settings-SyFt35cAq
+          - heading "How to Adjust Your Plan Settings" [level=2] [ref=f18e114]
+        - generic [ref=f18e115]: July 27 2026 5:58pm
+        - generic [ref=f18e116]: Learn how to access the Plan Settings menu. Adjust the options in this menu to customize your plan name, currency, number format, and date format. While the app...
+      - listitem [ref=f18e118]:
+        - link [ref=f18e119] [cursor=pointer]:
+          - /url: /en_us/changing-the-appearance-of-your-plan-BJzo3HlRc
+          - heading "Changing the Appearance of Your Plan" [level=2] [ref=f18e120]
+        - generic [ref=f18e121]: August 19 2026 12:03am
+        - generic [ref=f18e122]: Explore YNAB’s customizable settings to help you create a plan that best fits your needs. Adjust your plan's appearance by changing the theme, and if you’re on ...
+      - listitem [ref=f18e124]:
+        - link [ref=f18e125] [cursor=pointer]:
+          - /url: /en_us/accessibility-tools-and-features-an-overview-HkmxC7W1j
+          - 'heading "Accessibility Tools and Features: A Guide" [level=2] [ref=f18e126]'
+        - generic [ref=f18e127]: July 2 2026 6:50pm
+        - generic [ref=f18e128]: Learn about YNAB's dedication to improving accessibility across our web, iOS, and Android platforms. Utilize web features such as zoom and navigation shortcuts,...
+      - listitem [ref=f18e130]:
+        - link [ref=f18e131] [cursor=pointer]:
+          - /url: /en_us/feedback-and-feature-requests-an-overview-rJgD33fAq
+          - heading "Feedback and Feature Requests" [level=2] [ref=f18e132]
+        - generic [ref=f18e133]: July 2 2026 6:26pm
+        - generic [ref=f18e134]: Submit feedback and feature requests directly to YNAB's Design Team using our Feedback and Feature Request form! Help make us better — hearing from our users is...
+      - listitem [ref=f18e136]:
+        - link [ref=f18e137] [cursor=pointer]:
+          - /url: /en_us/gift-ynab-rJnOtBxRq
+          - heading "How to Purchase YNAB as a Gift" [level=2] [ref=f18e138]
+        - generic [ref=f18e139]: August 10 2026 7:23pm
+        - generic [ref=f18e140]: Spread the YNAB love to your friends and family with the gift of YNAB! Purchase a gift subscription to share three months or an entire year of the life-changing...
+      - listitem [ref=f18e142]:
+        - link [ref=f18e143] [cursor=pointer]:
+          - /url: /en_us/using-ynab-on-an-ipad-a-guide-BkzOqBdAq
+          - heading "Using YNAB on an iPad" [level=2] [ref=f18e144]
+        - generic [ref=f18e145]: July 28 2026 4:22pm
+        - generic [ref=f18e146]: Review the key differences you'll notice in the Plan and Account tabs when using YNAB on an iPad. Rotate your screen to view YNAB in portrait or landscape mode,...
+      - listitem [ref=f18e148]:
+        - link [ref=f18e149] [cursor=pointer]:
+          - /url: /en_us/how-to-choose-a-custom-app-icon-on-ios-H1ewFB_Ac
+          - heading "How to Choose a Custom App Icon on iOS" [level=2] [ref=f18e150]
+        - generic [ref=f18e151]: July 2 2026 6:48pm
+        - generic [ref=f18e152]: Customize the display icon of your YNAB app by choosing a new one on iOS devices. Note that this feature is not currently available for Android or desktop devic...
+      - listitem [ref=f18e154]:
+        - link [ref=f18e155] [cursor=pointer]:
+          - /url: /en_us/ynab-widget-for-mobile-a-guide-HJPEEQYR9
+          - heading "YNAB Widget for Mobile" [level=2] [ref=f18e156]
+        - generic [ref=f18e157]: July 28 2026 10:25pm
+        - generic [ref=f18e158]: Use the YNAB widget to easily access your favorite categories, and enter transactions at a glance of your phone's home screen. Learn how to enable the YNAB widg...
+      - listitem [ref=f18e160]:
+        - link [ref=f18e161] [cursor=pointer]:
+          - /url: /en_us/geo-payees-on-mobile-a-guide-SJTbcVks
+          - 'heading "Geo Payees on Mobile: A Guide" [level=2] [ref=f18e162]'
+        - generic [ref=f18e163]: July 2 2026 6:51pm
+        - generic [ref=f18e164]: Enable Geo Payees on YNAB mobile to automatically fill in the payee, category, and account based on your location. Adjust settings on your iOS or Android device...
+      - listitem [ref=f18e166]:
+        - link [ref=f18e167] [cursor=pointer]:
+          - /url: /en_us/how-to-enable-and-disable-touch-id-face-id-and-app-lock-SyjrFNtR5
+          - heading "How to Enable and Disable Touch ID, Face ID, and App Lock on iOS and Android" [level=2] [ref=f18e168]
+        - generic [ref=f18e169]: July 2 2026 6:48pm
+        - generic [ref=f18e170]: Learn how biometric authentication and app lock work with YNAB on your iOS and Android devices. Follow the steps in this article to enable or disable this featu...
+      - listitem [ref=f18e172]:
+        - link [ref=f18e173] [cursor=pointer]:
+          - /url: /en_us/how-to-enable-dark-mode-rJQOmvYA9
+          - heading "How to Enable Dark Mode" [level=2] [ref=f18e174]
+        - generic [ref=f18e175]: July 2 2026 6:32pm
+        - generic [ref=f18e176]: Learn how to enable dark mode in YNAB, which is available as a visual theme in the YNAB web app and as a device setting on both iOS and Android mobile platforms...
+      - listitem [ref=f18e178]:
+        - link [ref=f18e179] [cursor=pointer]:
+          - /url: /en_us/managing-notifications-a-guide-HySdCwtCc
+          - heading "Managing Notifications" [level=2] [ref=f18e180]
+        - generic [ref=f18e181]: July 28 2026 10:26pm
+        - generic [ref=f18e182]: Learn the different types of notifications YNAB offers and when they occur. Customize these notifications based on your platform. Use badges and troubleshoot no...
+      - listitem [ref=f18e184]:
+        - link [ref=f18e185] [cursor=pointer]:
+          - /url: /en_us/referral-program-an-overview-BJWpA9Rc
+          - heading "Referral Program" [level=2] [ref=f18e186]
+        - generic [ref=f18e187]: August 17 2026 4:12pm
+        - generic [ref=f18e188]: Learn how our referral program works, and determine whether you qualify. Find your referral link (or, determine why you're having trouble finding it). Refer a f...
+      - listitem [ref=f18e190]:
+        - link [ref=f18e191] [cursor=pointer]:
+          - /url: /en_us/how-to-join-ynabs-college-program-rkDd5VlC5
+          - heading "How to Join YNAB's College Program" [level=2] [ref=f18e192]
+        - generic [ref=f18e193]: July 2 2026 6:23pm
+        - generic [ref=f18e194]: Learn how to take advantage of YNAB's College Program, where we provide college students with one free year of YNAB. Follow the second set of steps in this arti...
+      - listitem [ref=f18e196]:
+        - link [ref=f18e197] [cursor=pointer]:
+          - /url: /en_us/support-access-an-overview-ry2JI2C3j
+          - heading "Support Access" [level=2] [ref=f18e198]
+        - generic [ref=f18e199]: July 2 2026 6:55pm
+        - generic [ref=f18e200]: Decide whether you'd like the YNAB support team to view your plan and provide individualized support before contacting us. Learn how to enable or disable Suppor...
+      - listitem [ref=f18e202]:
+        - link [ref=f18e203] [cursor=pointer]:
+          - /url: /en_us/how-to-find-your-conversation-transcript-H1bKGXS83
+          - heading "How to Find Your Conversation Transcript" [level=2] [ref=f18e204]
+        - generic [ref=f18e205]: July 29 2026 6:25pm
+        - generic [ref=f18e206]: Follow along with this article to access transcripts of your previous conversations with YNAB Support in the web version of YNAB and in the iOS and Android mobi...
+      - listitem [ref=f18e208]:
+        - link [ref=f18e209] [cursor=pointer]:
+          - /url: /en_us/value-added-tax-ByMSG_r1Wl
+          - heading "Value-Added Tax" [level=2] [ref=f18e210]
+        - generic [ref=f18e211]: July 2 2026 6:21pm
+        - generic [ref=f18e212]: Value-Added Tax (VAT) is an additional cost added to your YNAB subscription. YNAB collects VAT on subscriptions in the European Union. The VAT rate applied to y...
+      - listitem [ref=f18e214]:
+        - link [ref=f18e215] [cursor=pointer]:
+          - /url: /en_us/personalize-ynab-HyYKEbAWbe
+          - heading "Personalize YNAB" [level=2] [ref=f18e216]
+        - generic [ref=f18e217]: July 2 2026 7:12pm
+        - generic [ref=f18e218]: Learn how to adjust your personal name and the name of your plan in YNAB; this information is used to personalize YNAB in the Home tab on iOS and Android.In Thi...
+      - listitem [ref=f18e220]:
+        - link [ref=f18e221] [cursor=pointer]:
+          - /url: /en_us/loading-your-data-in-the-ynab-app-S1F63hUDWl
+          - heading "Loading Your Data in the YNAB App" [level=2] [ref=f18e222]
+        - generic [ref=f18e223]: July 2 2026 6:56pm
+        - generic [ref=f18e224]: When you open the YNAB web app, we load your most recent data first. This includes last month, this month, and all upcoming months. We then load your historical...
+      - listitem [ref=f18e226]:
+        - link [ref=f18e227] [cursor=pointer]:
+          - /url: /en_us/ynabs-current-support-response-time-Syprtn0nWl
+          - heading "YNAB's Current Support Response Time" [level=2] [ref=f18e228]
+        - generic [ref=f18e229]: July 7 2026 4:42pm
+        - generic [ref=f18e230]: Our team typically responds within 24 hours, Monday-Friday, regardless of what method you use to reach out (email or in‑app). If you're part of our Financi...
+  - generic [ref=f18e233]:
+    - generic [ref=f18e234]:
+      - heading "Still have questions?" [level=2] [ref=f18e235]
+      - heading [level=3]
+    - link "Contact Us" [ref=f18e238] [cursor=pointer]:
+      - /url: https://support.ynab.com/contact/contact-us-B1OG9RFfj
+  - generic [ref=f18e241]:
+    - link "Back to Top" [ref=f18e243] [cursor=pointer]:
+      - /url: "#top"
+      - generic [ref=f18e245]: 󰁝
+    - menu:
+      - listitem:
+        - link:
+          - /url: ""
+    - separator [ref=f18e246]
+    - generic [ref=f18e247]: © ynab.com 2026

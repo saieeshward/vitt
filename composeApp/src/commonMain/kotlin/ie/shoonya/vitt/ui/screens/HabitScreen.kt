@@ -42,7 +42,7 @@ fun HabitScreen(
 
         Pip(
             daysRecorded = daysRecorded,
-            currencyCount = currencyCount.coerceAtLeast(1),
+            currencyCount = currencyCount,
             modifier = Modifier.fillMaxWidth().height(180.dp),
         )
 

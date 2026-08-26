@@ -1,0 +1,180 @@
+- main [ref=f27e5]:
+  - text: 󰅖
+  - navigation [ref=f27e6]:
+    - generic [ref=f27e7]:
+      - link [ref=f27e9] [cursor=pointer]:
+        - /url: /
+        - img "Homepage" [ref=f27e10]
+      - menu [ref=f27e12]:
+        - menuitem [ref=f27e13]:
+          - link "Back to YNAB" [ref=f27e14] [cursor=pointer]:
+            - /url: https://app.ynab.com/
+  - article [ref=f27e17]:
+    - generic [ref=f27e18]:
+      - navigation "Breadcrumbs" [ref=f27e20]:
+        - link "Help Center" [ref=f27e21] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f27e22]: 󰅂
+        - link "Planning" [ref=f27e23] [cursor=pointer]:
+          - /url: /en_us/categories/planning-HJgZB2C69
+      - generic [ref=f27e25]:
+        - generic [ref=f27e26]: 󰍉
+        - textbox "Search help articles" [ref=f27e27]
+    - generic [ref=f27e30]:
+      - heading "Starting YNAB in the Middle of the Month" [level=2] [ref=f27e31]
+      - generic [ref=f27e32]: "July 2 2026 6:15pm • Est. Read Time: 4 MIN"
+      - generic [ref=f27e34]:
+        - paragraph [ref=f27e35]: Learn how to begin using YNAB at any point in time, even in the middle of a month. Follow five steps to get started today, and learn what to do with the expenses you have already paid this month.
+        - generic [ref=f27e36]:
+          - heading "In This Article" [level=4] [ref=f27e37]
+          - generic [ref=f27e38]:
+            - term [ref=f27e39]:
+              - link "What Should I Do First?" [ref=f27e40] [cursor=pointer]:
+                - /url: "#steps"
+            - term [ref=f27e41]
+            - term [ref=f27e42]:
+              - link "I've Already Paid That Bill. Why Am I Being Asked to Assign More?" [ref=f27e43] [cursor=pointer]:
+                - /url: "#already-paid"
+            - term [ref=f27e44]
+            - term [ref=f27e45]:
+              - link "How to Navigate Between Months in Your Plan" [ref=f27e46] [cursor=pointer]:
+                - /url: "#move-months"
+        - separator [ref=f27e47]
+        - heading "What Should I Do First?" [level=2] [ref=f27e48]
+        - paragraph [ref=f27e49]: "Now that you're on board with starting your plan, follow these steps:"
+        - list [ref=f27e50]:
+          - listitem [ref=f27e51]:
+            - paragraph [ref=f27e52]:
+              - link [ref=f27e53] [cursor=pointer]:
+                - /url: https://support.ynab.com/en_us/adding-removing-and-customizing-categories-a-guide-HJFO5j909
+                - strong [ref=f27e54]: Customize Your Categories
+              - strong [ref=f27e55]: ":"
+              - text: You already have a personalized list of categories after completing the questions in our initial category creator. Your plan should represent your priorities, so now you’ll edit, add, or remove categories as you wish.
+          - listitem [ref=f27e56]:
+            - paragraph [ref=f27e57]:
+              - link [ref=f27e58] [cursor=pointer]:
+                - /url: https://support.ynab.com/en_us/how-to-use-targets-rk5kkI9ks
+                - strong [ref=f27e59]: Set Targets for Your Expenses
+              - text: ": To prioritize and make a plan for your money, create targets for your expenses so you know how much money you need and when."
+          - listitem [ref=f27e60]:
+            - paragraph [ref=f27e61]:
+              - link [ref=f27e62] [cursor=pointer]:
+                - /url: https://support.ynab.com/en_us/how-to-add-an-account-ByoxswMJs
+                - strong [ref=f27e63]: Add Your Accounts
+              - strong [ref=f27e64]: ":"
+              - text: Each account has its own account register, and this is where you'll add transactions.
+          - listitem [ref=f27e65]:
+            - paragraph [ref=f27e66]:
+              - link [ref=f27e67] [cursor=pointer]:
+                - /url: https://support.ynab.com/en_us/scheduled-transactions-a-guide-BygrAIFA9
+                - strong [ref=f27e68]: Scheduled Transactions
+              - strong [ref=f27e69]: ":"
+              - text: Scheduled Transactions help you prepare for upcoming expenses.
+          - listitem [ref=f27e70]:
+            - paragraph [ref=f27e71]:
+              - link [ref=f27e72] [cursor=pointer]:
+                - /url: https://support.ynab.com/en_us/assigning-your-money-a-guide-SypgkrNJi
+                - strong [ref=f27e73]: Assign Your Money
+              - strong [ref=f27e74]: ":"
+              - text: Make a plan for your spending by assigning money to your categories. If you've added a savings account, be sure to set that money aside in a savings category, so you don't assign it to expenses. Ask yourself, "What does this money need to do before I'm paid again?", and stop when Ready to Assign reaches $0. When you get paid again, pick up right where you left off and continue funding your categories.
+        - generic [ref=f27e75]:
+          - heading "What About Bills I've Already Paid?" [level=4] [ref=f27e76]
+          - paragraph [ref=f27e77]: "Good news: there's no need to record transactions or bills you've already paid before starting YNAB. Instead, focus on the money you have right now. YNAB works with your current reality, not what happened in the past."
+        - paragraph [ref=f27e78]:
+          - link "Back to Top" [ref=f27e79] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f27e80]
+        - heading "I've Already Paid That Bill. Why Am I Being Asked to Assign More?" [level=2] [ref=f27e81]
+        - paragraph [ref=f27e82]:
+          - text: When you set a target in a category, you’ll notice a yellow underfunded alert until you’ve met the target amount by adding funds to that category. You'll only need to plan for expenses that
+          - strong [ref=f27e83]: haven’t
+          - text: yet been paid this month. Auto-Assign will prioritize targets that are due in the future before funding targets where the due date has already passed. Check out
+          - link "our Underfunded article" [ref=f27e84] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/underfunded-a-guide-BJwPhQO09
+          - text: for more about our Auto-Assign logic.
+        - paragraph [ref=f27e85]: In your first month of planning, you may set a target for an expense you’ve already paid. For example, you may pay rent on the 1st, but you're starting your plan on the 20th. Weekly targets will not prompt you to fund prior weeks, but other targets (such as monthly targets) will still prompt you to assign the full amount of the target for this month unless you tell YNAB you don't need the target to be met in this month.
+        - paragraph [ref=f27e86]:
+          - text: If you're starting your new plan
+          - strong [ref=f27e87]: after
+          - text: paying that expense, this can be confusing or even frustrating.
+        - paragraph [ref=f27e88]:
+          - text: You can tell YNAB you don't need to pay the bill in this month by
+          - link "snoozing the target" [ref=f27e89] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/snooze-a-target-HyS4E5rZT
+          - text: . YNAB won't ask you for money in this month, and when the new month starts the target will "wake up' to get you on track with that expense.
+        - paragraph [ref=f27e90]:
+          - link "Back to Top" [ref=f27e91] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f27e92]
+        - heading "How to Move Between Months in Your Plan" [level=2] [ref=f27e93]
+        - paragraph [ref=f27e94]: Need to think ahead to the next month? Or want to go back and review what you assigned or spent from a category in a previous month or year? You can do that by navigating between the months at the top of your plan!
+        - generic [ref=f27e95]:
+          - tablist [ref=f27e97]:
+            - tab "iOS" [ref=f27e98] [cursor=pointer]
+            - tab "Android" [ref=f27e99] [cursor=pointer]
+            - tab "Web" [ref=f27e100] [cursor=pointer]
+          - tabpanel [ref=f27e102]:
+            - list [ref=f27e103]:
+              - listitem [ref=f27e104]:
+                - paragraph [ref=f27e105]:
+                  - text: Tap the
+                  - emphasis [ref=f27e106]: Plan
+                  - text: tab.
+              - listitem [ref=f27e107]:
+                - paragraph [ref=f27e108]: Tap on the month and year at the top of the screen to bring up a calendar view.
+              - listitem [ref=f27e109]:
+                - paragraph [ref=f27e110]: Select the month you'd like to review, or use the left and right arrows (< and >) at the top of the calendar to select the year you'd like.
+        - paragraph [ref=f27e111]:
+          - link "Back to Top" [ref=f27e112] [cursor=pointer]:
+            - /url: "#backtotop"
+        - separator [ref=f27e113]
+        - heading "Help Us Help You!" [level=2] [ref=f27e114]
+        - paragraph [ref=f27e115]:
+          - text: Our Knowledge Base team reviews article feedback responses weekly, and we actively revise these articles to make them as helpful as possible. That's where you come in! Our articles are scored based on the
+          - emphasis [ref=f27e116]: "Yes"
+          - text: or
+          - emphasis [ref=f27e117]: "No"
+          - text: ratings received below. We also collect freeform feedback for any
+          - emphasis [ref=f27e118]: "No"
+          - text: ratings (so our team can focus in on what you were specifically searching for!).
+        - paragraph [ref=f27e119]:
+          - strong [ref=f27e120]: Success
+          - text: ": Found what you were searching for? It would be super helpful if you click"
+          - emphasis [ref=f27e121]: "Yes"
+          - text: below.
+        - paragraph [ref=f27e122]:
+          - strong [ref=f27e123]: Suggestions
+          - text: ": Didn't find what you're searching for and you'd like to share what terms or topics you wanted?"
+          - strong [ref=f27e124]
+          - text: Click
+          - emphasis [ref=f27e125]: "No"
+          - text: below. You'll then be able to submit your feedback about this article.
+          - strong [ref=f27e126]: "Please note:"
+          - text: the feedback submissions are anonymous, and we’re not able to respond, so make sure to use the next option if you have a specific scenario or question you would like a response to.
+        - paragraph [ref=f27e127]:
+          - strong [ref=f27e128]: Support
+          - text: ": If you have a question or would like a response to your specific question,"
+          - link "tell the chatbot you need a human or send us an email" [ref=f27e129] [cursor=pointer]:
+            - /url: https://support.ynab.com/en_us/how-to-get-help-SygqcvtC5
+          - text: to ensure that your message gets to our Support team!
+    - generic [ref=f27e131]:
+      - generic [ref=f27e132]: Was this article helpful?
+      - generic [ref=f27e133]:
+        - button "Yes" [ref=f27e134]
+        - button "No" [ref=f27e135]
+  - generic [ref=f27e137]:
+    - generic [ref=f27e138]:
+      - heading "Still have questions?" [level=2] [ref=f27e139]
+      - heading [level=3]
+    - link "Contact Us" [ref=f27e142] [cursor=pointer]:
+      - /url: https://support.ynab.com/contact/contact-us-B1OG9RFfj
+  - generic [ref=f27e145]:
+    - link "Back to Top" [ref=f27e147] [cursor=pointer]:
+      - /url: "#top"
+      - generic [ref=f27e149]: 󰁝
+    - menu:
+      - listitem:
+        - link:
+          - /url: ""
+    - separator [ref=f27e150]
+    - generic [ref=f27e151]: © ynab.com 2026

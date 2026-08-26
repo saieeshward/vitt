@@ -1,0 +1,309 @@
+- main [ref=f25e5]:
+  - text: 󰅖
+  - navigation [ref=f25e6]:
+    - generic [ref=f25e7]:
+      - link [ref=f25e9] [cursor=pointer]:
+        - /url: /
+        - img "Homepage" [ref=f25e10]
+      - menu [ref=f25e12]:
+        - menuitem [ref=f25e13]:
+          - link "Back to YNAB" [ref=f25e14] [cursor=pointer]:
+            - /url: https://app.ynab.com/
+  - generic [ref=f25e16]:
+    - generic [ref=f25e17]:
+      - heading "Planning" [level=2] [ref=f25e19]
+      - generic [ref=f25e21]:
+        - generic [ref=f25e22]: 󰍉
+        - textbox "Search help articles" [ref=f25e23]
+    - generic [ref=f25e25]:
+      - generic [ref=f25e26]: Categories
+      - link [ref=f25e28] [cursor=pointer]:
+        - /url: /en_us/categories/reimbursements-B1boKPKPll
+        - heading "Reimbursements" [level=2] [ref=f25e30]
+      - menu [ref=f25e32]:
+        - listitem [ref=f25e33]:
+          - link [ref=f25e34] [cursor=pointer]:
+            - /url: /en_us/getting-started-with-targets-ryAEP08xC
+            - heading "Getting Started with Targets" [level=2] [ref=f25e35]
+          - generic [ref=f25e36]: August 5 2026 10:11pm
+          - generic [ref=f25e37]: Track and manage your desired spending by setting up targets in YNAB. Learn how to customize the cadence and behavior of targets to help you plan ahead for upco...
+        - listitem [ref=f25e39]:
+          - link [ref=f25e40] [cursor=pointer]:
+            - /url: /en_us/how-to-use-targets-rk5kkI9ks
+            - heading "How to Use Targets" [level=2] [ref=f25e41]
+          - generic [ref=f25e42]: July 2 2026 6:11pm
+          - generic [ref=f25e43]: Use targets to determine how much you would like to spend, save, or set aside over time in a category. Add, customize, and interpret targets in your plan. ...
+        - listitem [ref=f25e45]:
+          - link [ref=f25e46] [cursor=pointer]:
+            - /url: /en_us/snooze-a-target-HyS4E5rZT
+            - heading "Snooze a Target" [level=2] [ref=f25e47]
+          - generic [ref=f25e48]: July 2 2026 6:57pm
+          - generic [ref=f25e49]: Learn what to expect when snoozing a target. Enable or cancel snooze for a target. Review some common snooze scenarios, and use this feature for increased flexi...
+        - listitem [ref=f25e51]:
+          - link [ref=f25e52] [cursor=pointer]:
+            - /url: /en_us/when-ready-to-assign-is-negative-an-overview-HylZA0zCc
+            - heading "When Ready to Assign is Negative" [level=2] [ref=f25e53]
+          - generic [ref=f25e54]: July 27 2026 7:50pm
+          - generic [ref=f25e55]: Manage Ready to Assign when it's negative and you have more money assigned to your spending categories than is actually available in your accounts. Review the c...
+        - listitem [ref=f25e57]:
+          - link [ref=f25e58] [cursor=pointer]:
+            - /url: /en_us/auto-assign-a-guide-r1gBNbBJo
+            - heading "Auto-Assign" [level=2] [ref=f25e59]
+          - generic [ref=f25e60]: July 29 2026 6:13pm
+          - generic [ref=f25e61]: Simplify assigning money with YNAB's optional Auto-Assign feature, which uses your targets and Scheduled Transactions to allocate funds across categories. Previ...
+        - listitem [ref=f25e63]:
+          - link [ref=f25e64] [cursor=pointer]:
+            - /url: /en_us/assigning-your-money-a-guide-SypgkrNJi
+            - heading "Assigning Your Money" [level=2] [ref=f25e65]
+          - generic [ref=f25e66]: July 2 2026 6:14pm
+          - generic [ref=f25e67]: "Assign money in YNAB using two approaches: manual assignment or Auto-Assign. When you manually assign money, you have the time to think through each category as..."
+        - listitem [ref=f25e69]:
+          - link [ref=f25e70] [cursor=pointer]:
+            - /url: /en_us/partner-HJqX5Br1j
+            - heading "Using YNAB as Partners" [level=2] [ref=f25e71]
+          - generic [ref=f25e72]: July 7 2026 4:25pm
+          - generic [ref=f25e73]: Using YNAB as partners can bring additional joy and insight to your shared financial lives! Explore this list of features and resources to manage your finances ...
+        - listitem [ref=f25e75]:
+          - link [ref=f25e76] [cursor=pointer]:
+            - /url: /en_us/when-the-month-rolls-over-a-guide-rkyyd6qC9
+            - heading "When the Month Rolls Over" [level=2] [ref=f25e77]
+          - generic [ref=f25e78]: August 11 2026 10:48pm
+          - generic [ref=f25e79]: Learn what happens when a new month starts in YNAB. Identify what changes and what remains the same and make sure your plan is ready to go for the month ahead.I...
+        - listitem [ref=f25e81]:
+          - link [ref=f25e82] [cursor=pointer]:
+            - /url: /en_us/starting-ynab-in-the-middle-of-the-month-a-guide-rJH96acA9
+            - heading "Starting YNAB in the Middle of the Month" [level=2] [ref=f25e83]
+          - generic [ref=f25e84]: July 2 2026 6:15pm
+          - generic [ref=f25e85]: Learn how to begin using YNAB at any point in time, even in the middle of a month. Follow five steps to get started today, and learn what to do with the expense...
+        - listitem [ref=f25e87]:
+          - link [ref=f25e88] [cursor=pointer]:
+            - /url: /en_us/plan-resets-and-fresh-starts-HkXYR_c0q
+            - heading "Plan Resets and Fresh Starts in YNAB" [level=2] [ref=f25e89]
+          - generic [ref=f25e90]: July 29 2026 6:40pm
+          - generic [ref=f25e91]: Decide whether you'd like to make a Plan Reset or Fresh Start in YNAB. Gain clarity on your spending with a reset plan. Learn which settings are preserved and w...
+        - listitem [ref=f25e93]:
+          - link [ref=f25e94] [cursor=pointer]:
+            - /url: /en_us/creating-a-plan-template-ByZJZx_R9
+            - heading "Creating a Plan Template" [level=2] [ref=f25e95]
+          - generic [ref=f25e96]: July 2 2026 6:30pm
+          - generic [ref=f25e97]: Establish a plan template and make a plan for your spending. Assign only the funds you have right now, and do what you want with the money you have. Follow thes...
+        - listitem [ref=f25e99]:
+          - link [ref=f25e100] [cursor=pointer]:
+            - /url: /en_us/how-to-keep-your-plan-accurate-SyC9mj9Rq
+            - heading "How to Keep Your Plan Accurate" [level=2] [ref=f25e101]
+          - generic [ref=f25e102]: July 2 2026 6:12pm
+          - generic [ref=f25e103]: Learn how to verify that the amounts in your plan are accurate and agree with the amounts in your bank accounts. Create a routine that keeps you engaged with yo...
+        - listitem [ref=f25e105]:
+          - link [ref=f25e106] [cursor=pointer]:
+            - /url: /en_us/checkup-S1vJzWGzo
+            - heading "How to Perform a YNAB Checkup" [level=2] [ref=f25e107]
+          - generic [ref=f25e108]: August 5 2026 8:30pm
+          - generic [ref=f25e109]: Learn how to use the YNAB Checkup to confirm accuracy in your numbers. Make it a part of your regular YNABing routine for peace of mind as you trust the plan. T...
+        - listitem [ref=f25e111]:
+          - link [ref=f25e112] [cursor=pointer]:
+            - /url: /en_us/colors-and-icons-in-your-plan-HJQv_XHko
+            - heading "Colors and Icons in Your Plan" [level=2] [ref=f25e113]
+          - generic [ref=f25e114]: July 29 2026 6:14pm
+          - generic [ref=f25e115]: Explore how YNAB uses colors and icons to communicate info about your plan! Learn what each one indicates so you can gauge your plan's health or interpret your ...
+        - listitem [ref=f25e117]:
+          - link [ref=f25e118] [cursor=pointer]:
+            - /url: /en_us/adding-removing-and-customizing-categories-a-guide-HJFO5j909
+            - heading "Adding, Removing, and Customizing Categories" [level=2] [ref=f25e119]
+          - generic [ref=f25e120]: August 11 2026 11:14pm
+          - generic [ref=f25e121]: Customize your YNAB plan with these instructions for adding, editing, and organizing categories and Category Groups. Reflect your spending or saving priorities ...
+        - listitem [ref=f25e123]:
+          - link [ref=f25e124] [cursor=pointer]:
+            - /url: /en_us/moving-money-in-your-plan-ryyCKbBJi
+            - heading "Moving Money in Your Plan" [level=2] [ref=f25e125]
+          - generic [ref=f25e126]: July 2 2026 6:50pm
+          - generic [ref=f25e127]: Learn how to move money in your plan as your needs and priorities change. Cover overspending, and use our Money Moves feature to keep track of funds moved from ...
+        - listitem [ref=f25e129]:
+          - link [ref=f25e130] [cursor=pointer]:
+            - /url: /en_us/getting-a-month-ahead-HJidy13C5
+            - heading "Getting a Month Ahead" [level=2] [ref=f25e131]
+          - generic [ref=f25e132]: August 11 2026 10:21pm
+          - generic [ref=f25e133]: Get a month ahead by assigning money into future months. Learn why your most accurate Ready to Assign number will be in the future-most month (and how to keep...
+        - listitem [ref=f25e135]:
+          - link [ref=f25e136] [cursor=pointer]:
+            - /url: /en_us/overspending-in-ynab-a-guide-ryWoxEyi
+            - heading "Handling Overspending in YNAB" [level=2] [ref=f25e137]
+          - generic [ref=f25e138]: July 2 2026 6:35pm
+          - generic [ref=f25e139]: "Learn to identify the two types of overspending in YNAB: cash or credit. Cover overspending by moving money or assigning more to categories. Understand how unre..."
+        - listitem [ref=f25e141]:
+          - link [ref=f25e142] [cursor=pointer]:
+            - /url: /en_us/troubleshooting-your-plan-r19HPofJo
+            - heading "Troubleshooting Your Plan" [level=2] [ref=f25e143]
+          - generic [ref=f25e144]: August 4 2026 6:39pm
+          - generic [ref=f25e145]: "Troubleshoot the following areas of your YNAB plan: Ready to Assign, Accounts, Credit Cards, and targets. Contact YNAB support if you need any additional assist..."
+        - listitem [ref=f25e147]:
+          - link [ref=f25e148] [cursor=pointer]:
+            - /url: /en_us/category-balances-versus-account-balances-an-overview-ryvnKB_Ac
+            - heading "Category Balances versus Account Balances" [level=2] [ref=f25e149]
+          - generic [ref=f25e150]: July 2 2026 6:15pm
+          - generic [ref=f25e151]: Embrace the simplicity of using categories instead of multiple accounts to organize your finances with YNAB. Learn more about the relationship between accounts ...
+        - listitem [ref=f25e153]:
+          - link [ref=f25e154] [cursor=pointer]:
+            - /url: /en_us/underfunded-a-guide-BJwPhQO09
+            - heading "Underfunded" [level=2] [ref=f25e155]
+          - generic [ref=f25e156]: July 2 2026 6:15pm
+          - generic [ref=f25e157]: Learn how to use and where to find the Underfunded option in YNAB. Assign money quickly, and review the way Underfunded logic considers targets, Scheduled Trans...
+        - listitem [ref=f25e159]:
+          - link [ref=f25e160] [cursor=pointer]:
+            - /url: /en_us/paired-targets-BJJI8rdC5
+            - heading "Targets for Categories Paired with Accounts" [level=2] [ref=f25e161]
+          - generic [ref=f25e162]: July 2 2026 6:12pm
+          - generic [ref=f25e163]: Explore YNAB's special target types for credit card and loan accounts. Pay a specific amount off every month, or calculate a monthly amount to pay off your bala...
+        - listitem [ref=f25e165]:
+          - link [ref=f25e166] [cursor=pointer]:
+            - /url: /en_us/the-inspector-an-overview-ryylY7OCq
+            - heading "The Inspector" [level=2] [ref=f25e167]
+          - generic [ref=f25e168]: July 2 2026 6:23pm
+          - generic [ref=f25e169]: Locate the Inspector on the right sidebar (web app only). Use it to access Auto-Assign and review valuable plan information. View a summary of your monthly plan...
+        - listitem [ref=f25e171]:
+          - link [ref=f25e172] [cursor=pointer]:
+            - /url: /en_us/the-plan-header-BkmiuJ_C9
+            - heading "The Plan Header" [level=2] [ref=f25e173]
+          - generic [ref=f25e174]: August 3 2026 5:39pm
+          - generic [ref=f25e175]: The area at the top of the YNAB is the Plan Header. In this area of YNAB, you can review Ready to Assign, move between months, add a monthly note, and use Auto-...
+        - listitem [ref=f25e177]:
+          - link [ref=f25e178] [cursor=pointer]:
+            - /url: /en_us/negative-amounts-in-the-assigned-column-an-overview-rJ2fMFzyo
+            - heading "Negative Amounts in the Assigned Column" [level=2] [ref=f25e179]
+          - generic [ref=f25e180]: July 2 2026 6:49pm
+          - generic [ref=f25e181]: Learn how and why you might notice a negative number in the Assigned column. Rest assured this isn't necessarily a problem as long as the Available number isn't...
+        - listitem [ref=f25e183]:
+          - link [ref=f25e184] [cursor=pointer]:
+            - /url: /en_us/how-to-fix-mistakes-with-undo-and-redo-HJzO5CfA9
+            - heading "How to Fix Mistakes with Undo and Redo" [level=2] [ref=f25e185]
+          - generic [ref=f25e186]: July 27 2026 7:22pm
+          - generic [ref=f25e187]: Use the undo and redo buttons in YNAB to retrace your steps. Access keyboard shortcuts in the web app to quickly use these buttons.In This ArticleHow to Access ...
+        - listitem [ref=f25e189]:
+          - link [ref=f25e190] [cursor=pointer]:
+            - /url: /en_us/using-the-calculator-an-overview-Sy52riYRc
+            - heading "Using the Calculator" [level=2] [ref=f25e191]
+          - generic [ref=f25e192]: July 2 2026 6:17pm
+          - generic [ref=f25e193]: Learn how to run calculations right in YNAB, without the need for a separate calculator. Make calculations in your plan and account registers on our iOS, Androi...
+        - listitem [ref=f25e195]:
+          - link [ref=f25e196] [cursor=pointer]:
+            - /url: /en_us/how-to-use-emoji-in-your-plan-SJTNIyQAc
+            - heading "How to Use Emoji in Your Plan" [level=2] [ref=f25e197]
+          - generic [ref=f25e198]: July 27 2026 7:23pm
+          - generic [ref=f25e199]: Personalize your plan with emojis for a fun and engaging experience. Follow our specific steps to add emojis from any of our available platforms! Play around wi...
+        - listitem [ref=f25e201]:
+          - link [ref=f25e202] [cursor=pointer]:
+            - /url: /en_us/progress-bars-a-guide-SkDEhot09
+            - heading "Progress Bars" [level=2] [ref=f25e203]
+          - generic [ref=f25e204]: July 28 2026 4:20pm
+          - generic [ref=f25e205]: Learn how progress bars help you visually track and understand your plan. Enable or disable this optional feature according to your personal preference.In This ...
+        - listitem [ref=f25e207]:
+          - link [ref=f25e208] [cursor=pointer]:
+            - /url: /en_us/how-to-add-notes-Byytt_YC9
+            - heading "How to Add Notes" [level=2] [ref=f25e209]
+          - generic [ref=f25e210]: July 27 2026 7:27pm
+          - generic [ref=f25e211]: Learn how to add notes to the categories, accounts, and months in YNAB. Use these notes to store details like due dates or interest rates to provide helpful con...
+        - listitem [ref=f25e213]:
+          - link [ref=f25e214] [cursor=pointer]:
+            - /url: /en_us/support-access-an-overview-ry2JI2C3j
+            - heading "Support Access" [level=2] [ref=f25e215]
+          - generic [ref=f25e216]: July 2 2026 6:55pm
+          - generic [ref=f25e217]: Decide whether you'd like the YNAB support team to view your plan and provide individualized support before contacting us. Learn how to enable or disable Suppor...
+        - listitem [ref=f25e219]:
+          - link [ref=f25e220] [cursor=pointer]:
+            - /url: /en_us/using-multiple-currencies-in-ynab-a-guide-SyBF6PHno
+            - heading "Using Multiple Currencies in YNAB" [level=2] [ref=f25e221]
+          - generic [ref=f25e222]: July 9 2026 8:40pm
+          - generic [ref=f25e223]: Learn how to manage multiple currencies in YNAB depending on your situation, and review tips for managing them.In This ArticleHow to Create and Use a Separate P...
+        - listitem [ref=f25e225]:
+          - link [ref=f25e226] [cursor=pointer]:
+            - /url: /en_us/the-wish-farm-an-overview-SJfWnOLRj
+            - heading "The Wish Farm" [level=2] [ref=f25e227]
+          - generic [ref=f25e228]: July 2 2026 6:29pm
+          - generic [ref=f25e229]: Learn about the figurative saving and spending technique we call a Wish Farm. Use whatever money remains after funding necessary expenses and saving for non-mon...
+        - listitem [ref=f25e231]:
+          - link [ref=f25e232] [cursor=pointer]:
+            - /url: /en_us/how-to-set-up-a-small-business-plan-rJ483f2Qh
+            - heading "How to Set up a Small Business Plan" [level=2] [ref=f25e233]
+          - generic [ref=f25e234]: July 2 2026 6:31pm
+          - generic [ref=f25e235]: Incorporate your business planning into YNAB by either creating a separate business plan or creating a category group within your personal plan. Explore which o...
+        - listitem [ref=f25e237]:
+          - link [ref=f25e238] [cursor=pointer]:
+            - /url: /en_us/focused-views-a-guide-BksnNYqLh
+            - heading "Focused Views" [level=2] [ref=f25e239]
+          - generic [ref=f25e240]: July 2 2026 6:23pm
+          - generic [ref=f25e241]: Experience a new way to view and tinker with your plan—while infusing your categories with another layer of meaning—with our Focused Views feature. Use these sm...
+        - listitem [ref=f25e243]:
+          - link [ref=f25e244] [cursor=pointer]:
+            - /url: /en_us/transitioning-from-mint-HJJSQvW7a
+            - heading "Transitioning From Mint to YNAB" [level=2] [ref=f25e245]
+          - generic [ref=f25e246]: August 20 2026 11:14pm
+          - generic [ref=f25e247]: So you're a Mint user, and you're wondering if YNAB may be the next step for you. As you explore your options for moving forward, we're excited you're conside...
+        - listitem [ref=f25e249]:
+          - link [ref=f25e250] [cursor=pointer]:
+            - /url: /en_us/hide-amounts-ry0jgLaOJg
+            - heading "Hide Amounts" [level=2] [ref=f25e251]
+          - generic [ref=f25e252]: July 2 2026 6:33pm
+          - generic [ref=f25e253]: With Hide Amounts, you can share an example of your plan without revealing your financial information. Share your YNAB setup and your accomplishments in person ...
+        - listitem [ref=f25e255]:
+          - link [ref=f25e256] [cursor=pointer]:
+            - /url: /en_us/spotlight-BkdHBZUokg
+            - heading "At Home in YNAB" [level=2] [ref=f25e257]
+          - generic [ref=f25e258]: July 2 2026 6:28pm
+          - generic [ref=f25e259]: Learn how to make the most of the Home tab, the default landing page in YNAB. Reflect on your priorities, work toward goals, intentionally spend, and enjoy YNAB...
+        - listitem [ref=f25e261]:
+          - link [ref=f25e262] [cursor=pointer]:
+            - /url: /en_us/spaces-in-the-mobile-app-S1iIZQoqgg
+            - heading "Spaces in (and out of) the Mobile App" [level=2] [ref=f25e263]
+          - generic [ref=f25e264]: July 2 2026 6:29pm
+          - generic [ref=f25e265]: Learn a bit about the main spaces in (and out of) the mobile app. Review what matters most to you, customize your plan, review all your transactions, manage you...
+        - listitem [ref=f25e267]:
+          - link [ref=f25e268] [cursor=pointer]:
+            - /url: /en_us/using-ynab-with-variable-income-an-overview-BynJaHZ09
+            - heading "Using YNAB with Variable Income" [level=2] [ref=f25e269]
+          - generic [ref=f25e270]: July 2 2026 6:29pm
+          - generic [ref=f25e271]: Manage variable income by using a plan template, setting priorities, scheduling transactions, and maintaining daily routines. Plan for the future and keep funds...
+        - listitem [ref=f25e273]:
+          - link [ref=f25e274] [cursor=pointer]:
+            - /url: /en_us/assigning-future-income-an-overview-BJsTo0jCq
+            - 'heading "Assigning Future Income: An Overview" [level=2] [ref=f25e275]'
+          - generic [ref=f25e276]: July 2 2026 6:22pm
+          - generic [ref=f25e277]: Establish your plan using only the funds you have on hand right now, not anticipating future income. Learn how to utilize built-in features like Scheduled Trans...
+        - listitem [ref=f25e279]:
+          - link [ref=f25e280] [cursor=pointer]:
+            - /url: /en_us/how-to-keep-your-accounts-simple-HyGw_QxRq
+            - heading "How to Keep Your Accounts Simple" [level=2] [ref=f25e281]
+          - generic [ref=f25e282]: July 2 2026 6:17pm
+          - generic [ref=f25e283]: Assess each of your bank accounts to check whether they fit the criteria in this article. Add them to your YNAB plan if they do, and leave them out of YNAB if t...
+        - listitem [ref=f25e285]:
+          - link [ref=f25e286] [cursor=pointer]:
+            - /url: /en_us/how-much-to-keep-in-your-checking-account-a-guide-ryZNWymAc
+            - heading "How Much to Keep in Your Checking Account" [level=2] [ref=f25e287]
+          - generic [ref=f25e288]: July 2 2026 6:17pm
+          - generic [ref=f25e289]: Determine the necessary amount needed in your spending accounts to ensure all upcoming expenses are covered. Utilize the Inspector and running balances to make ...
+        - listitem [ref=f25e291]:
+          - link [ref=f25e292] [cursor=pointer]:
+            - /url: /en_us/how-to-adjust-your-plan-on-any-pay-cycle-HkpGZdW1o
+            - heading "How to Adjust Your Plan on Any Pay Cycle" [level=2] [ref=f25e293]
+          - generic [ref=f25e294]: July 2 2026 6:14pm
+          - generic [ref=f25e295]: Set up YNAB to work with your specific income and bill schedules. Learn how the YNAB method uses a monthly plan to accommodate all pay cycles, including folks w...
+        - listitem [ref=f25e297]:
+          - link [ref=f25e298] [cursor=pointer]:
+            - /url: /en_us/how-to-assign-your-savings-rkJ_Yy3Rq
+            - heading "How to Assign Your Savings" [level=2] [ref=f25e299]
+          - generic [ref=f25e300]: July 10 2026 2:08am
+          - generic [ref=f25e301]: Set up your savings account as a Cash account (and choose the savings option). Assign those dollars to categories, and include your emergency savings, too. Foll...
+  - generic [ref=f25e304]:
+    - generic [ref=f25e305]:
+      - heading "Still have questions?" [level=2] [ref=f25e306]
+      - heading [level=3]
+    - link "Contact Us" [ref=f25e309] [cursor=pointer]:
+      - /url: https://support.ynab.com/contact/contact-us-B1OG9RFfj
+  - generic [ref=f25e312]:
+    - link "Back to Top" [ref=f25e314] [cursor=pointer]:
+      - /url: "#top"
+      - generic [ref=f25e316]: 󰁝
+    - menu:
+      - listitem:
+        - link:
+          - /url: ""
+    - separator [ref=f25e317]
+    - generic [ref=f25e318]: © ynab.com 2026
