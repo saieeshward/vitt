@@ -2,12 +2,23 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidKmpLibrary)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.sqldelight)
 }
 
 kotlin {
     jvm()
+
+    // Android is a real target, not the JVM one in disguise: Keystore-backed
+    // token storage and SecureRandom have no JVM equivalent, so androidMain
+    // needs its own actuals.
+    android {
+        namespace = "ie.shoonya.vitt.shared"
+        compileSdk = libs.versions.androidCompileSdk.get().toInt()
+        minSdk = libs.versions.androidMinSdk.get().toInt()
+    }
+
     iosArm64()
     iosSimulatorArm64()
 
@@ -28,6 +39,7 @@ kotlin {
             implementation(libs.ktor.client.mock)
         }
         jvmMain.dependencies { implementation(libs.sqldelight.driver.jvm) }
+        androidMain.dependencies { implementation(libs.sqldelight.driver.android) }
         jvmTest.dependencies { implementation(libs.sqldelight.driver.jvm) }
         iosMain.dependencies { implementation(libs.sqldelight.driver.native) }
     }
