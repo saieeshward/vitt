@@ -37,9 +37,9 @@ fun ActivityScreen(
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(Vitt.space.loose),
-        verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+        verticalArrangement = Arrangement.spacedBy(Vitt.space.hair),
     ) {
-        item { Text("Activity", style = Vitt.type.title, color = Vitt.colors.ink) }
+        item { Text("Activity", style = Vitt.type.display, color = Vitt.colors.ink) }
 
         if (days.isEmpty()) {
             item {
@@ -72,7 +72,7 @@ fun ActivityScreen(
 private fun TransactionRow(txn: Transaction, currencyIndex: (Currency) -> Int) {
     val colors = Vitt.colors
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = Vitt.space.tight),
+        modifier = Modifier.fillMaxWidth().padding(vertical = Vitt.space.hair),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(

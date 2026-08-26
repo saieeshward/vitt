@@ -64,13 +64,25 @@ data class Money(val minor: Long, val currency: Currency) {
      * UI calls.
      */
     fun display(): String {
-        val negative = minor < 0
-        val digits = (if (negative) -minor else minor).toString()
+        val digits = (if (minor < 0) -minor else minor).toString()
         val entry = ie.shoonya.vitt.money.AmountEntry(
             digits = if (digits == "0") "" else digits,
             currency = currency,
         )
-        return (if (negative) "-" else "") + entry.display()
+        // Spending carries no minus sign; income carries a plus. The design's
+        // money line reads "€23.05" for an expense and "+€3,410.00" for a
+        // salary — a column of minus signs is noise, since in a spending log
+        // money going out is the default and does not need marking.
+        return (if (minor > 0) "+" else "") + entry.display()
+    }
+
+    /** The magnitude, unsigned — for a hero figure that states its own direction. */
+    fun displayUnsigned(): String {
+        val digits = (if (minor < 0) -minor else minor).toString()
+        return ie.shoonya.vitt.money.AmountEntry(
+            digits = if (digits == "0") "" else digits,
+            currency = currency,
+        ).display()
     }
 
     override fun toString(): String = "${currency.code} ${toPlainString()}"

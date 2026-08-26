@@ -75,22 +75,28 @@ class MoneyDisplayTest {
     fun `every figure carries its own currency symbol`() {
         // There is no default currency in this app, so a bare number is always
         // ambiguous — the UI must never be able to render one.
-        assertEquals("€12.50", Money(1250, Currency.EUR).display())
-        assertEquals("₹500.00", Money(50000, Currency.INR).display())
-        assertEquals("¥500", Money(500, Currency.JPY).display())
+        assertEquals("+€12.50", Money(1250, Currency.EUR).display())
+        assertEquals("+₹500.00", Money(50000, Currency.INR).display())
+        assertEquals("+¥500", Money(500, Currency.JPY).display())
     }
 
     @Test
-    fun `negatives keep the sign outside the symbol`() {
-        assertEquals("-€12.50", Money(-1250, Currency.EUR).display())
+    fun `spending carries no minus — income carries a plus`() {
+        // A column of minus signs is noise in a spending log: money out is the
+        // default, so only income needs marking. This is the design's own
+        // money-line convention.
+        assertEquals("€12.50", Money(-1250, Currency.EUR).display())
+        assertEquals("+€12.50", Money(1250, Currency.EUR).display())
+        assertEquals("€12.50", Money(-1250, Currency.EUR).displayUnsigned())
+        assertEquals("€12.50", Money(1250, Currency.EUR).displayUnsigned())
     }
 
     @Test
     fun `grouping follows the currency — not the locale`() {
         // Indian grouping is 2-2-3; Western grouping on a rupee figure reads as
         // careless to anyone who uses rupees.
-        assertEquals("₹1,23,456.78", Money(12345678, Currency.INR).display())
-        assertEquals("€1,234.56", Money(123456, Currency.EUR).display())
+        assertEquals("+₹1,23,456.78", Money(12345678, Currency.INR).display())
+        assertEquals("+€1,234.56", Money(123456, Currency.EUR).display())
     }
 
     @Test

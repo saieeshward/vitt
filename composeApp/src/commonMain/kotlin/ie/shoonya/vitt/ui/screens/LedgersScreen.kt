@@ -118,7 +118,7 @@ private fun LedgerCard(ledger: Ledger) {
         // tone rules exist to prevent. Spending is stated as a positive amount
         // out, which is the same fact without the verdict.
         Text(
-            text = (remaining?.abs() ?: ledger.spent).display(),
+            text = (remaining?.abs() ?: ledger.spent).displayUnsigned(),
             style = Vitt.type.moneyHero,
             color = colors.ink,
             textAlign = TextAlign.Start,

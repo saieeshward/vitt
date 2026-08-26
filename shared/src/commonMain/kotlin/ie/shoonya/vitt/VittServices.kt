@@ -53,27 +53,51 @@ class VittServices(
      */
     fun seedSampleData() {
         if (ledger.transactions().isNotEmpty()) return
-        val day = today()
-        ledger.record(
-            id = "sample-1",
-            amount = ie.shoonya.vitt.money.Money(-1250, ie.shoonya.vitt.money.Currency.EUR),
-            day = day, merchant = "Tesco", category = "Groceries",
+        val today = today()
+        val eur = ie.shoonya.vitt.money.Currency.EUR
+        val inr = ie.shoonya.vitt.money.Currency.INR
+
+        // Two weeks of a plausible month across two currencies: salary in, rent
+        // out, a scatter of daily spending, and one split. Enough for the ledger
+        // cards, the activity list and the owed row to each have something real.
+        val seeds = listOf(
+            Triple(today - 13, 341000L to eur, "Salary" to "Income"),
+            Triple(today - 13, -145000L to eur, "Rent" to "Housing"),
+            Triple(today - 12, -6820L to eur, "Tesco" to "Groceries"),
+            Triple(today - 12, -350L to eur, "Coffee" to "Dining"),
+            Triple(today - 11, -1899L to eur, "Dublin Bus" to "Transport"),
+            Triple(today - 10, 1200000L to inr, "Consulting" to "Income"),
+            Triple(today - 10, -18000L to inr, "Swiggy" to "Dining"),
+            Triple(today - 9, -4590L to eur, "Boots" to "Health"),
+            Triple(today - 8, -1250L to eur, "Spotify" to "Subscriptions"),
+            Triple(today - 7, -8940L to eur, "Tesco" to "Groceries"),
+            Triple(today - 6, -60000L to inr, "Ola" to "Transport"),
+            Triple(today - 4, -2200L to eur, "Aer Lingus seat" to "Travel"),
+            Triple(today - 3, -35000L to inr, "Amazon.in" to "Shopping"),
+            Triple(today - 2, -1180L to eur, "Coffee" to "Dining"),
+            Triple(today - 1, -7250L to eur, "Lidl" to "Groceries"),
+            Triple(today, -420L to eur, "Coffee" to "Dining"),
         )
+
+        seeds.forEachIndexed { i, (day, amount, what) ->
+            ledger.record(
+                id = "sample-" + i.toString().padStart(2, '0'),
+                amount = ie.shoonya.vitt.money.Money(amount.first, amount.second),
+                day = day,
+                merchant = what.first,
+                category = what.second,
+            )
+        }
+
+        // One split, recorded separately because your share is what the budget
+        // and the categories see — not what you fronted.
         ledger.record(
-            id = "sample-2",
-            amount = ie.shoonya.vitt.money.Money(341000, ie.shoonya.vitt.money.Currency.EUR),
-            day = day, merchant = "Salary", category = "Income",
-        )
-        ledger.record(
-            id = "sample-3",
-            amount = ie.shoonya.vitt.money.Money(-124000, ie.shoonya.vitt.money.Currency.INR),
-            day = day - 1, merchant = "Swiggy", category = "Dining",
-        )
-        ledger.record(
-            id = "sample-4",
-            amount = ie.shoonya.vitt.money.Money(-2305, ie.shoonya.vitt.money.Currency.EUR),
-            day = day - 1, merchant = "Dinner with Anya", category = "Dining",
-            totalPaid = ie.shoonya.vitt.money.Money(-4610, ie.shoonya.vitt.money.Currency.EUR),
+            id = "sample-split",
+            amount = ie.shoonya.vitt.money.Money(-2305, eur),
+            day = today - 5,
+            merchant = "Dinner with Anya",
+            category = "Dining",
+            totalPaid = ie.shoonya.vitt.money.Money(-4610, eur),
         )
     }
 
