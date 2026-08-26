@@ -113,6 +113,22 @@ object EventLog {
     /** Reads one transaction out of a fold, by id. */
     fun Map<EntityKey, Entity>.transaction(id: String): Entity? = this[EntityKey("transaction", id)]
 
+    /**
+     * Filters to events not already held, asking a predicate per event.
+     *
+     * The set-based overload copies every HLC this device has ever seen — at
+     * 50,000 transactions that is roughly half a million 46-character keys, tens
+     * of megabytes allocated on a phone for every sync, and it grows forever.
+     * An indexed existence check costs nothing and does not.
+     */
+    fun newEvents(incoming: Iterable<Event>, isKnown: (String) -> Boolean): List<Event> {
+        val seenInBatch = mutableSetOf<String>()
+        return incoming.filter { event ->
+            val key = event.hlc.encode()
+            seenInBatch.add(key) && !isKnown(key)
+        }
+    }
+
     fun newEvents(incoming: Iterable<Event>, knownHlcs: Set<String>): List<Event> {
         val seen = knownHlcs.toMutableSet()
         // Deduplicates within the batch as well as against what is already known:

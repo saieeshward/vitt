@@ -113,8 +113,9 @@ class SheetsClientTest {
                 HttpStatusCode.OK, jsonHeaders(),
             )
         }
-        val rows = sheets.readPaged("s", "Events", "AF", pageSize = 3)
-        assertEquals(3, rows.size)
+        val page = sheets.readPaged("s", "Events", "AF", pageSize = 3)
+        assertEquals(3, page.rows.size)
+        assertEquals(5, page.nextRow, "the cursor advances past what was read")
         assertEquals(2, call, "one full page, then one short page")
     }
 

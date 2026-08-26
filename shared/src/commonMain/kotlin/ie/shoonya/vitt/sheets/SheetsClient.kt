@@ -113,20 +113,25 @@ class SheetsClient(
      * second per 20,000 empty rows — so an open range on a young spreadsheet is
      * slower than a closed one on a full one.
      */
+    /** Rows read, and the spreadsheet row number the next read should start at. */
+    data class Page(val rows: List<List<String>>, val nextRow: Int)
+
     suspend fun readPaged(
         spreadsheetId: String,
         tab: String,
         columns: String,
         pageSize: Int = 5_000,
         startRow: Int = 2,
-    ): List<List<String>> {
+    ): Page {
         val all = mutableListOf<List<String>>()
         var row = startRow
         while (true) {
             val last = row + pageSize - 1
             val page = read(spreadsheetId, "$tab!${columns.first()}$row:${columns.last()}$last")
             all += page
-            if (page.size < pageSize) return all
+            // A short page means the end of the data, since Sheets trims
+            // trailing empty rows.
+            if (page.size < pageSize) return Page(all, row + page.size)
             row = last + 1
         }
     }

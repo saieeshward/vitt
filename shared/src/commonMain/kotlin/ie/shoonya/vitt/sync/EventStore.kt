@@ -147,7 +147,29 @@ class EventStore(
     fun eventsSince(hlc: Hlc?): List<Event> =
         events.selectSince(hlc?.encode() ?: "").executeAsList().map { it.toEvent() }
 
+    /**
+     * Whether this event is already held. Indexed lookup, constant memory.
+     *
+     * Prefer this to [knownHlcs] on any path that runs per sync: the set version
+     * materialises the entire history and its cost grows with the ledger.
+     */
+    fun hasEvent(hlc: String): Boolean = events.exists(hlc).executeAsOne()
+
+    /** The whole key set. Only for reconciliation, where it is genuinely needed. */
     fun knownHlcs(): Set<String> = events.knownHlcs().executeAsList().toSet()
+
+    /**
+     * The last spreadsheet row this device has read.
+     *
+     * Without it every sync re-reads the entire Events tab — a hundred HTTP
+     * round trips at 50,000 transactions, to learn nothing, against a 60
+     * requests-per-minute ceiling.
+     */
+    fun lastReadRow(): Int = get(KEY_LAST_SHEET_ROW)?.toIntOrNull() ?: 1
+
+    fun rememberReadRow(row: Int) {
+        if (row > lastReadRow()) put(KEY_LAST_SHEET_ROW, row.toString())
+    }
 
     fun eventCount(): Long = events.count().executeAsOne()
 
@@ -268,6 +290,7 @@ class EventStore(
         const val KEY_SPREADSHEET_ID = "spreadsheet_id"
         const val KEY_DRIVE_VERSION = "drive_version"
         const val KEY_LAST_HLC = "last_hlc"
+        const val KEY_LAST_SHEET_ROW = "last_sheet_row"
 
         /**
          * Opens a store with a clock seeded from what this device already
