@@ -50,7 +50,7 @@ class ClockPersistenceTest {
     }
 
     @Test
-    fun `the seed survives losing sync_state, via the log itself`() {
+    fun `the seed survives losing sync_state — via the log itself`() {
         val driver: SqlDriver = testDriver()
         var wall = 10_000L
         val store = EventStore.open(driver, nodeA) { wall }
@@ -91,7 +91,7 @@ class ClockPersistenceTest {
     }
 
     @Test
-    fun `observing is persisted, so it survives a restart too`() {
+    fun `observing is persisted — so it survives a restart too`() {
         val driver: SqlDriver = testDriver()
         val store = EventStore.open(driver, nodeA) { 1_000L }
         val fromB = amount(HlcClock(nodeB, now = { 200_000L }).issue(), "txn-1", -2000)

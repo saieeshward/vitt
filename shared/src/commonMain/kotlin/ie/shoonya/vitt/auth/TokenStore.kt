@@ -3,17 +3,37 @@ package ie.shoonya.vitt.auth
 /**
  * Where OAuth tokens live.
  *
- * Tokens never touch the event log, the spreadsheet, or ordinary preferences.
- * A refresh token grants access to the user's Drive file until revoked, so it
- * belongs in platform-protected storage — Keychain on iOS, Keystore-backed on
- * Android — and nowhere else. VITT has no server, so it is never transmitted
- * anywhere either.
+ * An interface rather than a platform class, so that [AuthManager] depends on
+ * the behaviour and not on the Keychain. That is not architectural taste: the
+ * platform implementations cannot run in a unit-test process — a test binary has
+ * no keychain entitlement — so tying the manager to them makes its logic
+ * untestable on the platform it actually ships to.
  */
-expect class TokenStore {
+interface TokenStore {
+    /** @throws TokenStoreException if the credential could not be written. */
     fun save(tokens: StoredTokens)
     fun load(): StoredTokens?
     fun clear()
 }
+
+/**
+ * A credential could not be stored or read.
+ *
+ * Deliberately loud. Silently failing to persist a refresh token signs the user
+ * out at the next launch with no explanation, long after the cause.
+ */
+class TokenStoreException(message: String, val status: Int? = null) : Exception(message)
+
+/** Non-persistent. For tests, and for the JVM target, which never ships. */
+class InMemoryTokenStore : TokenStore {
+    private var tokens: StoredTokens? = null
+    override fun save(tokens: StoredTokens) { this.tokens = tokens }
+    override fun load(): StoredTokens? = tokens
+    override fun clear() { tokens = null }
+}
+
+/** The platform's real credential store. */
+expect fun platformTokenStore(): TokenStore
 
 @kotlinx.serialization.Serializable
 data class StoredTokens(

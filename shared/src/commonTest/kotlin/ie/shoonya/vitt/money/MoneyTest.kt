@@ -86,7 +86,7 @@ class MoneyDisplayTest {
     }
 
     @Test
-    fun `grouping follows the currency, not the locale`() {
+    fun `grouping follows the currency — not the locale`() {
         // Indian grouping is 2-2-3; Western grouping on a rupee figure reads as
         // careless to anyone who uses rupees.
         assertEquals("₹1,23,456.78", Money(12345678, Currency.INR).display())
@@ -94,7 +94,7 @@ class MoneyDisplayTest {
     }
 
     @Test
-    fun `zero renders as zero, not as empty`() {
+    fun `zero renders as zero — not as empty`() {
         assertEquals("€0.00", Money(0, Currency.EUR).display())
     }
 }

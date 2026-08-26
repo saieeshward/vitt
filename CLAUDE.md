@@ -83,3 +83,10 @@ not a design preference.
 
 `docs/phase-0-checklist.md` tracks long-lead items; `[you]` items need the maintainer
 and cannot be automated.
+
+## Test naming
+
+Kotlin/Native rejects a comma inside a backticked function name where the JVM
+accepts it, so `./gradlew :shared:jvmTest` can pass while the iOS target fails to
+compile. Use an em dash instead, and run `:shared:allTests` before relying on a
+green suite.

@@ -11,7 +11,7 @@ import platform.Foundation.timeIntervalSince1970
 fun MainViewController() = ComposeUIViewController {
     AppRoot(
         VittServices(
-            tokenStore = TokenStore(),
+            tokenStore = ie.shoonya.vitt.auth.platformTokenStore(),
             browser = BrowserAuth(),
             now = { (NSDate().timeIntervalSince1970 * 1000).toLong() },
         ),

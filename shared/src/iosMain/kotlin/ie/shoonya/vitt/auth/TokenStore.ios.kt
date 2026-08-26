@@ -49,9 +49,9 @@ import platform.Security.kSecValueData
  * thirty lines of well-understood interop.
  */
 @OptIn(ExperimentalForeignApi::class)
-actual class TokenStore(private val service: String = "ie.shoonya.vitt.oauth") {
+class KeychainTokenStore(private val service: String = "ie.shoonya.vitt.oauth") : TokenStore {
 
-    actual fun save(tokens: StoredTokens) {
+    override fun save(tokens: StoredTokens) {
         val payload = Json.encodeToString(StoredTokens.serializer(), tokens)
             .encodeToByteArray().toUByteArray()
         // Keychain add fails with errSecDuplicateItem rather than replacing.
@@ -64,12 +64,19 @@ actual class TokenStore(private val service: String = "ie.shoonya.vitt.oauth") {
             // unreadable exactly then. Still requires one unlock since boot.
             CFDictionaryAddValue(it, kSecAttrAccessible, kSecAttrAccessibleAfterFirstUnlock)
         }
-        SecItemAdd(query, null)
+        val status = SecItemAdd(query, null)
         CFRelease(query)
         data?.let { CFRelease(it) }
+        // H7: clear() has already removed the previous credential by this point,
+        // so a silently ignored failure here leaves the user with no token at
+        // all and no idea why they were signed out. errSecMissingEntitlement
+        // (-34018) is the usual cause in a misconfigured build.
+        if (status != 0) {
+            throw TokenStoreException("keychain write failed", status)
+        }
     }
 
-    actual fun load(): StoredTokens? = memScoped {
+    override fun load(): StoredTokens? = memScoped {
         val result = alloc<CFTypeRefVar>()
         val query = baseQuery {
             CFDictionaryAddValue(it, kSecReturnData, kCFBooleanTrue)
@@ -90,7 +97,7 @@ actual class TokenStore(private val service: String = "ie.shoonya.vitt.oauth") {
         }
     }
 
-    actual fun clear() {
+    override fun clear() {
         val query = baseQuery { }
         SecItemDelete(query)
         CFRelease(query)
@@ -118,3 +125,5 @@ actual class TokenStore(private val service: String = "ie.shoonya.vitt.oauth") {
         const val ACCOUNT = "google"
     }
 }
+
+actual fun platformTokenStore(): TokenStore = KeychainTokenStore()

@@ -167,7 +167,7 @@ class CsvImportTest {
 class CsvCorruptionTest {
 
     @Test
-    fun `an unsupported currency is refused, never stamped as the default`() {
+    fun `an unsupported currency is refused — never stamped as the default`() {
         // A Wise export with a CHF row: importing it as EUR 340 is exactly the
         // currency blending the product exists to refuse.
         val csv = """
@@ -182,7 +182,7 @@ class CsvCorruptionTest {
     }
 
     @Test
-    fun `a trailing minus is a debit, not income`() {
+    fun `a trailing minus is a debit — not income`() {
         // German and Austrian convention. Previously the digit filter stripped
         // the sign and every debit imported as income.
         val csv = """

@@ -24,12 +24,14 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ie.shoonya.vitt.auth.initTokenStore(applicationContext)
+        ie.shoonya.vitt.sync.initInstallMarker(applicationContext)
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             AppRoot(
                 VittServices(
-                    tokenStore = TokenStore(applicationContext),
+                    tokenStore = ie.shoonya.vitt.auth.platformTokenStore(),
                     browser = BrowserAuth(applicationContext),
                     now = { System.currentTimeMillis() },
                 )

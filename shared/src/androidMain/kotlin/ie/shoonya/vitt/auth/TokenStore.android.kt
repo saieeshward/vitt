@@ -23,13 +23,13 @@ import javax.crypto.spec.GCMParameterSpec
  * which was deprecated in androidx.security 1.1.0-alpha07 (April 2025) with no
  * stable successor.
  */
-actual class TokenStore(private val context: Context) {
+class KeystoreTokenStore(private val context: Context) : TokenStore {
 
     private val prefs by lazy {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     }
 
-    actual fun save(tokens: StoredTokens) {
+    override fun save(tokens: StoredTokens) {
         val plaintext = Json.encodeToString(StoredTokens.serializer(), tokens).toByteArray()
         val cipher = Cipher.getInstance(TRANSFORMATION).apply { init(Cipher.ENCRYPT_MODE, key()) }
         val ciphertext = cipher.doFinal(plaintext)
@@ -42,7 +42,7 @@ actual class TokenStore(private val context: Context) {
             .apply()
     }
 
-    actual fun load(): StoredTokens? {
+    override fun load(): StoredTokens? {
         val iv = prefs.getString(KEY_IV, null) ?: return null
         val payload = prefs.getString(KEY_PAYLOAD, null) ?: return null
         return runCatching {
@@ -55,17 +55,20 @@ actual class TokenStore(private val context: Context) {
             }
             val plaintext = cipher.doFinal(Base64.decode(payload, Base64.NO_WRAP))
             Json.decodeFromString(StoredTokens.serializer(), plaintext.decodeToString())
-        }.getOrElse {
-            // Decryption fails if the key was invalidated — a device-security
-            // change, or a restore onto different hardware. Treat it as "signed
-            // out" rather than crashing: the user re-authenticates and nothing
-            // is lost, because tokens are not data.
-            clear()
+        }.getOrElse { cause ->
+            // H8: only a permanently invalidated key justifies discarding the
+            // credential. A transient KeyStoreException — StrongBox busy under
+            // load, for instance — is recoverable, and clearing on it forces an
+            // unnecessary re-authentication.
+            val permanent = cause is javax.crypto.AEADBadTagException ||
+                cause::class.simpleName == "KeyPermanentlyInvalidatedException" ||
+                cause is kotlinx.serialization.SerializationException
+            if (permanent) clear()
             null
         }
     }
 
-    actual fun clear() {
+    override fun clear() {
         prefs.edit().remove(KEY_IV).remove(KEY_PAYLOAD).apply()
     }
 
@@ -100,3 +103,11 @@ actual class TokenStore(private val context: Context) {
         const val KEY_PAYLOAD = "payload"
     }
 }
+
+private var tokenStoreContext: Context? = null
+
+/** Supplied once at startup; the Keystore needs a Context and commonMain has none. */
+fun initTokenStore(context: Context) { tokenStoreContext = context.applicationContext }
+
+actual fun platformTokenStore(): TokenStore =
+    KeystoreTokenStore(requireNotNull(tokenStoreContext) { "call initTokenStore() first" })

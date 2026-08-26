@@ -3,6 +3,7 @@ package ie.shoonya.vitt
 import ie.shoonya.vitt.auth.AuthManager
 import ie.shoonya.vitt.auth.BrowserAuth
 import ie.shoonya.vitt.auth.TokenStore
+import ie.shoonya.vitt.auth.platformTokenStore
 import ie.shoonya.vitt.auth.platformClientId
 import ie.shoonya.vitt.net.platformHttpClient
 import ie.shoonya.vitt.sheets.LiveVerification
@@ -16,7 +17,7 @@ import ie.shoonya.vitt.sheets.SheetsClient
  * part of this module's public API and therefore hard to replace.
  */
 class VittServices(
-    tokenStore: TokenStore,
+    tokenStore: TokenStore = platformTokenStore(),
     browser: BrowserAuth,
     now: () -> Long,
 ) {

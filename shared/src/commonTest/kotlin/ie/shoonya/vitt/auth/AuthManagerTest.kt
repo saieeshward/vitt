@@ -19,7 +19,7 @@ class AuthManagerTest {
     private val clientId = "123-abc.apps.googleusercontent.com"
 
     private fun manager(
-        store: TokenStore = TokenStore(),
+        store: TokenStore = InMemoryTokenStore(),
         now: () -> Long = { 0L },
         handler: io.ktor.client.engine.mock.MockRequestHandler,
     ): Pair<AuthManager, MockEngine> {
@@ -32,7 +32,7 @@ class AuthManagerTest {
 
     @Test
     fun `a valid token is returned without contacting Google`() = runTest {
-        val store = TokenStore().apply {
+        val store = InMemoryTokenStore().apply {
             save(StoredTokens("live-token", "refresh", expiresAtMillis = 10_000_000))
         }
         val (auth, engine) = manager(store, now = { 0L }) {
@@ -44,7 +44,7 @@ class AuthManagerTest {
 
     @Test
     fun `an expired token is refreshed`() = runTest {
-        val store = TokenStore().apply {
+        val store = InMemoryTokenStore().apply {
             save(StoredTokens("old", "refresh-1", expiresAtMillis = 1_000))
         }
         val (auth, engine) = manager(store, now = { 500_000L }) {
@@ -60,7 +60,7 @@ class AuthManagerTest {
     fun `refresh keeps the existing refresh token when Google omits it`() = runTest {
         // Google usually does omit it. Overwriting with null would sign the user
         // out on their next launch.
-        val store = TokenStore().apply {
+        val store = InMemoryTokenStore().apply {
             save(StoredTokens("old", "refresh-1", expiresAtMillis = 1_000))
         }
         val (auth, _) = manager(store, now = { 500_000L }) {
@@ -72,7 +72,7 @@ class AuthManagerTest {
 
     @Test
     fun `a rejected refresh token is cleared rather than retried forever`() = runTest {
-        val store = TokenStore().apply {
+        val store = InMemoryTokenStore().apply {
             save(StoredTokens("old", "revoked", expiresAtMillis = 1_000))
         }
         val (auth, _) = manager(store, now = { 500_000L }) {
@@ -86,7 +86,7 @@ class AuthManagerTest {
     fun `a server error during refresh does not discard the credential`() = runTest {
         // Google being down is temporary; deleting the refresh token over it
         // would force an unnecessary re-consent.
-        val store = TokenStore().apply {
+        val store = InMemoryTokenStore().apply {
             save(StoredTokens("old", "refresh-1", expiresAtMillis = 1_000))
         }
         val (auth, _) = manager(store, now = { 500_000L }) {
@@ -101,7 +101,7 @@ class AuthManagerTest {
         // Several queued syncs waking together would otherwise each redeem the
         // refresh token; Google caps live tokens and invalidates the oldest, so
         // a stampede can sign the user out of their own account.
-        val store = TokenStore().apply {
+        val store = InMemoryTokenStore().apply {
             save(StoredTokens("old", "refresh-1", expiresAtMillis = 1_000))
         }
         var calls = 0
@@ -115,14 +115,14 @@ class AuthManagerTest {
     }
 
     @Test
-    fun `no stored token means signed out, not an error`() = runTest {
+    fun `no stored token means signed out — not an error`() = runTest {
         val (auth, _) = manager { respond("", HttpStatusCode.OK) }
         assertNull(auth.accessToken())
     }
 
     @Test
     fun `sign out clears the local credential even if revoke fails`() = runTest {
-        val store = TokenStore().apply {
+        val store = InMemoryTokenStore().apply {
             save(StoredTokens("a", "r", expiresAtMillis = 10_000_000))
         }
         val (auth, _) = manager(store) { respond("", HttpStatusCode.InternalServerError) }
