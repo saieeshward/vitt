@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
@@ -30,6 +32,52 @@ kotlin {
         iosMain.dependencies { implementation(libs.sqldelight.driver.native) }
     }
 }
+
+/**
+ * OAuth client ids come from `local.properties` (gitignored) so a fresh clone
+ * fails loudly with instructions rather than silently building an app that
+ * cannot sign in.
+ *
+ * These are not secrets — Google documents installed-app client ids as public,
+ * and the real control is the binding to bundle id and signing certificate. They
+ * live outside the repo only so each contributor points at their own Cloud
+ * project.
+ */
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+
+fun oauthClientId(key: String): String =
+    (localProps.getProperty(key) ?: System.getenv(key.replace('.', '_').uppercase()) ?: "")
+
+val buildConfigDir = layout.buildDirectory.dir("generated/oauth")
+
+val generateOauthConfig by tasks.registering {
+    val iosId = oauthClientId("oauth.ios.clientId")
+    val androidId = oauthClientId("oauth.android.clientId")
+    val outDir = buildConfigDir
+    inputs.property("ios", iosId)
+    inputs.property("android", androidId)
+    outputs.dir(outDir)
+    doLast {
+        val dir = outDir.get().asFile.resolve("ie/shoonya/vitt/auth")
+        dir.mkdirs()
+        dir.resolve("OauthConfig.kt").writeText(
+            """
+            package ie.shoonya.vitt.auth
+
+            /** Generated from local.properties. Do not edit. */
+            internal object OauthConfig {
+                const val IOS_CLIENT_ID = "$iosId"
+                const val ANDROID_CLIENT_ID = "$androidId"
+            }
+            """.trimIndent()
+        )
+    }
+}
+
+kotlin.sourceSets.commonMain { kotlin.srcDir(generateOauthConfig) }
 
 sqldelight {
     databases {
