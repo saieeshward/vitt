@@ -102,7 +102,15 @@ object Vitt {
  */
 @Composable
 fun VittTheme(
-    dark: Boolean = isSystemInDarkTheme(),
+    /**
+     * Light by default, regardless of the system setting.
+     *
+     * The identity's primary palette is the cream one — warm and quiet is the
+     * intended feel, and a personal tool should not inherit an OS-wide
+     * preference set for reading in bed. A phone in dark mode was otherwise
+     * showing the app's secondary palette as if it were the design.
+     */
+    dark: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colors = if (dark) VittColors.dark() else VittColors.light()

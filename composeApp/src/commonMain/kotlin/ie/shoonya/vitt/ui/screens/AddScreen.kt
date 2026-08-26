@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -42,8 +41,7 @@ fun AddScreen(
 ) {
     var entry by remember { mutableStateOf(AmountEntry(currency = currencies.firstOrNull() ?: Currency.EUR)) }
     var kind by remember { mutableStateOf(EntryKind.Expense) }
-    var merchant by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = modifier.fillMaxWidth().padding(Vitt.space.loose),
@@ -65,11 +63,7 @@ fun AddScreen(
                         EntryKind.Expense -> Money(-entry.money.minor, entry.currency)
                         EntryKind.Income -> entry.money
                     }
-                    onSave(
-                        signed,
-                        merchant.takeIf { it.isNotBlank() },
-                        category.takeIf { it.isNotBlank() },
-                    )
+                    onSave(signed, null, category)
                 },
             ) { Text("Save") }
         }
@@ -98,25 +92,57 @@ fun AddScreen(
 
         AmountKeypad(entry = entry, onEntryChange = { entry = it })
 
-        OutlinedTextField(
-            value = merchant,
-            onValueChange = { merchant = it },
-            label = { Text("Where") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            value = category,
-            onValueChange = { category = it },
-            label = { Text("Category") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        // Deliberately no text fields on this screen.
+        //
+        // The keypad exists to avoid the system IME, which is Compose
+        // Multiplatform's weakest surface on iOS. Putting a text field beside it
+        // summons that keyboard anyway — and in a bottom sheet it covers the
+        // lower half of the keypad, so 7, 8, 9, 0, C and delete become
+        // unreachable and the amount cannot be finished.
+        //
+        // Category is chosen from a list rather than typed, which is what the
+        // design specifies: it arrives pre-filled from the learned rules, so
+        // free text was never the intended input.
+        Text("Category", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
+        CategoryChips(selected = category, onSelect = { category = it })
 
         Text(
-            "Two taps: type, then Save. Nothing below the amount is required.",
+            "Two taps: type, then Save. The category is optional.",
             style = Vitt.type.label,
             color = Vitt.colors.inkMuted,
         )
+    }
+}
+
+/**
+ * The default category set, as chips.
+ *
+ * Twelve fixed categories, assigned by purpose rather than by merchant — a work
+ * coffee and a personal coffee are both Food. Chips rather than a text field
+ * because the design has the category arriving pre-filled from the learned
+ * rules; typing it was never the intended path, and a text field here would
+ * summon the keyboard over the keypad.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun CategoryChips(selected: String?, onSelect: (String?) -> Unit) {
+    val categories = listOf(
+        "Groceries", "Dining", "Transport", "Housing", "Utilities", "Health",
+        "Shopping", "Entertainment", "Travel", "Family", "Subscriptions", "Other",
+    )
+    androidx.compose.foundation.layout.FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+        verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+    ) {
+        categories.forEach { name ->
+            FilterChip(
+                selected = selected == name,
+                // Tapping the chosen one clears it: the field is optional, so
+                // there has to be a way back to none.
+                onClick = { onSelect(if (selected == name) null else name) },
+                label = { Text(name, style = Vitt.type.label) },
+            )
+        }
     }
 }

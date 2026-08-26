@@ -36,6 +36,7 @@ import ie.shoonya.vitt.ui.theme.Vitt
 fun LedgersScreen(
     ledgers: List<Ledger>,
     owed: Map<Currency, Money>,
+    daysRecorded: Int,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -45,6 +46,17 @@ fun LedgersScreen(
     ) {
         item {
             Text("Ledgers", style = Vitt.type.title, color = Vitt.colors.ink)
+        }
+
+        // Pip leads the home screen rather than hiding in a tab: the character
+        // is how the no-conversion rule is explained without words — one coin
+        // slot per currency, and coins never move between them.
+        item {
+            ie.shoonya.vitt.ui.Pip(
+                daysRecorded = daysRecorded,
+                currencyCount = ledgers.size.coerceAtLeast(1),
+                modifier = Modifier.fillMaxWidth().height(140.dp),
+            )
         }
 
         if (ledgers.isEmpty()) {

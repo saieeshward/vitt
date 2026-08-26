@@ -71,7 +71,7 @@ fun VittApp(
     Column(modifier = modifier.fillMaxSize().background(Vitt.colors.ground)) {
         Box(Modifier.fillMaxWidth().weight(1f)) {
             when (tab) {
-                Tab.Ledgers -> LedgersScreen(ledgers, owed)
+                Tab.Ledgers -> LedgersScreen(ledgers, owed, daysRecorded = recorded)
                 Tab.Activity -> ActivityScreen(days, indexOf)
                 Tab.People -> PeopleScreen(owed)
                 Tab.Habit -> HabitScreen(
