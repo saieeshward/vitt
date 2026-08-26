@@ -61,6 +61,44 @@ object EventLog {
      * events that must both survive, and a content hash would silently collapse
      * them into one.
      */
+    /**
+     * The outcome of reading rows from the sheet: what parsed, and what did not.
+     *
+     * Unreadable rows are reported rather than thrown, so the user can be told
+     * "3 rows in your sheet couldn't be read" while the other 40,000 sync
+     * normally.
+     */
+    data class ReadResult(
+        val events: List<Event>,
+        val unreadable: List<UnreadableRow>,
+    )
+
+    data class UnreadableRow(val rowNumber: Int, val reason: String, val raw: List<String>)
+
+    /**
+     * Parses sheet rows, isolating failures per row.
+     *
+     * @param firstRowNumber the spreadsheet row number of `rows[0]`, so a
+     * problem can be reported at a location the user can actually navigate to.
+     */
+    fun readRows(rows: List<List<String>>, firstRowNumber: Int = 2): ReadResult {
+        val events = mutableListOf<Event>()
+        val bad = mutableListOf<UnreadableRow>()
+        rows.forEachIndexed { i, row ->
+            if (row.all { it.isBlank() }) return@forEachIndexed   // a blank line is not an error
+            Event.parseRow(row)
+                .onSuccess { events += it }
+                .onFailure {
+                    bad += UnreadableRow(
+                        rowNumber = firstRowNumber + i,
+                        reason = it.message ?: it::class.simpleName ?: "unparseable",
+                        raw = row,
+                    )
+                }
+        }
+        return ReadResult(events, bad)
+    }
+
     fun newEvents(incoming: Iterable<Event>, knownHlcs: Set<String>): List<Event> {
         val seen = knownHlcs.toMutableSet()
         // Deduplicates within the batch as well as against what is already known:

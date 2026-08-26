@@ -35,6 +35,20 @@ data class Event(
                 value = TaggedValue.decode(row[5]),
             )
         }
+
+        /**
+         * Parses a row without throwing.
+         *
+         * The Events tab lives in a spreadsheet a person can edit, and the
+         * Sheets API trims trailing empty cells — so clearing one value, sorting
+         * the tab, or pasting over a row all produce a short row. Parsing with
+         * [fromRow] then throws before reaching the thousands of good rows
+         * below it, and one stray keystroke stops sync permanently.
+         *
+         * Data that came out of a spreadsheet is untrusted input, not a
+         * programming error.
+         */
+        fun parseRow(row: List<String>): Result<Event> = runCatching { fromRow(row) }
     }
 }
 

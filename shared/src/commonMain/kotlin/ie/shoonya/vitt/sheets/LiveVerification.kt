@@ -89,7 +89,8 @@ class LiveVerification(
         // produces different state than the device that wrote it.
         try {
             val rows = sheets.read(id, "Events!A1:F100")
-            val parsed = rows.filter { it.size >= Event.COLUMNS }.map { Event.fromRow(it) }
+            val read = EventLog.readRows(rows, firstRowNumber = 1)
+            val parsed = read.events
             val folded = EventLog.fold(parsed)
             val amount = folded["txn-1"]?.fields?.get("amount")
             val ok = parsed.size == events.size && amount == TaggedValue.Num(-1250)
