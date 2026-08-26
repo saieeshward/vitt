@@ -54,7 +54,7 @@ fun AmountKeypad(
 
         rows.forEach { row ->
             Row(
-                modifier = Modifier.fillMaxWidth().height(72.dp),
+                modifier = Modifier.fillMaxWidth().height(60.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 row.forEach { label ->
@@ -101,7 +101,7 @@ private fun AmountDisplay(entry: AmountEntry) {
 private fun KeypadKey(label: String, modifier: Modifier, onClick: () -> Unit) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(Vitt.radius.key))
             .background(Vitt.colors.surface)
             .clickable(onClick = onClick)
             .semantics {
@@ -113,6 +113,11 @@ private fun KeypadKey(label: String, modifier: Modifier, onClick: () -> Unit) {
             },
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = label, fontSize = 21.sp, color = Vitt.colors.ink)
+        Text(
+            text = label,
+            fontSize = 26.sp,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+            color = Vitt.colors.ink,
+        )
     }
 }

@@ -1,0 +1,359 @@
+- generic [ref=f3e1]:
+  - generic [ref=f3e2]:
+    - banner [ref=f3e3]:
+      - generic [ref=f3e5]:
+        - link "Revolut" [ref=f3e6] [cursor=pointer]:
+          - /url: https://revolut.com/en-IE/
+        - generic [ref=f3e22]:
+          - generic [ref=f3e23]:
+            - link "Personal" [ref=f3e25] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/
+            - link "Business" [ref=f3e28] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/business
+            - button "Kids & Teens" [ref=f3e31] [cursor=pointer]
+            - link "Company" [ref=f3e34] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/discover-our-company
+          - generic [ref=f3e36]:
+            - link "Log in" [ref=f3e37] [cursor=pointer]:
+              - /url: https://app.revolut.com/start
+            - link "Sign up" [ref=f3e39] [cursor=pointer]:
+              - /url: https://get.revolut.com/E528/?af_channel=website_direct&af_dp=revolut%3A%2F%2Fapp&af_sub1=%7B%22conversion_page_url%22%3A%22https%3A%2F%2Fhelp.revolut.com%2Fen-IE%2Fhelp%2Fcard-payments-withdrawals%2Fspending-abroad-or-in-different-currencies%2Fwhat-currency-will-i-be-charged-in%2F%22%2C%22cookie_consent%22%3A%5B%5D%2C%22landing_page_url%22%3A%22https%3A%2F%2Fhelp.revolut.com%2Fen-IE%2Fhelp%2Fcard-payments-withdrawals%2Fspending-abroad-or-in-different-currencies%2Fwhat-currency-will-i-be-charged-in%2F%22%2C%22qr_code%22%3Afalse%2C%22website_client_id%22%3A%22fb426749-1d43-4de4-8567-567038a87ae3%22%7D&deep_link_sub1=DEEPLINK&deep_link_value=revolut%3A%2F%2Fapp&pid=website
+    - main [ref=f3e42]:
+      - generic [ref=f3e43]:
+        - generic [ref=f3e44]:
+          - heading "Need a hand?" [level=1] [ref=f3e45]
+          - paragraph [ref=f3e46]: Just pop your question below to get an answer.
+          - searchbox [ref=f3e53]
+          - tablist [ref=f3e58]:
+            - tab "Personal" [selected] [ref=f3e59] [cursor=pointer]
+            - tab "Business" [ref=f3e61] [cursor=pointer]
+        - generic [ref=f3e63]:
+          - generic [ref=f3e64]:
+            - generic [ref=f3e65]: Topics
+            - list [ref=f3e66]:
+              - listitem [ref=f3e67]:
+                - link "Card payments" [ref=f3e68] [cursor=pointer]:
+                  - /url: /en-IE/help/card-payments-withdrawals/card-payments/
+              - listitem [ref=f3e71]:
+                - link "Cash withdrawals" [ref=f3e72] [cursor=pointer]:
+                  - /url: /en-IE/help/card-payments-withdrawals/atm-withdrawals/
+              - listitem [ref=f3e75]:
+                - link "Spending abroad or in different currencies" [ref=f3e76] [cursor=pointer]:
+                  - /url: /en-IE/help/card-payments-withdrawals/spending-abroad-or-in-different-currencies/
+              - listitem [ref=f3e79]:
+                - link "Help with a refund" [ref=f3e80] [cursor=pointer]:
+                  - /url: /en-IE/help/card-payments-withdrawals/refunds/
+              - listitem [ref=f3e83]:
+                - link "More help with card payments" [ref=f3e84] [cursor=pointer]:
+                  - /url: /en-IE/help/card-payments-withdrawals/more-help-with-transactions-atms/
+              - listitem [ref=f3e87]:
+                - link "What is Revolut Pay?" [ref=f3e88] [cursor=pointer]:
+                  - /url: /en-IE/help/app-features/what-is-revolut-pay/
+              - listitem [ref=f3e91]:
+                - link "Revolut Chrome Extension" [ref=f3e92] [cursor=pointer]:
+                  - /url: /en-IE/help/card-payments-withdrawals/revolut-shopper/
+          - generic [ref=f3e95]:
+            - generic [ref=f3e97]:
+              - link "Personal" [ref=f3e98] [cursor=pointer]:
+                - /url: /en-IE/help/
+              - text: ·
+              - link "Card payments and cash withdrawals" [ref=f3e99] [cursor=pointer]:
+                - /url: /en-IE/help/card-payments-withdrawals/
+              - text: ·
+              - link "Spending abroad or in different currencies" [ref=f3e100] [cursor=pointer]:
+                - /url: /en-IE/help/card-payments-withdrawals/spending-abroad-or-in-different-currencies/
+            - article [ref=f3e101]:
+              - heading "What currency will I be charged in?" [level=2] [ref=f3e103]
+              - generic [ref=f3e104]:
+                - generic [ref=f3e105]:
+                  - heading "How Revolut determines the currency you'll be charged in" [level=3] [ref=f3e106]
+                  - generic [ref=f3e107]:
+                    - paragraph [ref=f3e108]: We automatically convert your balance to the currency you're paying in, so there's no need to buy or exchange currency before your trip. We won't combine multiple currencies to complete a transaction. Read more about our exchange rates in this FAQ.
+                    - paragraph [ref=f3e109]: "When you make a payment in-app, we'll check your currency balances in the below order (and complete the transaction in the first currency that has enough funds to complete the transaction):"
+                    - list [ref=f3e110]:
+                      - listitem [ref=f3e111]: Transaction currency
+                      - listitem [ref=f3e112]: Your base currency (EUR)
+                      - listitem [ref=f3e113]: The active currency with the highest balance
+                - generic [ref=f3e114]:
+                  - heading "How to control the currency used for a transaction" [level=3] [ref=f3e115]
+                  - generic [ref=f3e116]:
+                    - paragraph [ref=f3e117]: "You can assign a specific currency to a card by following these steps in-app:"
+                    - list [ref=f3e118]:
+                      - listitem [ref=f3e119]: Go to 'Home' on the bottom menu
+                      - listitem [ref=f3e120]:
+                        - generic [ref=f3e121]: Select the card you want to use
+                      - listitem [ref=f3e122]: Tap 'Settings'
+                      - listitem [ref=f3e123]: Under 'Spend from', choose a currency
+                      - listitem [ref=f3e124]: Select 'All cash accounts' or any currency you want to be charged in. After that, card payments will be charged in the same order as your selected currencies
+                - generic [ref=f3e125]:
+                  - heading "Declined transactions" [level=3] [ref=f3e126]
+                  - generic [ref=f3e127]:
+                    - paragraph [ref=f3e128]: "The transaction will be declined in the following scenarios:"
+                    - list [ref=f3e129]:
+                      - listitem [ref=f3e130]: Insufficient funds in a single currency to cover the transaction amount plus fees
+                      - listitem [ref=f3e131]: Insufficient funds in the currency assigned to the card
+                      - listitem [ref=f3e132]:
+                        - generic [ref=f3e133]: Normal decline reasons, unrelated to the currency. For more info, read this FAQ
+    - contentinfo [ref=f3e134]:
+      - heading "Choose your plan" [level=2] [ref=f3e135]
+      - list [ref=f3e137]:
+        - listitem [ref=f3e138]:
+          - link [ref=f3e139] [cursor=pointer]:
+            - /url: https://revolut.com/en-IE/a-radically-better-account
+            - generic [ref=f3e140]:
+              - heading "Standard" [level=2] [ref=f3e142]
+              - heading "Free" [level=3] [ref=f3e143]
+              - paragraph [ref=f3e144]: For the financial basics — everything you need for better money management in one place. Sending money abroad or sticking to a budget has never been easier.
+        - listitem [ref=f3e148]:
+          - link [ref=f3e149] [cursor=pointer]:
+            - /url: https://revolut.com/en-IE/revolut-plus
+            - generic [ref=f3e150]:
+              - heading "Plus" [level=2] [ref=f3e152]
+              - heading "€3.99/month" [level=3] [ref=f3e153]
+              - paragraph [ref=f3e154]: For the smart spender — access additional benefits like better limits for spending abroad and insurance for your purchases, on our affordable paid plan.
+        - listitem [ref=f3e158]:
+          - link [ref=f3e159] [cursor=pointer]:
+            - /url: https://revolut.com/en-IE/revolut-premium
+            - generic [ref=f3e160]:
+              - heading "Premium" [level=2] [ref=f3e162]
+              - heading "€8.99/month" [level=3] [ref=f3e163]
+              - paragraph [ref=f3e164]: For elevating every day — access exclusive subscriptions, better interest rates, and exchange unlimited amounts of money.
+        - listitem [ref=f3e168]:
+          - link [ref=f3e169] [cursor=pointer]:
+            - /url: https://revolut.com/en-IE/metal
+            - generic [ref=f3e170]:
+              - heading "Metal" [level=2] [ref=f3e172]
+              - heading "€15.99/month" [level=3] [ref=f3e173]
+              - paragraph [ref=f3e174]: For the global travellers and traders — relax with travel insurance, enjoy enhanced limits, and subscriptions worth €2,400 annually.
+        - listitem [ref=f3e178]:
+          - link [ref=f3e179] [cursor=pointer]:
+            - /url: https://revolut.com/en-IE/ultra-plan
+            - generic [ref=f3e180]:
+              - heading "Ultra" [level=2] [ref=f3e182]
+              - heading "€55/month (introductory offer)" [level=3] [ref=f3e183]
+              - paragraph [ref=f3e184]: For those seeking the best of Revolut — get exceptional benefits like unlimited airport lounge access, monthly global data, partner subscriptions, and cancellation cover.
+      - generic [ref=f3e189]:
+        - paragraph [ref=f3e190]: © 2026 Revolut Bank UAB
+        - paragraph [ref=f3e191]:
+          - text: If you would like to find out more about which Revolut entity you receive services from, please check our corresponding
+          - link "FAQ page" [ref=f3e192] [cursor=pointer]:
+            - /url: https://help.revolut.com/en-LT/help/more/legal-topics/which-revolut-companies-provide-me-with-services/?geo-redirect=true
+          - text: . If you have any other questions, please reach out to us via the in-app chat in the Revolut app.
+        - paragraph [ref=f3e193]: "Revolut Bank UAB is authorised and regulated by the Bank of Lithuania in the Republic of Lithuania and by the European Central Bank and is regulated by the Central Bank of Ireland for consumer protection rules. Registered address: Konstitucijos ave. 21B, Vilnius, 08130, the Republic of Lithuania, number of registration 304580906. Revolut Bank UAB is a private limited liability company. Revolut Bank UAB has established a branch in Ireland, number of registration 909790 with its address at 2 Dublin Landings, North Dock, Dublin 1, Ireland."
+        - paragraph [ref=f3e194]: "Revolut Insurance Europe UAB is authorised by the Bank of Lithuania in the Republic of Lithuania and is regulated by the Central Bank of Ireland for consumer protection rules. Registered address: Konstitucijos ave. 21B, Vilnius, 08130, the Republic of Lithuania, number of registration 305910164."
+        - paragraph [ref=f3e195]: "Investment services are provided by Revolut Securities Europe UAB, represented in Switzerland by Revolut (Switzerland) AG, which is an investment firm authorised by the Bank of Lithuania. Registered address: Konstitucijos ave. 21B, Vilnius, 08130, the Republic of Lithuania, number of registration 305799582."
+        - paragraph [ref=f3e196]: "Cryptocurrency products are provided either by:"
+        - paragraph [ref=f3e197]: (i) Revolut Digital Assets Europe Ltd (RDAEL), a private company registered in the Republic of Cyprus (no. HE430310) with registered address Omonoias, 13, Soho Office (Embassy), 3052, Limassol, Cyprus. RDAEL is licensed by the Cyprus Securities and Exchange Commission (License No. 001/2025) as a Crypto Asset Service Provider (CASP) under EU Regulation 2023/1114 on markets in crypto-assets (MiCA); or
+        - paragraph [ref=f3e198]: "(ii) Revolut Ltd (No. 08804411), a company that is authorised by the Financial Conduct Authority under the Electronic Money Regulations 2011 (Firm Reference 900562), and is registered with the Financial Conduct Authority to offer cryptocurrency services under the Money Laundering, Terrorist Financing and Transfer of Funds (Information on the Payer) Regulations 2017. Registered address: 30 South Colonnade, London E14 5HX, United Kingdom."
+        - paragraph [ref=f3e199]: Depending on whether clients have accepted the RDAEL terms and conditions either during the creation of their cryptocurrency account or the migration of EEA clients from Revolut Ltd to RDAEL.
+      - paragraph [ref=f3e202]:
+        - generic [ref=f3e203]:
+          - link "International Money Transfers" [ref=f3e204] [cursor=pointer]:
+            - /url: https://www.revolut.com/en-IE/money-transfer/
+          - text: ":"
+        - link "Send money to India" [ref=f3e205] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-india/
+        - text: "|"
+        - link "Send money to Nigeria" [ref=f3e206] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-nigeria/
+        - text: "|"
+        - link "Send money to the UK" [ref=f3e207] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-the-uk/
+        - text: "|"
+        - link "Send money to Australia" [ref=f3e208] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-australia/
+        - text: "|"
+        - link "Send money to Spain" [ref=f3e209] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-spain/
+        - text: "|"
+        - link "Send money to France" [ref=f3e210] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-france/
+        - text: "|"
+        - link "Send money to Ireland from the USA" [ref=f3e211] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-ireland-from-the-usa/
+        - text: "|"
+        - link "Send money to Ireland from abroad" [ref=f3e212] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-ireland/
+        - text: "|"
+        - link "Multi-Currency Account" [ref=f3e213] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/multi-currency-account/
+      - generic [ref=f3e214]:
+        - generic [ref=f3e215]:
+          - generic [ref=f3e216]:
+            - heading "Investments" [level=2] [ref=f3e217]
+            - link "Stocks" [ref=f3e218] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/stock-trading
+            - link "Robo-Advisor" [ref=f3e219] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/robo-advisor
+            - link "ETFs" [ref=f3e220] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/etfs
+            - link "Bonds" [ref=f3e221] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/bonds
+            - link "Private Markets" [ref=f3e222] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/investments/private-markets
+          - generic [ref=f3e223]:
+            - heading "Credit & Loans" [level=2] [ref=f3e224]
+            - link "Credit Cards" [ref=f3e225] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/credit-cards
+            - link "Pay Later" [ref=f3e226] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/pay-later
+            - link "Personal Loans" [ref=f3e227] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/personal-loans
+        - generic [ref=f3e228]:
+          - generic [ref=f3e229]:
+            - heading "Security & Protection" [level=2] [ref=f3e230]
+            - link "How We Protect Your Money" [ref=f3e231] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/how-we-keep-your-money-safe
+            - link "Report Lost Device" [ref=f3e232] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/report-lost-device
+            - link "Learn About Fraud & Scams" [ref=f3e233] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/about-fraud-and-scam
+            - link "Security Bugs" [ref=f3e234] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/responsible-disclosure-program
+            - link "Consumer Security Insight Report" [ref=f3e235] [cursor=pointer]:
+              - /url: https://assets.revolut.com/pdf/Revolut_Consumer_Security_and_FinCrime_Report_compressed.pdf
+          - generic [ref=f3e236]:
+            - heading "Crypto" [level=2] [ref=f3e237]
+            - link "Crypto" [ref=f3e238] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/crypto
+            - link "Revolut Ramp" [ref=f3e239] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/ramp
+            - link "Revolut X" [ref=f3e240] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/revolut-x
+        - generic [ref=f3e241]:
+          - generic [ref=f3e242]:
+            - heading "Accounts" [level=2] [ref=f3e243]
+            - link "Bank Account" [ref=f3e244] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/bank-account
+            - link "Joint Account" [ref=f3e245] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/joint-accounts
+            - link "Professional Account" [ref=f3e246] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/revolut-pro
+            - link "Basic Account" [ref=f3e247] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/basic-account
+            - link "Parents and guardians" [ref=f3e248] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/revolut-kids-and-teens-parent-and-guardians
+          - generic [ref=f3e249]:
+            - heading "Global Finances" [level=2] [ref=f3e250]
+            - link [ref=f3e251] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/travel
+            - link "International Transfers" [ref=f3e252] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/international-transfers
+            - link "Lounges" [ref=f3e253] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/lounges
+            - link "Insurance" [ref=f3e254] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/global-insurance
+        - generic [ref=f3e255]:
+          - generic [ref=f3e256]:
+            - heading "Plans" [level=2] [ref=f3e257]
+            - link "Standard" [ref=f3e258] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/a-radically-better-account
+            - link "Plus" [ref=f3e259] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/revolut-plus
+            - link "Premium" [ref=f3e260] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/revolut-premium
+            - link "Metal" [ref=f3e261] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/metal
+            - link "Ultra" [ref=f3e262] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/ultra-plan
+            - link "Compare Plans" [ref=f3e263] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/our-pricing-plans
+          - generic [ref=f3e264]:
+            - heading "Savings & Funds" [level=2] [ref=f3e265]
+            - link "Instant Access Savings" [ref=f3e266] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/instant-access-savings
+            - link "Flexible Cash Funds" [ref=f3e267] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/flexible-cash-funds
+        - generic [ref=f3e268]:
+          - generic [ref=f3e269]:
+            - heading "Help & Support" [level=2] [ref=f3e270]
+            - link "Contact Us" [ref=f3e271] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/contact-us
+            - link "Help Centre" [ref=f3e272] [cursor=pointer]:
+              - /url: https://help.revolut.com/en-IE/help
+            - link "System Status" [ref=f3e273] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/system-status
+            - link "Developers API" [ref=f3e274] [cursor=pointer]:
+              - /url: https://developer.revolut.com/
+            - link "Site Map" [ref=f3e275] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/sitemap
+          - generic [ref=f3e276]:
+            - heading "Company" [level=2] [ref=f3e277]
+            - link "Code of Conduct" [ref=f3e278] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/code-of-conduct
+            - link "Sustainability" [ref=f3e279] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/sustainability
+        - generic [ref=f3e280]:
+          - generic [ref=f3e281]:
+            - heading "Smart Spending" [level=2] [ref=f3e282]
+            - link "Cards" [ref=f3e283] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/cards
+            - link "Send & Receive" [ref=f3e284] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/send-and-receive
+            - link [ref=f3e285] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/revolut-pay
+            - link "Money Management" [ref=f3e286] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/best-budget-planner
+            - link "RevPoints" [ref=f3e287] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/rev-points
+            - link "Linked Accounts" [ref=f3e288] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/linked-accounts
+            - link "Shops" [ref=f3e289] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/shops
+          - generic [ref=f3e290]:
+            - heading "Mobile & Connectivity" [level=2] [ref=f3e291]
+            - link "Data Plans" [ref=f3e292] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/data-plans
+      - list [ref=f3e293]:
+        - listitem [ref=f3e294]:
+          - link [ref=f3e295] [cursor=pointer]:
+            - /url: https://revolut.com/en-IE/
+            - generic "Revolut" [ref=f3e296]:
+              - img "Revolut" [ref=f3e297]
+        - listitem [ref=f3e311]:
+          - link "Facebook" [ref=f3e312] [cursor=pointer]:
+            - /url: https://www.facebook.com/revolut
+        - listitem [ref=f3e314]:
+          - link "Instagram" [ref=f3e315] [cursor=pointer]:
+            - /url: https://www.instagram.com/revolut/
+        - listitem [ref=f3e317]:
+          - link "Twitter" [ref=f3e318] [cursor=pointer]:
+            - /url: https://x.com/Revolut
+        - listitem [ref=f3e320]:
+          - link "LinkedIn" [ref=f3e321] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/revolut
+        - listitem [ref=f3e323]:
+          - link "TikTok" [ref=f3e324] [cursor=pointer]:
+            - /url: https://www.tiktok.com/@revolut
+      - generic [ref=f3e326]:
+        - button "IE Ireland" [ref=f3e327] [cursor=pointer]:
+          - img "IE" [ref=f3e329]
+          - generic [ref=f3e330]: Ireland
+        - list [ref=f3e331]:
+          - listitem [ref=f3e332]:
+            - link "Website Terms" [ref=f3e333] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/legal/website-terms-and-conditions/
+          - listitem [ref=f3e334]:
+            - link "Legal Agreements" [ref=f3e335] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/legal/
+          - listitem [ref=f3e336]:
+            - link "Complaints" [ref=f3e337] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/legal/complaints-policy/
+          - listitem [ref=f3e338]:
+            - link "Customer Vulnerability" [ref=f3e339] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/customer-vulnerability
+          - listitem [ref=f3e340]:
+            - link "Privacy" [ref=f3e341] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/privacy-policy
+          - listitem [ref=f3e342]:
+            - link "Data Privacy Statement for Candidates" [ref=f3e343] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/legal/data-privacy-for-candidates/
+  - alert [ref=f3e344]
+  - dialog "Choose your cookies" [active] [ref=f3e346]:
+    - generic:
+      - heading "Choose your cookies" [level=2]
+      - paragraph:
+        - text: Cookies help us to enhance your experience, tailor ads to your interests, and improve our website.
+        - button "Learn more and manage"
+      - button "Accept all"
+      - button "Reject non-essential cookies"

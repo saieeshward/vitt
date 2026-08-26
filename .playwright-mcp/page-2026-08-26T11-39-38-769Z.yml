@@ -1,0 +1,494 @@
+- generic [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - banner [ref=f1e3]:
+      - generic [ref=f1e5]:
+        - link "Revolut" [ref=f1e6] [cursor=pointer]:
+          - /url: https://revolut.com/en-IE/
+        - generic [ref=f1e22]:
+          - generic [ref=f1e23]:
+            - link "Personal" [ref=f1e25] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/
+            - link "Business" [ref=f1e28] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/business
+            - button "Kids & Teens" [ref=f1e31] [cursor=pointer]
+            - link "Company" [ref=f1e34] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/discover-our-company
+          - generic [ref=f1e36]:
+            - link "Log in" [ref=f1e37] [cursor=pointer]:
+              - /url: https://app.revolut.com/start
+            - link "Sign up" [ref=f1e39] [cursor=pointer]:
+              - /url: https://get.revolut.com/E528/?af_channel=website_direct&af_dp=revolut%3A%2F%2Fapp&af_sub1=%7B%22conversion_page_url%22%3A%22https%3A%2F%2Fhelp.revolut.com%2Fen-IE%2Fhelp%2F%22%2C%22cookie_consent%22%3A%5B%5D%2C%22landing_page_url%22%3A%22https%3A%2F%2Fhelp.revolut.com%2Fen-IE%2Fhelp%2F%22%2C%22qr_code%22%3Afalse%2C%22website_client_id%22%3A%22139d9193-dec1-483b-9a48-8236da2aaff6%22%7D&deep_link_sub1=DEEPLINK&deep_link_value=revolut%3A%2F%2Fapp&pid=website
+    - main [ref=f1e42]:
+      - generic [ref=f1e43]:
+        - generic [ref=f1e44]:
+          - heading "Need a hand?" [level=1] [ref=f1e45]
+          - paragraph [ref=f1e46]: Just pop your question below to get an answer.
+          - searchbox [ref=f1e53]
+          - tablist [ref=f1e58]:
+            - tab "Personal" [selected] [ref=f1e59] [cursor=pointer]
+            - tab "Business" [ref=f1e61] [cursor=pointer]
+        - generic [ref=f1e63]:
+          - generic [ref=f1e65]:
+            - heading "Profile" [level=2] [ref=f1e66]
+            - link "What is Revolut ID?" [ref=f1e67] [cursor=pointer]:
+              - /url: /en-IE/help/profile-and-plan/revolut-id/
+            - link "Getting started with Revolut" [ref=f1e68] [cursor=pointer]:
+              - /url: /en-IE/help/profile-and-plan/getting-started-with-revolut/
+            - link "Submitting requested documents" [ref=f1e69] [cursor=pointer]:
+              - /url: /en-IE/help/profile-and-plan/profile-plan/verifying-identity/
+            - link "View all View all" [ref=f1e70] [cursor=pointer]:
+              - /url: /en-IE/help/profile-and-plan/
+              - generic [ref=f1e71]:
+                - generic [ref=f1e72]: View all
+                - img "View all" [ref=f1e73]
+          - generic [ref=f1e75]:
+            - heading "Plans and benefits" [level=2] [ref=f1e76]
+            - link "Revolut plans" [ref=f1e77] [cursor=pointer]:
+              - /url: /en-IE/help/profile-and-plan/my-plan-benefits/revolut-plans1/
+            - link "Upgrade my plan" [ref=f1e78] [cursor=pointer]:
+              - /url: /en-IE/help/profile-and-plan/profile-plan/upgrading-my-plan/how-do-i-upgrade-my-plan/
+            - link "Partnership benefits" [ref=f1e79] [cursor=pointer]:
+              - /url: /en-IE/help/profile-and-plan/my-plan-benefits/partnership-benefits/
+            - link "View all View all" [ref=f1e80] [cursor=pointer]:
+              - /url: /en-IE/help/plans-and-benefits/
+              - generic [ref=f1e81]:
+                - generic [ref=f1e82]: View all
+                - img "View all" [ref=f1e83]
+          - generic [ref=f1e85]:
+            - heading "Security and fraud" [level=2] [ref=f1e86]
+            - link "What should I do if I’ve been a victim of fraud?" [ref=f1e87] [cursor=pointer]:
+              - /url: /en-IE/help/security-logging-in/how-to-report-fraud/
+            - link "How do I protect myself from fraudsters" [ref=f1e88] [cursor=pointer]:
+              - /url: /en-IE/help/security-logging-in/how-do-i-protect-myself-from-fraudsters/
+            - link "Device Integrity requirements" [ref=f1e89] [cursor=pointer]:
+              - /url: /en-IE/help/security-logging-in/device-integrity-requirements/
+            - link "View all View all" [ref=f1e90] [cursor=pointer]:
+              - /url: /en-IE/help/security-logging-in/
+              - generic [ref=f1e91]:
+                - generic [ref=f1e92]: View all
+                - img "View all" [ref=f1e93]
+          - generic [ref=f1e95]:
+            - heading "Cards" [level=2] [ref=f1e96]
+            - link "Card order and delivery" [ref=f1e97] [cursor=pointer]:
+              - /url: /en-IE/help/cards/get-a-card/
+            - link "Lost or stolen cards" [ref=f1e98] [cursor=pointer]:
+              - /url: /en-IE/help/cards/lost-or-stolen-cards/
+            - link "Issues with my card" [ref=f1e99] [cursor=pointer]:
+              - /url: /en-IE/help/cards/card-issue/issues-with-a-card/
+            - link "View all View all" [ref=f1e100] [cursor=pointer]:
+              - /url: /en-IE/help/cards/
+              - generic [ref=f1e101]:
+                - generic [ref=f1e102]: View all
+                - img "View all" [ref=f1e103]
+          - generic [ref=f1e105]:
+            - heading "Card payments and cash withdrawals" [level=2] [ref=f1e106]
+            - link "Card payments" [ref=f1e107] [cursor=pointer]:
+              - /url: /en-IE/help/card-payments-withdrawals/card-payments/
+            - link "Cash withdrawals" [ref=f1e108] [cursor=pointer]:
+              - /url: /en-IE/help/card-payments-withdrawals/atm-withdrawals/
+            - link "Spending abroad or in different currencies" [ref=f1e109] [cursor=pointer]:
+              - /url: /en-IE/help/card-payments-withdrawals/spending-abroad-or-in-different-currencies/
+            - link "View all View all" [ref=f1e110] [cursor=pointer]:
+              - /url: /en-IE/help/card-payments-withdrawals/
+              - generic [ref=f1e111]:
+                - generic [ref=f1e112]: View all
+                - img "View all" [ref=f1e113]
+          - generic [ref=f1e115]:
+            - heading "Accounts" [level=2] [ref=f1e116]
+            - link "Currency accounts" [ref=f1e117] [cursor=pointer]:
+              - /url: /en-IE/help/transfers/inbound-transfers/how-to-receive-money-from-another-bank/what-account-details-should-i-use-to-transfer-money-to-my-revolut-account/
+            - link "Instant Access Savings" [ref=f1e118] [cursor=pointer]:
+              - /url: /en-IE/help/app-features/savings-vaults/
+            - link "Flexible Cash Funds" [ref=f1e119] [cursor=pointer]:
+              - /url: /en-IE/help/app-features/flexible-accounts/
+            - link "View all View all" [ref=f1e120] [cursor=pointer]:
+              - /url: /en-IE/help/accounts/
+              - generic [ref=f1e121]:
+                - generic [ref=f1e122]: View all
+                - img "View all" [ref=f1e123]
+          - generic [ref=f1e125]:
+            - heading "Transfers" [level=2] [ref=f1e126]
+            - link "Bank transfer basics" [ref=f1e127] [cursor=pointer]:
+              - /url: /en-IE/help/transfers/bank-transfers-getting-started/
+            - link "Bank transfer not received" [ref=f1e128] [cursor=pointer]:
+              - /url: /en-IE/help/transfers/bank-transfer-not-received/
+            - link "Other issues with bank transfers" [ref=f1e129] [cursor=pointer]:
+              - /url: /en-IE/help/transfers/bank-transfers-issues/
+            - link "View all View all" [ref=f1e130] [cursor=pointer]:
+              - /url: /en-IE/help/transfers/
+              - generic [ref=f1e131]:
+                - generic [ref=f1e132]: View all
+                - img "View all" [ref=f1e133]
+          - generic [ref=f1e135]:
+            - heading "Crypto" [level=2] [ref=f1e136]
+            - link "Crypto staking" [ref=f1e137] [cursor=pointer]:
+              - /url: /en-IE/help/wealth/cryptocurrencies/crypto-staking/
+            - link "Addresses supported for withdrawing and reverting crypto deposits" [ref=f1e138] [cursor=pointer]:
+              - /url: /en-IE/help/wealth/cryptocurrencies/transferring-cryptocurrencies/depositing-cryptocurrencies/issues-with-crypto-deposits/which-addresses-can-i-revert-my-deposit-to/
+            - link "Why do I need to verify ownership of a sender or receiver?" [ref=f1e139] [cursor=pointer]:
+              - /url: /en-IE/help/crypto/why-do-i-need-to-provide-detailsverify/
+            - link "View all View all" [ref=f1e140] [cursor=pointer]:
+              - /url: /en-IE/help/crypto/
+              - generic [ref=f1e141]:
+                - generic [ref=f1e142]: View all
+                - img "View all" [ref=f1e143]
+          - generic [ref=f1e145]:
+            - heading "Adding money" [level=2] [ref=f1e146]
+            - link "Add money with a bank transfer" [ref=f1e147] [cursor=pointer]:
+              - /url: /en-IE/help/adding-money/add-money-with-a-bank-transfer/
+            - link "Add money with a card" [ref=f1e148] [cursor=pointer]:
+              - /url: /en-IE/help/adding-money/with-card/
+            - link "Add money with Apple Pay or Google Pay" [ref=f1e149] [cursor=pointer]:
+              - /url: /en-IE/help/adding-money/with-card/add-money-with-apple-pay-or-google-pay/
+            - link "View all View all" [ref=f1e150] [cursor=pointer]:
+              - /url: /en-IE/help/adding-money/
+              - generic [ref=f1e151]:
+                - generic [ref=f1e152]: View all
+                - img "View all" [ref=f1e153]
+          - generic [ref=f1e155]:
+            - heading "Invest" [level=2] [ref=f1e156]
+            - link "Managing your investment account" [ref=f1e157] [cursor=pointer]:
+              - /url: /en-IE/help/wealth/stocks/getting-started-with-trading/managing-your-trading-account/
+            - link "Available trading products and services" [ref=f1e158] [cursor=pointer]:
+              - /url: /en-IE/help/wealth/available-securities-and-instruments/
+            - link "Trading orders execution, fees and limits" [ref=f1e159] [cursor=pointer]:
+              - /url: /en-IE/help/wealth/order-execution-fees-and-limits/
+            - link "View all View all" [ref=f1e160] [cursor=pointer]:
+              - /url: /en-IE/help/wealth/
+              - generic [ref=f1e161]:
+                - generic [ref=f1e162]: View all
+                - img "View all" [ref=f1e163]
+          - generic [ref=f1e165]:
+            - heading "Credit and loans" [level=2] [ref=f1e166]
+            - link "Loans" [ref=f1e167] [cursor=pointer]:
+              - /url: /en-IE/help/credit-products/loans/
+            - link "Credit Cards" [ref=f1e168] [cursor=pointer]:
+              - /url: /en-IE/help/credit-products/credit-cards/
+            - link "Credit card instalment plans" [ref=f1e169] [cursor=pointer]:
+              - /url: /en-IE/help/credit-products/credit-card-instalment-plans/
+            - link "View all View all" [ref=f1e170] [cursor=pointer]:
+              - /url: /en-IE/help/credit-products/
+              - generic [ref=f1e171]:
+                - generic [ref=f1e172]: View all
+                - img "View all" [ref=f1e173]
+          - generic [ref=f1e175]:
+            - heading "RevPoints" [level=2] [ref=f1e176]
+            - link "What is RevPoints" [ref=f1e177] [cursor=pointer]:
+              - /url: /en-IE/help/revpoints/what-is-revpoints/
+            - link "Airline Miles" [ref=f1e178] [cursor=pointer]:
+              - /url: /en-IE/help/revpoints/airline-miles/
+            - link "eSIM" [ref=f1e179] [cursor=pointer]:
+              - /url: /en-IE/help/revpoints/esim/
+            - link "View all View all" [ref=f1e180] [cursor=pointer]:
+              - /url: /en-IE/help/revpoints/
+              - generic [ref=f1e181]:
+                - generic [ref=f1e182]: View all
+                - img "View all" [ref=f1e183]
+          - generic [ref=f1e185]:
+            - heading "Insurance" [level=2] [ref=f1e186]
+            - link "Travel insurance" [ref=f1e187] [cursor=pointer]:
+              - /url: /en-IE/help/app-features/travel-insurance/
+            - link "Everyday protection insurance" [ref=f1e188] [cursor=pointer]:
+              - /url: /en-IE/help/insurance-products/everyday-protection-insurance/
+            - link "Ultra trip and event cancellation protection" [ref=f1e189] [cursor=pointer]:
+              - /url: /en-IE/help/app-features/insurance/trip-event-cancellation-protection/
+            - link "View all View all" [ref=f1e190] [cursor=pointer]:
+              - /url: /en-IE/help/insurance-products/
+              - generic [ref=f1e191]:
+                - generic [ref=f1e192]: View all
+                - img "View all" [ref=f1e193]
+          - generic [ref=f1e195]:
+            - heading "Referrals" [level=2] [ref=f1e196]
+            - link "Why haven't I received my Referrals reward?" [ref=f1e197] [cursor=pointer]:
+              - /url: /en-IE/help/referrals/i-didnt-get-a-referral-reward-why/
+            - link "I was invited and I need help" [ref=f1e198] [cursor=pointer]:
+              - /url: /en-IE/help/referrals/invitee-contacts-us/
+            - link "More help with Referrals" [ref=f1e199] [cursor=pointer]:
+              - /url: /en-IE/help/referrals/more-help-with-referrals/
+            - link "View all View all" [ref=f1e200] [cursor=pointer]:
+              - /url: /en-IE/help/referrals/
+              - generic [ref=f1e201]:
+                - generic [ref=f1e202]: View all
+                - img "View all" [ref=f1e203]
+          - generic [ref=f1e205]:
+            - heading "Other topics" [level=2] [ref=f1e206]
+            - link "Support if you're experiencing financial difficulties" [ref=f1e207] [cursor=pointer]:
+              - /url: /en-IE/help/more/life-challenges-and-well-being/im-experiencing-financial-difficulties-where-can-i-get-money-and-debt-advice/
+            - link "I lost access to my passkey" [ref=f1e208] [cursor=pointer]:
+              - /url: /en-IE/help/profile-and-plan/log-in-issues/i-lost-access-to-my-passkey/
+            - link "I lost access to a device my passkey is stored on" [ref=f1e209] [cursor=pointer]:
+              - /url: /en-IE/help/more/i-lost-access-to-a-device-my-passkey-is-stored-on/
+            - link "View all View all" [ref=f1e210] [cursor=pointer]:
+              - /url: /en-IE/help/more/
+              - generic [ref=f1e211]:
+                - generic [ref=f1e212]: View all
+                - img "View all" [ref=f1e213]
+          - generic [ref=f1e215]:
+            - heading "French Bank" [level=2] [ref=f1e216]
+            - link "Why did Revolut get a second EU banking licence in France?" [ref=f1e217] [cursor=pointer]:
+              - /url: /en-IE/help/french-bank/why-is-revolut-getting-a-second-eu-licence-in-france-retail/
+            - link "French bank and deposit protection" [ref=f1e218] [cursor=pointer]:
+              - /url: /en-IE/help/french-bank/french-bank-and-deposit-protection-retail/
+    - contentinfo [ref=f1e219]:
+      - heading "Choose your plan" [level=2] [ref=f1e220]
+      - list [ref=f1e222]:
+        - listitem [ref=f1e223]:
+          - link [ref=f1e224] [cursor=pointer]:
+            - /url: https://revolut.com/en-IE/a-radically-better-account
+            - generic [ref=f1e225]:
+              - heading "Standard" [level=2] [ref=f1e227]
+              - heading "Free" [level=3] [ref=f1e228]
+              - paragraph [ref=f1e229]: For the financial basics — everything you need for better money management in one place. Sending money abroad or sticking to a budget has never been easier.
+        - listitem [ref=f1e233]:
+          - link [ref=f1e234] [cursor=pointer]:
+            - /url: https://revolut.com/en-IE/revolut-plus
+            - generic [ref=f1e235]:
+              - heading "Plus" [level=2] [ref=f1e237]
+              - heading "€3.99/month" [level=3] [ref=f1e238]
+              - paragraph [ref=f1e239]: For the smart spender — access additional benefits like better limits for spending abroad and insurance for your purchases, on our affordable paid plan.
+        - listitem [ref=f1e243]:
+          - link [ref=f1e244] [cursor=pointer]:
+            - /url: https://revolut.com/en-IE/revolut-premium
+            - generic [ref=f1e245]:
+              - heading "Premium" [level=2] [ref=f1e247]
+              - heading "€8.99/month" [level=3] [ref=f1e248]
+              - paragraph [ref=f1e249]: For elevating every day — access exclusive subscriptions, better interest rates, and exchange unlimited amounts of money.
+        - listitem [ref=f1e253]:
+          - link [ref=f1e254] [cursor=pointer]:
+            - /url: https://revolut.com/en-IE/metal
+            - generic [ref=f1e255]:
+              - heading "Metal" [level=2] [ref=f1e257]
+              - heading "€15.99/month" [level=3] [ref=f1e258]
+              - paragraph [ref=f1e259]: For the global travellers and traders — relax with travel insurance, enjoy enhanced limits, and subscriptions worth €2,400 annually.
+        - listitem [ref=f1e263]:
+          - link [ref=f1e264] [cursor=pointer]:
+            - /url: https://revolut.com/en-IE/ultra-plan
+            - generic [ref=f1e265]:
+              - heading "Ultra" [level=2] [ref=f1e267]
+              - heading "€55/month (introductory offer)" [level=3] [ref=f1e268]
+              - paragraph [ref=f1e269]: For those seeking the best of Revolut — get exceptional benefits like unlimited airport lounge access, monthly global data, partner subscriptions, and cancellation cover.
+      - generic [ref=f1e274]:
+        - paragraph [ref=f1e275]: © 2026 Revolut Bank UAB
+        - paragraph [ref=f1e276]:
+          - text: If you would like to find out more about which Revolut entity you receive services from, please check our corresponding
+          - link "FAQ page" [ref=f1e277] [cursor=pointer]:
+            - /url: https://help.revolut.com/en-LT/help/more/legal-topics/which-revolut-companies-provide-me-with-services/?geo-redirect=true
+          - text: . If you have any other questions, please reach out to us via the in-app chat in the Revolut app.
+        - paragraph [ref=f1e278]: "Revolut Bank UAB is authorised and regulated by the Bank of Lithuania in the Republic of Lithuania and by the European Central Bank and is regulated by the Central Bank of Ireland for consumer protection rules. Registered address: Konstitucijos ave. 21B, Vilnius, 08130, the Republic of Lithuania, number of registration 304580906. Revolut Bank UAB is a private limited liability company. Revolut Bank UAB has established a branch in Ireland, number of registration 909790 with its address at 2 Dublin Landings, North Dock, Dublin 1, Ireland."
+        - paragraph [ref=f1e279]: "Revolut Insurance Europe UAB is authorised by the Bank of Lithuania in the Republic of Lithuania and is regulated by the Central Bank of Ireland for consumer protection rules. Registered address: Konstitucijos ave. 21B, Vilnius, 08130, the Republic of Lithuania, number of registration 305910164."
+        - paragraph [ref=f1e280]: "Investment services are provided by Revolut Securities Europe UAB, represented in Switzerland by Revolut (Switzerland) AG, which is an investment firm authorised by the Bank of Lithuania. Registered address: Konstitucijos ave. 21B, Vilnius, 08130, the Republic of Lithuania, number of registration 305799582."
+        - paragraph [ref=f1e281]: "Cryptocurrency products are provided either by:"
+        - paragraph [ref=f1e282]: (i) Revolut Digital Assets Europe Ltd (RDAEL), a private company registered in the Republic of Cyprus (no. HE430310) with registered address Omonoias, 13, Soho Office (Embassy), 3052, Limassol, Cyprus. RDAEL is licensed by the Cyprus Securities and Exchange Commission (License No. 001/2025) as a Crypto Asset Service Provider (CASP) under EU Regulation 2023/1114 on markets in crypto-assets (MiCA); or
+        - paragraph [ref=f1e283]: "(ii) Revolut Ltd (No. 08804411), a company that is authorised by the Financial Conduct Authority under the Electronic Money Regulations 2011 (Firm Reference 900562), and is registered with the Financial Conduct Authority to offer cryptocurrency services under the Money Laundering, Terrorist Financing and Transfer of Funds (Information on the Payer) Regulations 2017. Registered address: 30 South Colonnade, London E14 5HX, United Kingdom."
+        - paragraph [ref=f1e284]: Depending on whether clients have accepted the RDAEL terms and conditions either during the creation of their cryptocurrency account or the migration of EEA clients from Revolut Ltd to RDAEL.
+      - paragraph [ref=f1e287]:
+        - generic [ref=f1e288]:
+          - link "International Money Transfers" [ref=f1e289] [cursor=pointer]:
+            - /url: https://www.revolut.com/en-IE/money-transfer/
+          - text: ":"
+        - link "Send money to India" [ref=f1e290] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-india/
+        - text: "|"
+        - link "Send money to Nigeria" [ref=f1e291] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-nigeria/
+        - text: "|"
+        - link "Send money to the UK" [ref=f1e292] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-the-uk/
+        - text: "|"
+        - link "Send money to Australia" [ref=f1e293] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-australia/
+        - text: "|"
+        - link "Send money to Spain" [ref=f1e294] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-spain/
+        - text: "|"
+        - link "Send money to France" [ref=f1e295] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-france/
+        - text: "|"
+        - link "Send money to Ireland from the USA" [ref=f1e296] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-ireland-from-the-usa/
+        - text: "|"
+        - link "Send money to Ireland from abroad" [ref=f1e297] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/money-transfer/send-money-to-ireland/
+        - text: "|"
+        - link "Multi-Currency Account" [ref=f1e298] [cursor=pointer]:
+          - /url: https://www.revolut.com/en-IE/multi-currency-account/
+      - generic [ref=f1e299]:
+        - generic [ref=f1e300]:
+          - generic [ref=f1e301]:
+            - heading "Investments" [level=2] [ref=f1e302]
+            - link "Stocks" [ref=f1e303] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/stock-trading
+            - link "Robo-Advisor" [ref=f1e304] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/robo-advisor
+            - link "ETFs" [ref=f1e305] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/etfs
+            - link "Bonds" [ref=f1e306] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/bonds
+            - link "Private Markets" [ref=f1e307] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/investments/private-markets
+          - generic [ref=f1e308]:
+            - heading "Credit & Loans" [level=2] [ref=f1e309]
+            - link "Credit Cards" [ref=f1e310] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/credit-cards
+            - link "Pay Later" [ref=f1e311] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/pay-later
+            - link "Personal Loans" [ref=f1e312] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/personal-loans
+        - generic [ref=f1e313]:
+          - generic [ref=f1e314]:
+            - heading "Security & Protection" [level=2] [ref=f1e315]
+            - link "How We Protect Your Money" [ref=f1e316] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/how-we-keep-your-money-safe
+            - link "Report Lost Device" [ref=f1e317] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/report-lost-device
+            - link "Learn About Fraud & Scams" [ref=f1e318] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/about-fraud-and-scam
+            - link "Security Bugs" [ref=f1e319] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/responsible-disclosure-program
+            - link "Consumer Security Insight Report" [ref=f1e320] [cursor=pointer]:
+              - /url: https://assets.revolut.com/pdf/Revolut_Consumer_Security_and_FinCrime_Report_compressed.pdf
+          - generic [ref=f1e321]:
+            - heading "Crypto" [level=2] [ref=f1e322]
+            - link "Crypto" [ref=f1e323] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/crypto
+            - link "Revolut Ramp" [ref=f1e324] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/ramp
+            - link "Revolut X" [ref=f1e325] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/revolut-x
+        - generic [ref=f1e326]:
+          - generic [ref=f1e327]:
+            - heading "Accounts" [level=2] [ref=f1e328]
+            - link "Bank Account" [ref=f1e329] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/bank-account
+            - link "Joint Account" [ref=f1e330] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/joint-accounts
+            - link "Professional Account" [ref=f1e331] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/revolut-pro
+            - link "Basic Account" [ref=f1e332] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/basic-account
+            - link "Parents and guardians" [ref=f1e333] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/revolut-kids-and-teens-parent-and-guardians
+          - generic [ref=f1e334]:
+            - heading "Global Finances" [level=2] [ref=f1e335]
+            - link [ref=f1e336] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/travel
+            - link "International Transfers" [ref=f1e337] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/international-transfers
+            - link "Lounges" [ref=f1e338] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/lounges
+            - link "Insurance" [ref=f1e339] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/global-insurance
+        - generic [ref=f1e340]:
+          - generic [ref=f1e341]:
+            - heading "Plans" [level=2] [ref=f1e342]
+            - link "Standard" [ref=f1e343] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/a-radically-better-account
+            - link "Plus" [ref=f1e344] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/revolut-plus
+            - link "Premium" [ref=f1e345] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/revolut-premium
+            - link "Metal" [ref=f1e346] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/metal
+            - link "Ultra" [ref=f1e347] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/ultra-plan
+            - link "Compare Plans" [ref=f1e348] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/our-pricing-plans
+          - generic [ref=f1e349]:
+            - heading "Savings & Funds" [level=2] [ref=f1e350]
+            - link "Instant Access Savings" [ref=f1e351] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/instant-access-savings
+            - link "Flexible Cash Funds" [ref=f1e352] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/flexible-cash-funds
+        - generic [ref=f1e353]:
+          - generic [ref=f1e354]:
+            - heading "Help & Support" [level=2] [ref=f1e355]
+            - link "Contact Us" [ref=f1e356] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/contact-us
+            - link "Help Centre" [ref=f1e357] [cursor=pointer]:
+              - /url: https://help.revolut.com/en-IE/help
+            - link "System Status" [ref=f1e358] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/system-status
+            - link "Developers API" [ref=f1e359] [cursor=pointer]:
+              - /url: https://developer.revolut.com/
+            - link "Site Map" [ref=f1e360] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/sitemap
+          - generic [ref=f1e361]:
+            - heading "Company" [level=2] [ref=f1e362]
+            - link "Code of Conduct" [ref=f1e363] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/code-of-conduct
+            - link "Sustainability" [ref=f1e364] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/sustainability
+        - generic [ref=f1e365]:
+          - generic [ref=f1e366]:
+            - heading "Smart Spending" [level=2] [ref=f1e367]
+            - link "Cards" [ref=f1e368] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/cards
+            - link "Send & Receive" [ref=f1e369] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/send-and-receive
+            - link [ref=f1e370] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/revolut-pay
+            - link "Money Management" [ref=f1e371] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/best-budget-planner
+            - link "RevPoints" [ref=f1e372] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/rev-points
+            - link "Linked Accounts" [ref=f1e373] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/linked-accounts
+            - link "Shops" [ref=f1e374] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/shops
+          - generic [ref=f1e375]:
+            - heading "Mobile & Connectivity" [level=2] [ref=f1e376]
+            - link "Data Plans" [ref=f1e377] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/data-plans
+      - list [ref=f1e378]:
+        - listitem [ref=f1e379]:
+          - link [ref=f1e380] [cursor=pointer]:
+            - /url: https://revolut.com/en-IE/
+            - generic "Revolut" [ref=f1e381]:
+              - img "Revolut" [ref=f1e382]
+        - listitem [ref=f1e396]:
+          - link "Facebook" [ref=f1e397] [cursor=pointer]:
+            - /url: https://www.facebook.com/revolut
+        - listitem [ref=f1e399]:
+          - link "Instagram" [ref=f1e400] [cursor=pointer]:
+            - /url: https://www.instagram.com/revolut/
+        - listitem [ref=f1e402]:
+          - link "Twitter" [ref=f1e403] [cursor=pointer]:
+            - /url: https://x.com/Revolut
+        - listitem [ref=f1e405]:
+          - link "LinkedIn" [ref=f1e406] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/revolut
+        - listitem [ref=f1e408]:
+          - link "TikTok" [ref=f1e409] [cursor=pointer]:
+            - /url: https://www.tiktok.com/@revolut
+      - generic [ref=f1e411]:
+        - button "IE Ireland" [ref=f1e412] [cursor=pointer]:
+          - img "IE" [ref=f1e414]
+          - generic [ref=f1e415]: Ireland
+        - list [ref=f1e416]:
+          - listitem [ref=f1e417]:
+            - link "Website Terms" [ref=f1e418] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/legal/website-terms-and-conditions/
+          - listitem [ref=f1e419]:
+            - link "Legal Agreements" [ref=f1e420] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/legal/
+          - listitem [ref=f1e421]:
+            - link "Complaints" [ref=f1e422] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/legal/complaints-policy/
+          - listitem [ref=f1e423]:
+            - link "Customer Vulnerability" [ref=f1e424] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/customer-vulnerability
+          - listitem [ref=f1e425]:
+            - link "Privacy" [ref=f1e426] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/privacy-policy
+          - listitem [ref=f1e427]:
+            - link "Data Privacy Statement for Candidates" [ref=f1e428] [cursor=pointer]:
+              - /url: https://revolut.com/en-IE/legal/data-privacy-for-candidates/
+  - alert [ref=f1e429]
+  - dialog "Choose your cookies" [active] [ref=f1e431]:
+    - generic [ref=f1e432]:
+      - heading "Choose your cookies" [level=2] [ref=f1e433]
+      - paragraph [ref=f1e434]:
+        - text: Cookies help us to enhance your experience, tailor ads to your interests, and improve our website.
+        - button "Learn more and manage" [ref=f1e435] [cursor=pointer]
+      - button "Accept all" [ref=f1e436] [cursor=pointer]
+      - button "Reject non-essential cookies" [ref=f1e438] [cursor=pointer]

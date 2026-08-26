@@ -81,10 +81,10 @@ private fun LedgerCard(ledger: Ledger) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(Vitt.radius.card))
             .background(colors.surface)
-            .padding(Vitt.space.loose),
-        verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+            .padding(horizontal = Vitt.space.loose, vertical = Vitt.space.section),
+        verticalArrangement = Arrangement.spacedBy(Vitt.space.hair),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             // Chroma lives in the dot, never in a filled card.
@@ -128,12 +128,15 @@ private fun LedgerCard(ledger: Ledger) {
         // Only what the hero figure does not already say. Repeating the same
         // number twice on one card wastes the "one loud number" rule it is
         // there to serve.
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(Vitt.space.loose),
-        ) {
-            if (ledger.received.minor != 0L) Figure("In", ledger.received)
-            if (remaining != null) Figure("Out", ledger.spent)
+        val hasSecondary = ledger.received.minor != 0L || remaining != null
+        if (hasSecondary) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = Vitt.space.snug),
+                horizontalArrangement = Arrangement.spacedBy(Vitt.space.section),
+            ) {
+                if (ledger.received.minor != 0L) Figure("In", ledger.received)
+                if (remaining != null) Figure("Out", ledger.spent)
+            }
         }
     }
 }

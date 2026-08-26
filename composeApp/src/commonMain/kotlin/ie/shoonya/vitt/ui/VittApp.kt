@@ -118,11 +118,13 @@ fun VittApp(
 @Composable
 private fun TabBar(current: Tab, onSelect: (Tab) -> Unit, onAdd: () -> Unit) {
     val colors = Vitt.colors
+    // No fill behind the tab bar. The design's light tab row (`.ltab`) sits
+    // directly on the ground with generous bottom padding; a filled bar reads as
+    // a heavier, more institutional app than this is meant to be.
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(colors.surface)
-            .padding(top = Vitt.space.snug, bottom = Vitt.space.section),
+            .padding(top = 13.dp, bottom = 32.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         listOf(Tab.Ledgers, Tab.Activity).forEach {

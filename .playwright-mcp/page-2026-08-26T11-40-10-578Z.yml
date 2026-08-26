@@ -1,0 +1,11 @@
+- generic [ref=f4e3]:
+  - banner [ref=f4e4]:
+    - link "Revolut" [ref=f4e6] [cursor=pointer]:
+      - /url: https://www.revolut.com/
+  - main [ref=f4e10]:
+    - generic [ref=f4e11]:
+      - heading "We can’t find that one" [level=1] [ref=f4e12]
+      - generic [ref=f4e13]: We update our website regularly, so this page may have been moved, removed, or the URL wasn’t quite right.
+      - generic [ref=f4e14]: Explore the latest from Revolut this way...
+      - link "Visit the homepage" [ref=f4e15] [cursor=pointer]:
+        - /url: /

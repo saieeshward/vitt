@@ -47,18 +47,21 @@ data class VittType(
         fun default(): VittType {
             val sans = FontFamily.Default
             return VittType(
+                // Weight and tracking come from the design's own `.lnum` rule:
+                // semibold at -0.035em. Medium with looser tracking read as
+                // limp next to the mockups.
                 moneyHero = TextStyle(
-                    fontFamily = sans, fontSize = 34.sp, fontWeight = FontWeight.Medium,
-                    letterSpacing = (-0.7).sp, textAlign = TextAlign.Center,
+                    fontFamily = sans, fontSize = 34.sp, fontWeight = FontWeight.SemiBold,
+                    letterSpacing = (-1.2).sp, textAlign = TextAlign.Start,
                     fontFeatureSettings = TABULAR,
                 ),
                 money = TextStyle(
-                    fontFamily = sans, fontSize = 15.sp, fontWeight = FontWeight.Medium,
-                    letterSpacing = (-0.15).sp, fontFeatureSettings = TABULAR,
+                    fontFamily = sans, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                    letterSpacing = (-0.5).sp, fontFeatureSettings = TABULAR,
                 ),
                 title = TextStyle(fontFamily = sans, fontSize = 17.sp, fontWeight = FontWeight.Medium),
                 body = TextStyle(fontFamily = sans, fontSize = 14.sp, fontWeight = FontWeight.Normal),
-                label = TextStyle(fontFamily = sans, fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                label = TextStyle(fontFamily = sans, fontSize = 12.sp, fontWeight = FontWeight.Normal),
                 caption = TextStyle(
                     fontFamily = sans, fontSize = 10.sp, fontWeight = FontWeight.Medium,
                     letterSpacing = 1.sp,
@@ -69,6 +72,21 @@ data class VittType(
 }
 
 /** Compact spacing scale — dense lists are a stated goal, not an accident. */
+/**
+ * Corner radii, from the design's own classes.
+ *
+ * `.soft` cards are 22px and `.bigkey` keypad keys are 16px — noticeably rounder
+ * than the 14/8 an earlier pass guessed at, which is most of why the screens
+ * read as generic.
+ */
+@Immutable
+data class VittRadius(
+    val card: Dp = 22.dp,
+    val key: Dp = 16.dp,
+    val tile: Dp = 18.dp,
+    val pill: Dp = 10.dp,
+)
+
 @Immutable
 data class VittSpacing(
     val hair: Dp = 2.dp,
@@ -82,6 +100,7 @@ data class VittSpacing(
 val LocalVittColors = staticCompositionLocalOf { VittColors.light() }
 val LocalVittType = staticCompositionLocalOf { VittType.default() }
 val LocalVittSpacing = staticCompositionLocalOf { VittSpacing() }
+val LocalVittRadius = staticCompositionLocalOf { VittRadius() }
 
 object Vitt {
     val colors: VittColors
@@ -90,6 +109,8 @@ object Vitt {
         @Composable @ReadOnlyComposable get() = LocalVittType.current
     val space: VittSpacing
         @Composable @ReadOnlyComposable get() = LocalVittSpacing.current
+    val radius: VittRadius
+        @Composable @ReadOnlyComposable get() = LocalVittRadius.current
 }
 
 /**
@@ -140,6 +161,7 @@ fun VittTheme(
         LocalVittColors provides colors,
         LocalVittType provides VittType.default(),
         LocalVittSpacing provides VittSpacing(),
+        LocalVittRadius provides VittRadius(),
     ) {
         MaterialTheme(colorScheme = material, content = content)
     }
