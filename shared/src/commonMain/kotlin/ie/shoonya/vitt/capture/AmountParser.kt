@@ -23,7 +23,17 @@ data class ParsedTransaction(
     val warnings: List<String>,
     val raw: String,
 ) {
-    val isUsable: Boolean get() = amount != null
+    /**
+     * Whether this can be committed without the user resolving something.
+     *
+     * A parse whose direction is unknown is deliberately NOT usable: the sign is
+     * the field that inverts money, and guessing it turns a EUR 40 refund into a
+     * EUR 40 expense — an EUR 80 error the user will not notice for weeks.
+     */
+    val isUsable: Boolean get() = amount != null && direction != Direction.UNKNOWN
+
+    /** The magnitude, available even when the direction could not be determined. */
+    val magnitude: Money? get() = amount?.abs()
 }
 
 /**
@@ -67,10 +77,10 @@ object AmountParser {
             when (direction) {
                 Direction.OUTFLOW -> Money(-m.abs, currency)
                 Direction.INFLOW -> Money(m.abs, currency)
-                // Unsigned is not a safe default. Most bank messages are debits,
-                // but a refund parsed as a debit is a double error, so we keep the
-                // magnitude and force the user to pick the sign.
-                Direction.UNKNOWN -> Money(-m.abs, currency)
+                // Magnitude only. The sign is withheld rather than guessed:
+                // isUsable is false for UNKNOWN, so this cannot be committed
+                // without the user choosing a direction.
+                Direction.UNKNOWN -> Money(m.abs, currency)
             }
         }
 
@@ -195,7 +205,12 @@ object AmountParser {
      * Numbers with optional grouping. Accepts Western grouping (1,234,567) and
      * Indian grouping (12,34,567) alike; which one it was gets decided later.
      */
-    private val NUMBER = Regex("\\d{1,3}(?:[.,]\\d{2,3})*(?:[.,]\\d{1,2})?|\\d+(?:[.,]\\d{1,2})?")
+    // The grouped alternative requires at least one group (`+`, not `*`).
+    // With `*` it matched the bare first three digits of any ungrouped number
+    // and won, because Kotlin regex alternation is leftmost-first rather than
+    // longest-match: "1500" matched as "150", silently reporting EUR 1500 as
+    // EUR 150.00 at HIGH confidence.
+    private val NUMBER = Regex("\\d{1,3}(?:[.,]\\d{2,3})+(?:[.,]\\d{1,2})?|\\d+(?:[.,]\\d{1,2})?")
 
     private fun findAmount(text: String, currency: Currency, warnings: MutableList<String>): AmountMatch? {
         val candidates = NUMBER.findAll(text).map { it.value }.toList()
