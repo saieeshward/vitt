@@ -30,6 +30,8 @@ data class VittType(
     val moneyHero: TextStyle,
     /** Amounts in lists. Tabular, so columns align down the page. */
     val money: TextStyle,
+    /** Screen-leading headings: 30sp bold, tight. The design's own scale. */
+    val display: TextStyle,
     val title: TextStyle,
     val body: TextStyle,
     val label: TextStyle,
@@ -59,8 +61,15 @@ data class VittType(
                     fontFamily = sans, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
                     letterSpacing = (-0.5).sp, fontFeatureSettings = TABULAR,
                 ),
-                title = TextStyle(fontFamily = sans, fontSize = 17.sp, fontWeight = FontWeight.Medium),
-                body = TextStyle(fontFamily = sans, fontSize = 14.sp, fontWeight = FontWeight.Normal),
+                display = TextStyle(
+                    fontFamily = sans, fontSize = 30.sp, fontWeight = FontWeight.Bold,
+                    letterSpacing = (-1.05).sp, lineHeight = 34.sp,
+                ),
+                title = TextStyle(fontFamily = sans, fontSize = 17.sp, fontWeight = FontWeight.SemiBold),
+                body = TextStyle(
+                    fontFamily = sans, fontSize = 15.sp, fontWeight = FontWeight.Normal,
+                    lineHeight = 22.sp,
+                ),
                 label = TextStyle(fontFamily = sans, fontSize = 12.sp, fontWeight = FontWeight.Normal),
                 caption = TextStyle(
                     fontFamily = sans, fontSize = 10.sp, fontWeight = FontWeight.Medium,
@@ -81,7 +90,7 @@ data class VittType(
  */
 @Immutable
 data class VittRadius(
-    val card: Dp = 22.dp,
+    val card: Dp = 20.dp,
     val key: Dp = 16.dp,
     val tile: Dp = 18.dp,
     val pill: Dp = 10.dp,

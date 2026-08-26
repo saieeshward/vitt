@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import ie.shoonya.vitt.model.LedgerRepository
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.ui.screens.ActivityScreen
@@ -35,11 +36,11 @@ import ie.shoonya.vitt.ui.screens.HabitScreen
 import ie.shoonya.vitt.ui.screens.LedgersScreen
 import ie.shoonya.vitt.ui.theme.Vitt
 
-private enum class Tab(val label: String) {
-    Ledgers("Ledgers"),
-    Activity("Activity"),
-    People("Ledger"),
-    Habit("Habit"),
+private enum class Tab(val label: String, val icon: VittIcon) {
+    Ledgers("Ledgers", VittIcon.Wallet),
+    Activity("Activity", VittIcon.List),
+    People("Ledger", VittIcon.People),
+    Habit("Habit", VittIcon.Spark),
 }
 
 /**
@@ -159,15 +160,18 @@ private fun TabBar(current: Tab, onSelect: (Tab) -> Unit, onAdd: () -> Unit) {
 @Composable
 private fun TabItem(tab: Tab, current: Tab, onSelect: (Tab) -> Unit, modifier: Modifier) {
     val selected = tab == current
-    Box(
-        modifier = modifier.clickable { onSelect(tab) }.padding(vertical = Vitt.space.tight),
-        contentAlignment = Alignment.Center,
+    val tint = if (selected) Vitt.colors.accent else Vitt.colors.inkMuted
+    Column(
+        modifier = modifier.clickable { onSelect(tab) }.padding(vertical = Vitt.space.hair),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
+        VittGlyph(tab.icon, tint, Modifier.size(23.dp))
         Text(
             tab.label,
-            style = Vitt.type.caption,
+            style = Vitt.type.caption.copy(letterSpacing = 0.2.sp),
             textAlign = TextAlign.Center,
-            color = if (selected) Vitt.colors.accent else Vitt.colors.inkMuted,
+            color = tint,
         )
     }
 }

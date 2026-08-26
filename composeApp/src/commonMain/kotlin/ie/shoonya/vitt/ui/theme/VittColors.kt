@@ -14,6 +14,16 @@ import androidx.compose.ui.graphics.Color
 data class VittColors(
     val ground: Color,
     val surface: Color,
+    /**
+     * Cards, which are white on the cream ground rather than a tint of it.
+     *
+     * This is most of what separates the design's look from a flat one: a card
+     * one shade off the background reads as muddy, whereas white plus a soft
+     * shadow reads as a card sitting on paper.
+     */
+    val card: Color,
+    /** The card shadow colour, at the design's own low opacity. */
+    val shadow: Color,
     val ink: Color,
     val inkMuted: Color,
     /** Absent data and placeholders — never information the user must read. */
@@ -57,6 +67,8 @@ data class VittColors(
         fun light() = VittColors(
             ground = Palette.Cream,
             surface = Palette.CreamSurface,
+            card = Color(0xFFFFFFFF),
+            shadow = Color(0x0F241F33),
             ink = Palette.Ink,
             inkMuted = Palette.InkMuted,
             inkFaint = Palette.InkFaint,
@@ -72,6 +84,10 @@ data class VittColors(
         fun dark() = VittColors(
             ground = Palette.Ground,
             surface = Palette.GroundSurface,
+            // On a dark ground a white card would glare, so elevation comes
+            // from a lifted surface rather than from light.
+            card = Palette.GroundSurface,
+            shadow = Color(0x66000000),
             ink = Palette.Paper,
             inkMuted = Palette.PaperMuted,
             inkFaint = Palette.PaperFaint,

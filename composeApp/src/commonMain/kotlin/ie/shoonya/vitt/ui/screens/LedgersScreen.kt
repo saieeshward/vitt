@@ -18,8 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import ie.shoonya.vitt.model.Ledger
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.Money
@@ -45,7 +47,7 @@ fun LedgersScreen(
         verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
     ) {
         item {
-            Text("Ledgers", style = Vitt.type.title, color = Vitt.colors.ink)
+            Text("Ledgers", style = Vitt.type.display, color = Vitt.colors.ink)
         }
 
         // Pip leads the home screen rather than hiding in a tab: the character
@@ -81,9 +83,19 @@ private fun LedgerCard(ledger: Ledger) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            // A white card lifted off the cream ground, per the design's own
+            // `box-shadow: 0 2px 10px rgba(36,31,51,0.06)`. A card tinted a
+            // shade of the background instead reads as muddy, which is what an
+            // earlier pass here produced.
+            .shadow(
+                elevation = 6.dp,
+                shape = RoundedCornerShape(Vitt.radius.card),
+                ambientColor = colors.shadow,
+                spotColor = colors.shadow,
+            )
             .clip(RoundedCornerShape(Vitt.radius.card))
-            .background(colors.surface)
-            .padding(horizontal = Vitt.space.loose, vertical = Vitt.space.section),
+            .background(colors.card)
+            .padding(Vitt.space.loose),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.hair),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -166,9 +178,16 @@ private fun HealthBar(pressure: Float) {
 
 @Composable
 private fun Figure(label: String, amount: Money) {
-    Column {
-        Text(label, style = Vitt.type.caption, color = Vitt.colors.inkMuted)
-        Text(amount.display(), style = Vitt.type.money, color = Vitt.colors.ink)
+    // Inline rather than stacked. A single stacked stat under a hero figure
+    // reads as an orphaned fragment; on one line it reads as a footnote, which
+    // is what it is.
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(label, style = Vitt.type.caption, color = Vitt.colors.inkFaint)
+        Text(
+            "  " + amount.display(),
+            style = Vitt.type.money.copy(fontSize = 14.sp),
+            color = Vitt.colors.inkMuted,
+        )
     }
 }
 
@@ -185,19 +204,33 @@ private fun NoTotalNote() {
 
 @Composable
 private fun OwedRow(owed: Map<Currency, Money>) {
-    // Surfaced passively here, never as a push notification.
-    Text(
-        "You're owed " + owed.values.joinToString(" and ") { it.display() },
-        style = Vitt.type.body,
-        color = Vitt.colors.accent,
-        modifier = Modifier.padding(top = Vitt.space.tight),
-    )
+    // Surfaced passively here, never as a push notification — and on a card, so
+    // it reads as a standing fact rather than a stray link.
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Vitt.radius.card))
+            .background(Vitt.colors.accent.copy(alpha = 0.08f))
+            .padding(Vitt.space.loose),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            "You're owed",
+            style = Vitt.type.body,
+            color = Vitt.colors.inkMuted,
+        )
+        Text(
+            "  " + owed.values.joinToString("  ·  ") { it.display() },
+            style = Vitt.type.money,
+            color = Vitt.colors.ink,
+        )
+    }
 }
 
 @Composable
 private fun EmptyLedgers() {
     Column(verticalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
-        Text("Nothing recorded yet.", style = Vitt.type.body, color = Vitt.colors.ink)
+        Text("Nothing recorded yet.", style = Vitt.type.title, color = Vitt.colors.ink)
         Text(
             "Tap the middle button to log something. Every currency gets its own " +
                 "ledger, and they are never added together.",

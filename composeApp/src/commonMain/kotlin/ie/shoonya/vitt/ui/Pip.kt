@@ -8,6 +8,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.unit.dp
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -66,7 +68,19 @@ fun Pip(
         label = "blink",
     )
 
-    Canvas(modifier = modifier) {
+    // A slow bob. The design animates Pip at 3.2s, and without it the home
+    // screen reads as a still illustration rather than a companion.
+    val bob by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = androidx.compose.animation.core.tween(1_600),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "bob",
+    )
+
+    Canvas(modifier = modifier.offset(y = (-5).dp * bob)) {
         // Pale and asleep at zero, deepening with the streak — the same hue
         // throughout, only more awake.
         val body = colors.pip
