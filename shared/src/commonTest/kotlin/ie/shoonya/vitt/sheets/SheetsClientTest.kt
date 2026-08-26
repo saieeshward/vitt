@@ -29,7 +29,7 @@ class SheetsClientTest {
     private fun client(handler: MockRequestHandler): Pair<SheetsClient, MockEngine> {
         val engine = MockEngine(handler)
         val http = SheetsClient.configure(HttpClient(engine))
-        return SheetsClient(http) { "test-token" } to engine
+        return SheetsClient(http, accessToken = { "test-token" }) to engine
     }
 
     private fun jsonHeaders() = headersOf(HttpHeaders.ContentType, "application/json")

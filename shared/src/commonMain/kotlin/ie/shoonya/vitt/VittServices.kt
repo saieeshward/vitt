@@ -35,7 +35,11 @@ class VittServices(
      * A Sheets client that fetches a fresh token per request, so a long-running
      * sync cannot fail partway through on an expired credential.
      */
-    fun sheets(): SheetsClient = SheetsClient(http) { auth.accessToken() ?: "" }
+    fun sheets(): SheetsClient = SheetsClient(
+        http = http,
+        accessToken = { auth.accessToken() ?: "" },
+        forceRefresh = { auth.forceRefresh() },
+    )
 
     fun liveVerification(): LiveVerification = LiveVerification(sheets())
 }

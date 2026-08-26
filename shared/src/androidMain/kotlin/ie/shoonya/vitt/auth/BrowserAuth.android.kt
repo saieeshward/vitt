@@ -20,8 +20,14 @@ import kotlinx.coroutines.CompletableDeferred
 actual class BrowserAuth(private val context: Context) {
 
     actual suspend fun authorize(url: String, redirectScheme: String): AuthResult {
+        // A second call while one is outstanding would orphan the first
+        // deferred, leaving its coroutine suspended forever behind a spinner
+        // that never stops.
+        pending?.complete(AuthResult.Cancelled)
+
         val deferred = CompletableDeferred<AuthResult>()
         pending = deferred
+        awaitingRedirect = true
 
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -45,6 +51,7 @@ actual class BrowserAuth(private val context: Context) {
          * genuine auth callback apart from an unrelated deep link.
          */
         fun onRedirect(uri: String): Boolean {
+            awaitingRedirect = false
             val waiting = pending ?: return false
             pending = null
             waiting.complete(AuthResult.Code(uri))
@@ -57,8 +64,18 @@ actual class BrowserAuth(private val context: Context) {
          * coroutine would hang forever waiting for a callback that never comes.
          */
         fun onCancelled() {
+            if (!awaitingRedirect) return
+            awaitingRedirect = false
             pending?.complete(AuthResult.Cancelled)
             pending = null
         }
+
+        /**
+         * True while a browser hop is outstanding, so the Activity can tell
+         * "returned without a redirect" (the user pressed back) from an ordinary
+         * resume. Without the distinction, every resume would cancel a sign-in
+         * that had not started.
+         */
+        private var awaitingRedirect = false
     }
 }

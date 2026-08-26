@@ -23,6 +23,22 @@ class MainActivity : ComponentActivity() {
         intent.data?.toString()?.let { BrowserAuth.onRedirect(it) }
     }
 
+    /**
+     * Resuming without a redirect means the user backed out of the browser.
+     *
+     * Android has no callback for that — unlike iOS, where dismissing the sheet
+     * surfaces as an error — so without this the coroutine waits forever for a
+     * redirect that will never arrive, and every control stays disabled until
+     * the app is force-quit.
+     */
+    override fun onResume() {
+        super.onResume()
+        if (resumedOnce) BrowserAuth.onCancelled()
+        resumedOnce = true
+    }
+
+    private var resumedOnce = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         ie.shoonya.vitt.auth.initTokenStore(applicationContext)
         ie.shoonya.vitt.sync.initInstallMarker(applicationContext)

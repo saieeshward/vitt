@@ -51,13 +51,26 @@ import platform.Security.kSecValueData
 @OptIn(ExperimentalForeignApi::class)
 class KeychainTokenStore(private val service: String = "ie.shoonya.vitt.oauth") : TokenStore {
 
+    override fun savePending(pending: PendingAuth?) {
+        if (pending == null) { deleteItem(ACCOUNT_PENDING); return }
+        writeItem(ACCOUNT_PENDING, Json.encodeToString(PendingAuth.serializer(), pending))
+    }
+
+    override fun loadPending(): PendingAuth? =
+        readItem(ACCOUNT_PENDING)?.let {
+            runCatching { Json.decodeFromString(PendingAuth.serializer(), it) }.getOrNull()
+        }
+
+
     override fun save(tokens: StoredTokens) {
-        val payload = Json.encodeToString(StoredTokens.serializer(), tokens)
-            .encodeToByteArray().toUByteArray()
-        // Keychain add fails with errSecDuplicateItem rather than replacing.
-        clear()
+        writeItem(ACCOUNT_TOKENS, Json.encodeToString(StoredTokens.serializer(), tokens))
+    }
+
+    private fun writeItem(account: String, text: String) {
+        val payload = text.encodeToByteArray().toUByteArray()
+        deleteItem(account)
         val data = CFDataCreate(null, payload.refTo(0), payload.size.toLong())
-        val query = baseQuery {
+        val query = baseQuery(account) {
             CFDictionaryAddValue(it, kSecValueData, data)
             // AfterFirstUnlock, not WhenUnlocked: background sync can run while
             // the phone is locked, and WhenUnlocked would make the token
@@ -76,9 +89,13 @@ class KeychainTokenStore(private val service: String = "ie.shoonya.vitt.oauth") 
         }
     }
 
-    override fun load(): StoredTokens? = memScoped {
+    override fun load(): StoredTokens? = readItem(ACCOUNT_TOKENS)?.let {
+        runCatching { Json.decodeFromString(StoredTokens.serializer(), it) }.getOrNull()
+    }
+
+    private fun readItem(account: String): String? = memScoped {
         val result = alloc<CFTypeRefVar>()
-        val query = baseQuery {
+        val query = baseQuery(account) {
             CFDictionaryAddValue(it, kSecReturnData, kCFBooleanTrue)
             CFDictionaryAddValue(it, kSecMatchLimit, kSecMatchLimitOne)
         }
@@ -92,24 +109,27 @@ class KeychainTokenStore(private val service: String = "ie.shoonya.vitt.oauth") 
             CFDataGetBytePtr(it)?.readBytes(CFDataGetLength(it).toInt())
         }
         data?.let { CFRelease(it) }
-        bytes?.decodeToString()?.let {
-            runCatching { Json.decodeFromString(StoredTokens.serializer(), it) }.getOrNull()
-        }
+        bytes?.decodeToString()
     }
 
     override fun clear() {
-        val query = baseQuery { }
+        deleteItem(ACCOUNT_TOKENS)
+        deleteItem(ACCOUNT_PENDING)
+    }
+
+    private fun deleteItem(account: String) {
+        val query = baseQuery(account) { }
         SecItemDelete(query)
         CFRelease(query)
     }
 
-    private inline fun baseQuery(extra: (CFMutableDictionaryRef?) -> Unit): CFDictionaryRef? {
+    private inline fun baseQuery(account: String, extra: (CFMutableDictionaryRef?) -> Unit): CFDictionaryRef? {
         val dict = CFDictionaryCreateMutable(
             null, 0, kCFTypeDictionaryKeyCallBacks.ptr, kCFTypeDictionaryValueCallBacks.ptr,
         )
         CFDictionaryAddValue(dict, kSecClass, kSecClassGenericPassword)
         val serviceRef = cfString(service)
-        val accountRef = cfString(ACCOUNT)
+        val accountRef = cfString(account)
         CFDictionaryAddValue(dict, kSecAttrService, serviceRef)
         CFDictionaryAddValue(dict, kSecAttrAccount, accountRef)
         extra(dict)
@@ -122,7 +142,8 @@ class KeychainTokenStore(private val service: String = "ie.shoonya.vitt.oauth") 
         CFStringCreateWithCString(null, value, kCFStringEncodingUTF8)
 
     private companion object {
-        const val ACCOUNT = "google"
+        const val ACCOUNT_TOKENS = "google"
+        const val ACCOUNT_PENDING = "google-pending"
     }
 }
 

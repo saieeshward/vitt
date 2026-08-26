@@ -14,6 +14,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
 
 /**
@@ -32,6 +33,15 @@ import kotlinx.serialization.json.Json
 class SheetsClient(
     private val http: HttpClient,
     private val accessToken: suspend () -> String,
+    /**
+     * Forces a new access token, returning null if re-authentication is needed.
+     *
+     * Needed because a token can die without expiring: Google revokes grants
+     * server-side, and the stored expiry still says the token is fine. Without a
+     * way to invalidate on a 401, sync stops permanently and looks like a
+     * network fault.
+     */
+    private val forceRefresh: suspend () -> String? = { null },
 ) {
 
     /**
@@ -147,15 +157,31 @@ class SheetsClient(
     }
 
     private suspend inline fun <reified T> request(block: () -> HttpResponse): T {
-        val response = try {
-            block()
-        } catch (e: SheetsError) {
-            throw e
-        } catch (e: Throwable) {
-            throw SheetsError.Transport(e.message ?: "request failed", e)
-        }
+        val response = send(block)
         if (response.status.isSuccess()) return response.body()
+
+        // One retry on 401, and only on 401. The token may have been revoked
+        // server-side while still looking valid locally; anything else that
+        // returns 401 twice is genuinely a re-authentication.
+        if (response.status.value == 401 && forceRefresh() != null) {
+            val retried = send(block)
+            if (retried.status.isSuccess()) return retried.body()
+            throw retried.toError()
+        }
         throw response.toError()
+    }
+
+    private suspend inline fun send(block: () -> HttpResponse): HttpResponse = try {
+        block()
+    } catch (e: SheetsError) {
+        throw e
+    } catch (e: CancellationException) {
+        // M7: cancellation is not a network failure. Wrapping it as one made a
+        // user navigating away mid-sync look like an outage, incrementing the
+        // attempt count toward poisoning.
+        throw e
+    } catch (e: Throwable) {
+        throw SheetsError.Transport(e.message ?: "request failed", e)
     }
 
     private suspend fun HttpResponse.toError(): SheetsError {

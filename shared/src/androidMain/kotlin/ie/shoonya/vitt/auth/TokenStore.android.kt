@@ -69,7 +69,39 @@ class KeystoreTokenStore(private val context: Context) : TokenStore {
     }
 
     override fun clear() {
-        prefs.edit().remove(KEY_IV).remove(KEY_PAYLOAD).apply()
+        prefs.edit().remove(KEY_IV).remove(KEY_PAYLOAD)
+            .remove(KEY_PENDING_IV).remove(KEY_PENDING).commit()
+    }
+
+    override fun savePending(pending: PendingAuth?) {
+        if (pending == null) {
+            prefs.edit().remove(KEY_PENDING_IV).remove(KEY_PENDING).commit()
+            return
+        }
+        val plaintext = Json.encodeToString(PendingAuth.serializer(), pending).toByteArray()
+        val cipher = Cipher.getInstance(TRANSFORMATION).apply { init(Cipher.ENCRYPT_MODE, key()) }
+        val ciphertext = cipher.doFinal(plaintext)
+        // commit, not apply: the process is about to hand off to the browser and
+        // may be killed before an async write lands — which is the very case
+        // this exists to survive.
+        prefs.edit()
+            .putString(KEY_PENDING_IV, Base64.encodeToString(cipher.iv, Base64.NO_WRAP))
+            .putString(KEY_PENDING, Base64.encodeToString(ciphertext, Base64.NO_WRAP))
+            .commit()
+    }
+
+    override fun loadPending(): PendingAuth? {
+        val iv = prefs.getString(KEY_PENDING_IV, null) ?: return null
+        val payload = prefs.getString(KEY_PENDING, null) ?: return null
+        return runCatching {
+            val cipher = Cipher.getInstance(TRANSFORMATION).apply {
+                init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(TAG_BITS, Base64.decode(iv, Base64.NO_WRAP)))
+            }
+            Json.decodeFromString(
+                PendingAuth.serializer(),
+                cipher.doFinal(Base64.decode(payload, Base64.NO_WRAP)).decodeToString(),
+            )
+        }.getOrNull()
     }
 
     private fun key(): SecretKey {
@@ -101,6 +133,8 @@ class KeystoreTokenStore(private val context: Context) : TokenStore {
         const val PREFS = "vitt_auth"
         const val KEY_IV = "iv"
         const val KEY_PAYLOAD = "payload"
+        const val KEY_PENDING_IV = "pending_iv"
+        const val KEY_PENDING = "pending"
     }
 }
 

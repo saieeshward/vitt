@@ -47,17 +47,41 @@ class AuthManager(
         val url = AuthFlow.authorizationUrl(clientId, pkce, state)
         val scheme = AuthFlow.redirectUri(clientId).substringBefore(":")
 
+        // Written before the hop, not after: Android runs the consent page in a
+        // separate task and routinely kills this process while it is foreground.
+        // If the verifier lived only in this coroutine frame, the redirect would
+        // return to a process that can no longer complete the exchange.
+        tokens.savePending(PendingAuth(pkce.verifier, state, now()))
+
         return when (val result = browser.authorize(url, scheme)) {
-            is AuthResult.Cancelled -> result
-            is AuthResult.Failed -> result
+            is AuthResult.Cancelled -> { tokens.savePending(null); result }
+            is AuthResult.Failed -> { tokens.savePending(null); result }
             is AuthResult.Code -> {
                 // The browser hands back the whole redirect URI; the state check
                 // lives in parseRedirect and is what stops a forged callback.
-                when (val parsed = AuthFlow.parseRedirect(result.code, state)) {
-                    is AuthResult.Code -> exchange(parsed.code, pkce.verifier)
-                    else -> parsed
-                }
+                completeRedirect(result.code)
             }
+        }
+    }
+
+    /**
+     * Finishes a sign-in from the redirect URI.
+     *
+     * Public because on Android the redirect can arrive at a *different* process
+     * than the one that started the flow, so completing it cannot depend on a
+     * live coroutine. The verifier and state come from the persisted record.
+     */
+    suspend fun completeRedirect(redirectUri: String): AuthResult {
+        val pending = tokens.loadPending()
+            ?: return AuthResult.Failed("no sign-in in progress")
+        if (pending.isStale(now())) {
+            tokens.savePending(null)
+            return AuthResult.Failed("sign-in took too long; please try again")
+        }
+        return when (val parsed = AuthFlow.parseRedirect(redirectUri, pending.state)) {
+            is AuthResult.Code -> exchange(parsed.code, pending.verifier)
+                .also { tokens.savePending(null) }
+            else -> { tokens.savePending(null); parsed }
         }
     }
 
@@ -79,6 +103,9 @@ class AuthManager(
                 accessToken = body.accessToken,
                 refreshToken = body.refreshToken,
                 expiresAtMillis = now() + body.expiresIn * 1000,
+                // Preserved across a re-auth: losing it would leave the app
+                // signed in and unable to find its own spreadsheet.
+                spreadsheetId = tokens.load()?.spreadsheetId,
             )
         )
         return AuthResult.Code(code)
@@ -91,9 +118,28 @@ class AuthManager(
      * is paused", never as data loss — the outbox keeps accumulating and drains
      * once access is restored.
      */
+    /**
+     * Discards the cached access token and fetches a new one.
+     *
+     * Local expiry is not the only way a token dies: Google revokes grants
+     * server-side when the user visits their permissions page, changes their
+     * password, or leaves the app unused for six months. The stored token still
+     * looks fresh, so nothing here would ever refresh it and every call would
+     * 401 forever.
+     */
+    suspend fun forceRefresh(): String? = refreshLock.withLock {
+        val stored = tokens.load() ?: return null
+        refreshLocked(stored)
+    }
+
     suspend fun accessToken(): String? = refreshLock.withLock {
         val stored = tokens.load() ?: return null
         if (!stored.isExpired(now())) return stored.accessToken
+        refreshLocked(stored)
+    }
+
+    /** Caller must hold [refreshLock]. */
+    private suspend fun refreshLocked(stored: StoredTokens): String? {
 
         val refresh = stored.refreshToken ?: return null
         val response = http.post(AuthFlow.TOKEN_ENDPOINT) {
@@ -117,8 +163,17 @@ class AuthManager(
             expiresAtMillis = now() + body.expiresIn * 1000,
         )
         tokens.save(updated)
-        updated.accessToken
+        return updated.accessToken
     }
+
+    /** Binds this account to its spreadsheet, beside the credential. */
+    fun rememberSpreadsheet(spreadsheetId: String) {
+        val stored = tokens.load() ?: return
+        tokens.save(stored.copy(spreadsheetId = spreadsheetId))
+    }
+
+    /** The spreadsheet this account is bound to, if any. */
+    fun boundSpreadsheet(): String? = tokens.load()?.spreadsheetId
 
     /**
      * Revokes access with Google and erases the local copy.
