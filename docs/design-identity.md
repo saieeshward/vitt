@@ -1,190 +1,127 @@
-# Design identity and mockup plan
+# Design identity
 
-Design decisions for VITT, derived from the constraints already fixed in
-[PLAN.md](../PLAN.md) rather than invented alongside them.
+**Source: the Claude Design project "Design identity and mockups plan"**
+(`3508bb23-2d08-4f90-8ade-17e537e66a5a`), imported 2026-08-26. That document is
+the authority; this file records what was implemented and where.
 
-> **Why this is a document and not a Figma file.** The UI is Compose
-> Multiplatform — Kotlin drawing to a Skia canvas — so there is no HTML, no CSS
-> and no React component to design against. Tokens here are Kotlin values that
-> compile into the app, and mockups are built as real Composables. There is no
-> handoff step where a design becomes code, because the design *is* the code.
+> The identity was authored under the earlier name **Tender**. The product is now
+> **VITT**; the design carries over unchanged, because none of it depends on the
+> name. The mark and the piggy-bank companion are name-independent.
 
----
-
-## 1. The organising principle
-
-Everything below follows from one finding (PLAN.md §5.1):
-
-> **An expense tracker is a machine for delivering bad news about oneself**, and
-> people avoid checking their finances precisely when things are going badly —
-> the ostrich effect.
-
-So the visual test for every screen is: **does this make opening the app on a bad
-day cheaper or more expensive?** A design that looks sharp on a good month and
-accusatory on a bad one has failed, because the bad month is when the tool
-matters.
-
-Three consequences that override normal dashboard convention:
-
-1. **No red for over-budget.** Red is reserved for genuine emergencies —
-   sync failure, data at risk. Over-budget is **amber**, which reads as
-   information rather than alarm.
-2. **Absence is never styled as failure.** A missing day is grey and quiet, never
-   a gap in a chart or a broken bar.
-3. **The number is never the loudest thing on screen when it is bad.** Emphasis
-   goes to the action available, not the damage done.
+> **Why this is a document and not a Figma handoff.** The UI is Compose
+> Multiplatform — Kotlin drawing to a Skia canvas. Tokens are Kotlin values that
+> compile into the app, so there is no step where a design becomes code.
 
 ---
 
-## 2. Palette
+## The idea the whole identity serves
 
-Two neutral ramps and three semantic accents. Deliberately small: every colour
-has to justify itself, and a large palette invites decorative use of colour that
-then reads as meaning.
+> **The refusal to convert is the product**, so the identity has to say
+> *parallel*, never *combined*.
 
-| Token | Light | Dark | Used for |
-|---|---|---|---|
-| `surface` | `#FCFBFA` | `#141413` | page background |
-| `surfaceRaised` | `#FFFFFF` | `#1E1E1C` | cards, sheets |
-| `surfaceSunken` | `#F2F0ED` | `#0D0D0C` | keypad keys, wells |
-| `ink` | `#1A1917` | `#F5F3F0` | primary text, amounts |
-| `inkMuted` | `#6B6862` | `#A3A099` | secondary text, dates |
-| `inkFaint` | `#A8A49D` | `#6B6862` | absent data, placeholders |
-| `accent` | `#3A6B5C` | `#5E9C88` | primary action, healthy state |
-| `caution` | `#B0742A` | `#D89A4E` | over budget, needs attention |
-| `alarm` | `#A33B32` | `#D4675C` | sync failure, data at risk **only** |
+Every competitor's premise is one net-worth number. One number needs a rate, a
+rate is always slightly stale, and a stale rate makes net worth swing on days you
+spent nothing. VITT declines the estimate, so it can never be wrong about it.
 
-**Warm-neutral, not blue-grey.** Finance apps default to cool blues, which read
-as institutional. VITT is a personal tool, and warm neutrals sit closer to paper
-than to a banking portal.
+**A currency is a colour.** Hues are assigned in order from a fixed six-hue set,
+so EUR is the same green for every user, and adding a fourth currency does not
+recolour the first three.
 
-**The accent is a muted green, not a saturated one.** A bright green reward
-colour turns every healthy state into a small celebration, which is the pattern
-that got Robinhood enjoined (PLAN.md §5.5). Muted green is legible as "fine"
-without being congratulatory.
+## Colour roles
 
-**Contrast floor: 4.5:1 for text, 3:1 for meaningful non-text.** `inkFaint` on
-`surface` is used only where the *absence* of contrast carries the meaning —
-placeholder amounts, unlogged days — never for information the user must read.
+Money is **never coloured by sentiment**. Spending is plain text. Income and
+settled debts take the soft accent. The accent marks only what is *live* or
+*mine* — never what is *good*.
 
-**Colour is never the only signal.** Over-budget carries an icon and a label as
-well as amber; roughly 8% of men have a colour-vision deficiency and a currency
-figure is exactly the wrong place to rely on hue.
-
----
-
-## 3. Typography
-
-| Role | Size / weight | Notes |
+| Role | Light | Dark |
 |---|---|---|
-| `amountHero` | 48 / Medium, tabular | the keypad display |
-| `amountRow` | 17 / Medium, tabular | list rows |
-| `title` | 20 / Semibold | screen titles |
-| `body` | 16 / Regular | general |
-| `label` | 13 / Medium | field labels, chips |
-| `caption` | 12 / Regular | dates, provenance |
+| Ground | `#FFFDF7` cream | `#17141F` |
+| Surface | `#F2EFE7` | `#241F33` |
+| Ink | `#241F33` | `#DAD5E6` |
+| Accent — live, mine, now | `#6B5BFF` | `#9C8DFF` |
+| Pip | `#EE6E9C` | `#D95C88` |
 
-**Tabular figures everywhere a number appears.** Proportional digits make a
-column of amounts ragged and, worse, make a changing amount jitter as digits are
-typed. This is a one-line setting that gets missed constantly.
+Currency hues, in assignment order: green `#35B98A`, amber `#E39A12`, blue
+`#4C9DF7`, pink `#EE6E9C`, violet `#6B5BFF`, teal `#17A2A2` — lifted for dark.
 
-**System font, both platforms.** SF on iOS, Roboto on Android. A custom face
-would cost bundle size, add a licence obligation, and — because CMP draws its own
-text — is the surface most likely to expose rendering differences between
-platforms.
+**Health runs accent → neutral, never green → red.** A red ledger is a verdict,
+and the tone rules forbid verdicts; over budget is the *absence* of accent, so a
+bad month goes quiet rather than shouting. `VittColors.health(pressure)`
+implements this, and there is deliberately no `error` role for money.
 
-**Currency symbols never abbreviate.** `€` and `₹` render at full size, not
-superscripted. A shrunken symbol next to a large number is where multi-currency
-apps start to feel careless.
+**The single red in the product is a destructive confirmation.** It is named
+`destructive` so that reaching for it to paint a balance reads wrong in review.
 
----
+**Chroma lives in lines, dots and glows** — never a filled bar or a coloured
+card. That is what keeps the palette working at four or five currencies.
 
-## 4. The one rule the whole product exists for
+## The money line
 
-**Amounts are never blended across currencies, anywhere, at any size.**
+- **Tabular numerals everywhere.** Not cosmetic: proportional digits make a
+  column of amounts ragged, and make the keypad display shift sideways as each
+  digit is typed — the most-used screen in the app.
+- **A figure never appears without its own currency symbol.** There is no default
+  currency, so a bare number is always ambiguous.
+- **No converted equivalent, ever.** `MoneyLine` has no parameter to pass one.
+- **On a split, your share is the large figure**, with what you actually paid
+  demoted beneath — because your share is what the budget and categories see.
+- **Transfers are the one place two currencies touch.** The rate used is a
+  recorded fact, shown as an arrow, never applied to anything else.
 
-Visually this means:
+## Type
 
-- Balances stack, never sum: `€1,240.50` above `₹84,300`, each with its own row.
-- No single "total net worth" figure exists to design. If a layout needs one to
-  look complete, the layout is wrong.
-- A per-currency section header carries the currency; individual rows do not
-  repeat it, which keeps rows scannable.
-- Indian grouping is 2-2-3 (`₹1,23,456.78`), already implemented in
-  `AmountEntry.display()`. Western grouping applied to a rupee figure looks
-  subtly wrong to anyone who uses rupees.
+One rule: **one loud number per screen.** `moneyHero` at 34sp is the only large
+size; everything else sits at 13–15sp. Hierarchy is size and space, not weight —
+there is no bold body style to reach for.
 
----
+## Voice
 
-## 5. Component inventory
+Receipts, not coaching. Past tense, no exclamation marks, no adjectives about the
+user's choices. The app reports what it did and where it put it — *"Logged to row
+412."*
 
-Built and shipping:
+## Companion — Pip
 
-| Component | Status | Notes |
+A piggy bank with **one coin slot per currency**. Coins go in through their own
+slot and never move between them, which makes the app's one hard rule visible
+without a word of explanation. Pip reacts only to *whether you logged*, never to
+how much you spent. Colour deepens with the streak.
+
+## Information architecture
+
+Five tabs; the middle one is a button, because logging is not a destination.
+
+| | | |
 |---|---|---|
-| `AmountKeypad` | **done, device-verified** | right-to-left entry, no system IME, no decimal key |
+| 1 | **Ledgers** | one card per currency; accounts below, grouped, unsummed |
+| 2 | **Activity** | every transaction, day-grouped; drafts on top |
+| – | **Add** | a sheet, not a tab — one thumb reach from everywhere |
+| 3 | **Ledger** | people and what is owed, per currency |
+| 4 | **Habit** | the one place gamification is loud |
 
-Planned, in build order:
-
-| Component | Purpose | Design notes |
-|---|---|---|
-| `TransactionRow` | ledger line | merchant, category, amount; amount right-aligned tabular; provenance icon when imported rather than typed |
-| `CurrencySection` | groups rows | sticky header carrying the currency; the mechanism that enforces §4 |
-| `HealthRing` | budget health | **two channels, never merged**: fill = health, stroke style = confidence. Dotted stroke under 40% coverage, with "Not enough to say yet" — never a low score |
-| `EnvelopeBar` | per-category budget | amber past 100%, never red; shows remaining, not overage, while remaining is positive |
-| `ProjectionBand` | month-end estimate | a *range*, never a point; suppressed before day 7 |
-| `CaptureSheet` | confirm parsed transaction | pre-filled; low-confidence fields visibly outlined and focused first |
-| `ReviewQueue` | unparsed captures | shows raw text verbatim so the user can see what VITT saw |
-| `Pet` | gamification | layered SVG, ~25 pieces → ~576 looks via palette tokens |
-| `SyncBadge` | sync state | quiet dot; `alarm` only when data is genuinely at risk |
+Reports and Settings live under Ledgers' header icons: monthly visits should not
+slow the daily path.
 
 ---
 
-## 6. Screens to mock up, in priority order
+## Implemented so far
 
-Each is a real Composable, built in a scratch screen and judged on device.
+| Piece | File |
+|---|---|
+| Palette, currency hues | `ui/theme/Palette.kt` |
+| Semantic roles, `health()`, `currency()` | `ui/theme/VittColors.kt` |
+| Type scale, spacing, `VittTheme` | `ui/theme/VittTheme.kt` |
+| `MoneyLine`, `SplitMoneyLine` | `ui/MoneyLine.kt` |
+| `Money.display()` — symbol + grouping | `shared/…/money/Money.kt` |
+| `AmountKeypad` retuned to tokens | `ui/AmountKeypad.kt` |
 
-1. **Amount entry** — done. The most-used interaction; everything else is
-   secondary.
-2. **Add transaction** — keypad plus category, account, date, split toggle. The
-   test: coffee logged in under 5 seconds and 3 taps.
-3. **Ledger** — grouped by currency, then by day. The test: a bad month is
-   readable without feeling like an indictment.
-4. **Home** — per-currency balances, health ring, projection band. The hardest
-   screen to keep honest, because it is where a blended total would be most
-   tempting.
-5. **Capture confirm** — the share-sheet landing. The test: high-confidence parse
-   is one tap; low-confidence is obvious about what it is unsure of.
-6. **Budgets** — envelopes per currency.
-7. **Settings** — including the gamification tier switch (Off must be a complete
-   product, not a punished mode) and "Disconnect Google", which Apple 5.1.1
-   requires.
+**Not yet built:** the ten mockup screens, the Pip illustration, the mark, and
+the tab bar. Screens are specified in the source document.
 
-**Deliberately not mocked yet:** anything gamified beyond the pet's resting
-state. Per PLAN.md §5, the off switch is built before the mechanics.
+## Where this supersedes an earlier draft
 
----
-
-## 7. Motion
-
-- **Nothing celebrates a transaction.** No confetti, no bounce, no sound. This is
-  a named prohibition, not taste: celebration tied to activity is precisely what
-  the Robinhood consent order enjoined.
-- Transitions are 150–200ms, ease-out. Long enough to follow, short enough that
-  logging an expense never feels gated on an animation.
-- The pet idles; it does not react to individual transactions.
-- **Respect reduced-motion.** Both platforms expose the setting, and financial
-  data must never depend on an animation the user has turned off.
-
----
-
-## 8. How this gets applied
-
-Tokens live in Kotlin in `composeApp/src/commonMain/.../ui/theme/`, exposed
-through a `MaterialTheme` colour scheme plus a small `VittTokens` object for what
-Material does not model (tabular figures, the confidence stroke, currency
-grouping). No JSON token pipeline: there is no second consumer to feed, and one
-would add a build step that can drift from the code it describes.
-
-Dark mode is derived from the same table above, not hand-tuned separately — one
-palette, two resolutions.
+An earlier version of this file proposed warm neutrals with **amber for
+over-budget**. The imported identity is stronger and replaces it: health runs
+accent-to-neutral so a bad month goes quiet rather than amber, and colour carries
+*which currency* rather than *how you are doing*. The earlier draft's reasoning
+about the ostrich effect survives — it just reaches a better answer.

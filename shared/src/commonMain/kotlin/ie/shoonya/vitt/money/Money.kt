@@ -61,6 +61,24 @@ data class Money(val minor: Long, val currency: Currency) {
         return (if (neg) "-" else "") + whole + "." + frac
     }
 
+    /**
+     * How an amount is shown to a person: always with its own symbol, grouped
+     * for its own currency, and never with a converted equivalent beside it.
+     *
+     * There is no "default currency" in this app, so a figure without a symbol
+     * is always ambiguous — which is why this, not [toPlainString], is what the
+     * UI calls.
+     */
+    fun display(): String {
+        val negative = minor < 0
+        val digits = (if (negative) -minor else minor).toString()
+        val entry = ie.shoonya.vitt.money.AmountEntry(
+            digits = if (digits == "0") "" else digits,
+            currency = currency,
+        )
+        return (if (negative) "-" else "") + entry.display()
+    }
+
     override fun toString(): String = "${currency.code} ${toPlainString()}"
 
     private fun requireSameCurrency(other: Money) =

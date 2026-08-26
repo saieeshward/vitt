@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
+import ie.shoonya.vitt.ui.theme.Vitt
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -89,13 +89,10 @@ private fun AmountDisplay(entry: AmountEntry) {
     ) {
         Text(
             text = entry.display(),
-            fontSize = 48.sp,
-            textAlign = TextAlign.Center,
-            color = if (entry.isEmpty) {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            } else {
-                MaterialTheme.colorScheme.onSurface
-            },
+            style = Vitt.type.moneyHero,
+            // A zero placeholder is faint, not grey-as-failure: absence is
+            // styled as absence everywhere in this app.
+            color = if (entry.isEmpty) Vitt.colors.inkFaint else Vitt.colors.ink,
         )
     }
 }
@@ -105,7 +102,7 @@ private fun KeypadKey(label: String, modifier: Modifier, onClick: () -> Unit) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(Vitt.colors.surface)
             .clickable(onClick = onClick)
             .semantics {
                 contentDescription = when (label) {
@@ -116,6 +113,6 @@ private fun KeypadKey(label: String, modifier: Modifier, onClick: () -> Unit) {
             },
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = label, fontSize = 28.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(text = label, fontSize = 21.sp, color = Vitt.colors.ink)
     }
 }

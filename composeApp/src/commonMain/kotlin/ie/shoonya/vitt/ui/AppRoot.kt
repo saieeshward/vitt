@@ -1,16 +1,17 @@
 package ie.shoonya.vitt.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import ie.shoonya.vitt.VittServices
+import ie.shoonya.vitt.ui.theme.Vitt
+import ie.shoonya.vitt.ui.theme.VittTheme
 
 @Composable
 fun AppRoot(services: VittServices) {
-    MaterialTheme {
-        Surface(modifier = Modifier.fillMaxSize()) {
+    VittTheme {
+        Surface(modifier = Modifier.fillMaxSize(), color = Vitt.colors.ground) {
             VerifyScreen(services)
         }
     }
