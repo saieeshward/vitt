@@ -29,6 +29,11 @@ class LiveVerification(
 
     private suspend fun delayMillis(ms: Long) = delay(ms)
 
+    private companion object {
+        const val CHANGE_POLL_INTERVAL_MS = 3_000L
+        const val CHANGE_POLL_ATTEMPTS = 7
+    }
+
     suspend fun run(onStep: (Step) -> Unit): List<Step> {
         val steps = mutableListOf<Step>()
         fun record(name: String, passed: Boolean, detail: String) {
@@ -120,35 +125,39 @@ class LiveVerification(
             record("duplicate append is detectable", false, e.message ?: e.toString())
         }
 
-        // 6. Change detection. The plan polls Drive's `version` counter to
-        // notice edits, on the documented claim that it "reflects every change
-        // made to the file on the server". A first run showed it unchanged
-        // across a write, so this measures rather than assumes: the same write
-        // is checked immediately and again after a delay, with modifiedTime
-        // alongside, which distinguishes "the counter lags" from "the counter
-        // does not track Sheets content edits at all".
+        // 6. Change detection. Drive's version counter is what the app polls to
+        // notice edits the user made in the spreadsheet directly. It is known to
+        // lag by seconds, so this polls for it rather than sampling once: a
+        // fixed wait turns a normal lag into a reported failure, and reports the
+        // same thing a caching bug would — which has already cost one debugging
+        // cycle.
         try {
             val before = sheets.fileVersion(id)
             sheets.append(id, "Transactions", listOf(listOf("change-probe")))
-            val immediately = sheets.fileVersion(id)
-            delayMillis(4_000)
-            val settled = sheets.fileVersion(id)
 
-            val versionMovedNow = before.version != immediately.version
-            val versionMovedLater = before.version != settled.version
-            val timeMoved = before.modifiedTime != settled.modifiedTime
-
-            val verdict = when {
-                versionMovedNow -> "version is immediate — polling works as planned"
-                versionMovedLater -> "version LAGS — poll interval must exceed the lag"
-                timeMoved -> "version does NOT track content; modifiedTime does — poll that instead"
-                else -> "neither version nor modifiedTime moved — needs changes.list"
+            var moved = false
+            var attempts = 0
+            var latest = before
+            while (attempts < CHANGE_POLL_ATTEMPTS && !moved) {
+                delayMillis(CHANGE_POLL_INTERVAL_MS)
+                attempts++
+                latest = sheets.fileVersion(id)
+                moved = latest.version != before.version ||
+                    latest.modifiedTime != before.modifiedTime
             }
+
+            val waited = attempts * CHANGE_POLL_INTERVAL_MS / 1000
             record(
                 "change detection",
-                versionMovedNow || versionMovedLater || timeMoved,
-                "$verdict · version ${before.version}→${immediately.version}→${settled.version} · " +
-                    "modifiedTime ${before.modifiedTime} → ${settled.modifiedTime}",
+                moved,
+                if (moved) {
+                    "version ${before.version} to ${latest.version} after ${waited}s"
+                } else {
+                    // Byte-identical after this long is a cached response, not a
+                    // slow counter.
+                    "nothing moved in ${waited}s — version ${before.version}, " +
+                        "modifiedTime unchanged at ${before.modifiedTime}"
+                },
             )
         } catch (e: Exception) {
             record("change detection", false, e.message ?: e.toString())

@@ -16,6 +16,10 @@ fun MainViewController() = ComposeUIViewController {
             now = { (NSDate().timeIntervalSince1970 * 1000).toLong() },
             driver = ie.shoonya.vitt.sync.iosDriver(),
         ),
+        // Both come from launch variables so the checks can be driven without a
+        // human tapping a button; the app itself is the default.
+        verify = platform.Foundation.NSProcessInfo.processInfo
+            .environment["VITT_VERIFY"] == "1",
         autoRun = platform.Foundation.NSProcessInfo.processInfo
             .environment["VITT_AUTORUN"] == "1",
     )
