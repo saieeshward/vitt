@@ -83,9 +83,17 @@ private fun Int.toHexPadded(width: Int): String =
 class HlcClock(
     private val nodeId: String,
     private val maxDriftMillis: Long = DEFAULT_MAX_DRIFT_MILLIS,
+    seed: Hlc? = null,
     private val now: () -> Long,
 ) {
-    private var last: Hlc = Hlc(0L, 0, nodeId)
+    /**
+     * Seeding matters more than it looks. Without it the clock restarts at epoch
+     * zero on every launch and relies on the wall clock never moving backwards
+     * across a process boundary — which it does, every time NTP corrects a fast
+     * phone. An edit made before the correction then outranks the correction
+     * itself, and the user's own fix is silently discarded on every device.
+     */
+    private var last: Hlc = seed ?: Hlc(0L, 0, nodeId)
 
     val current: Hlc get() = last
 
@@ -99,9 +107,24 @@ class HlcClock(
     fun issue(): Hlc {
         val physical = now()
         val previous = last
-        val newPhysical = maxOf(previous.physicalMillis, physical)
-        val newCounter = if (newPhysical == previous.physicalMillis) previous.counter + 1 else 0
-        checkDrift(newPhysical, physical)
+        var newPhysical = maxOf(previous.physicalMillis, physical)
+        var newCounter = if (newPhysical == previous.physicalMillis) previous.counter + 1 else 0
+
+        // Saturating the counter borrows a millisecond rather than throwing.
+        // Throwing here would abort a bulk import mid-way — 65,536 events inside
+        // one millisecond is reachable when now() is coarse — and losing the
+        // import is far worse than a timestamp one millisecond early.
+        if (newCounter > Hlc.MAX_COUNTER) {
+            newPhysical += 1
+            newCounter = 0
+        }
+
+        // Deliberately no drift check on the local path. A device whose own
+        // clock jumped forward an hour would otherwise be unable to record
+        // anything until real time caught up — it would be refusing its owner's
+        // data to defend against its owner. Monotonicity is the guarantee here;
+        // drift is policed on the remote path, where it can actually be someone
+        // else's fault.
         return Hlc(newPhysical, newCounter, nodeId).also { last = it }
     }
 
@@ -123,11 +146,14 @@ class HlcClock(
             else -> 0
         }
         checkDrift(newPhysical, physical)
+        if (newCounter > Hlc.MAX_COUNTER) {
+            return Hlc(newPhysical + 1, 0, nodeId).also { last = it }
+        }
         return Hlc(newPhysical, newCounter, nodeId).also { last = it }
     }
 
     /**
-     * Rejects a clock that has run too far ahead of local wall time. Without
+     * Rejects a remote clock that has run too far ahead of local wall time. Without
      * this, one device with a badly wrong clock poisons the ordering for every
      * device that observes it, permanently — every later edit everywhere has to
      * sort after that bogus future timestamp.

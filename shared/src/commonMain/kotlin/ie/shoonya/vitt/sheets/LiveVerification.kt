@@ -5,6 +5,7 @@ import ie.shoonya.vitt.sync.EventLog
 import ie.shoonya.vitt.sync.Hlc
 import ie.shoonya.vitt.sync.HlcClock
 import ie.shoonya.vitt.sync.TaggedValue
+import kotlinx.coroutines.delay
 
 /**
  * Checks, against a real Google account, the assumptions the whole storage
@@ -25,6 +26,8 @@ class LiveVerification(
 ) {
 
     data class Step(val name: String, val passed: Boolean, val detail: String)
+
+    private suspend fun delayMillis(ms: Long) = delay(ms)
 
     suspend fun run(onStep: (Step) -> Unit): List<Step> {
         val steps = mutableListOf<Step>()
@@ -116,17 +119,38 @@ class LiveVerification(
             record("duplicate append is detectable", false, e.message ?: e.toString())
         }
 
-        // 6. Drive's version counter is the only usable change token for a
-        // Google-native file; polling it is how the app notices edits made in
-        // the spreadsheet directly.
+        // 6. Change detection. The plan polls Drive's `version` counter to
+        // notice edits, on the documented claim that it "reflects every change
+        // made to the file on the server". A first run showed it unchanged
+        // across a write, so this measures rather than assumes: the same write
+        // is checked immediately and again after a delay, with modifiedTime
+        // alongside, which distinguishes "the counter lags" from "the counter
+        // does not track Sheets content edits at all".
         try {
-            val before = sheets.fileVersion(id).version
-            sheets.append(id, "Events", listOf(listOf("probe", "", "", "", "", "")))
-            val after = sheets.fileVersion(id).version
-            val changed = before != null && after != null && before != after
-            record("drive version changes on write", changed, "before=$before after=$after")
+            val before = sheets.fileVersion(id)
+            sheets.append(id, "Transactions", listOf(listOf("change-probe")))
+            val immediately = sheets.fileVersion(id)
+            delayMillis(4_000)
+            val settled = sheets.fileVersion(id)
+
+            val versionMovedNow = before.version != immediately.version
+            val versionMovedLater = before.version != settled.version
+            val timeMoved = before.modifiedTime != settled.modifiedTime
+
+            val verdict = when {
+                versionMovedNow -> "version is immediate — polling works as planned"
+                versionMovedLater -> "version LAGS — poll interval must exceed the lag"
+                timeMoved -> "version does NOT track content; modifiedTime does — poll that instead"
+                else -> "neither version nor modifiedTime moved — needs changes.list"
+            }
+            record(
+                "change detection",
+                versionMovedNow || versionMovedLater || timeMoved,
+                "$verdict · version ${before.version}→${immediately.version}→${settled.version} · " +
+                    "modifiedTime ${before.modifiedTime} → ${settled.modifiedTime}",
+            )
         } catch (e: Exception) {
-            record("drive version changes on write", false, e.message ?: e.toString())
+            record("change detection", false, e.message ?: e.toString())
         }
 
         return steps

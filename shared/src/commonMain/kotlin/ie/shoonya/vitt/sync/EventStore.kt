@@ -15,7 +15,14 @@ import ie.shoonya.vitt.db.VittDatabase
  * The clock is advanced by the caller only after [append] returns, for the same
  * reason: a rolled-back transaction must not leave the clock ahead of the log.
  */
-class EventStore(driver: SqlDriver) {
+class EventStore(
+    driver: SqlDriver,
+    /**
+     * The device's clock. Production always supplies one via [open], which seeds
+     * it from persisted state; tests that mint their own HLCs may omit it.
+     */
+    private val clock: HlcClock? = null,
+) {
 
     private val db = VittDatabase(driver)
     private val events = db.eventQueries
@@ -41,6 +48,9 @@ class EventStore(driver: SqlDriver) {
         if (inserted) {
             outbox.enqueue(hlc = event.hlc.encode(), created_at = nowMillis)
         }
+        // Persisted inside the same transaction as the event, so a crash can
+        // never leave a clock that has forgotten a timestamp it already issued.
+        rememberClock(event.hlc)
         inserted
     }
 
@@ -54,6 +64,12 @@ class EventStore(driver: SqlDriver) {
     fun appendRemote(incoming: List<Event>): Int = db.transactionWithResult {
         var new = 0
         incoming.forEach { event ->
+            // Advancing the local clock past every remote timestamp is what
+            // makes causality hold. Without it this device's next edit can carry
+            // a timestamp older than a change it has already seen, and the fold
+            // discards the user's correction on every device — silently, after
+            // the UI showed it accepted.
+            observeSafely(event.hlc)
             events.insert(
                 hlc = event.hlc.encode(),
                 node_id = event.hlc.nodeId,
@@ -65,6 +81,28 @@ class EventStore(driver: SqlDriver) {
             if (events.changes().executeAsOne() > 0) new++
         }
         new
+    }
+
+    /**
+     * Merges a remote timestamp into the local clock, tolerating a bad one.
+     *
+     * A device with a wildly wrong clock must not be able to stop every other
+     * device from syncing, so its event is still stored — the fold orders by the
+     * timestamp itself — but it is not allowed to drag this clock into the
+     * future with it.
+     */
+    private fun observeSafely(remote: Hlc) {
+        val c = clock ?: return
+        val merged = runCatching { c.observe(remote) }.getOrNull() ?: return
+        rememberClock(merged)
+    }
+
+    /** Records the high-water mark so the clock survives a restart. */
+    private fun rememberClock(hlc: Hlc) {
+        val stored = get(KEY_LAST_HLC)
+        if (stored == null || hlc.encode() > stored) {
+            state.put(KEY_LAST_HLC, hlc.encode())
+        }
     }
 
     /**
@@ -95,6 +133,14 @@ class EventStore(driver: SqlDriver) {
         }
         victims.size
     }
+
+    /**
+     * Mints a timestamp for a local change.
+     *
+     * Callers go through the store rather than holding a clock of their own, so
+     * that issuing and persisting cannot come apart.
+     */
+    fun issue(): Hlc = requireNotNull(clock) { "this EventStore was opened without a clock" }.issue()
 
     fun allEvents(): List<Event> = events.selectAll().executeAsList().map { it.toEvent() }
 
@@ -189,6 +235,23 @@ class EventStore(driver: SqlDriver) {
         const val KEY_NODE_ID = "node_id"
         const val KEY_SPREADSHEET_ID = "spreadsheet_id"
         const val KEY_DRIVE_VERSION = "drive_version"
+        const val KEY_LAST_HLC = "last_hlc"
+
+        /**
+         * Opens a store with a clock seeded from what this device already
+         * issued or saw.
+         *
+         * The seed is the later of the persisted high-water mark and the newest
+         * event in the log, so a store whose `sync_state` was lost still cannot
+         * reissue a timestamp it has already used.
+         */
+        fun open(driver: SqlDriver, nodeId: String, now: () -> Long): EventStore {
+            val bootstrap = EventStore(driver)
+            val persisted = bootstrap.get(KEY_LAST_HLC)?.let { runCatching { Hlc.decode(it) }.getOrNull() }
+            val newest = bootstrap.maxHlc()
+            val seed = listOfNotNull(persisted, newest).maxOrNull()
+            return EventStore(driver, HlcClock(nodeId = nodeId, seed = seed, now = now))
+        }
     }
 }
 
