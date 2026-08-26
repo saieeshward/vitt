@@ -29,7 +29,10 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":shared"))
+            // api, not implementation: AppRoot takes a VittServices, so :shared
+            // types are part of this module's public surface and the app shells
+            // need them on their compile classpath.
+            api(project(":shared"))
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)

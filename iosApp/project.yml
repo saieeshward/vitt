@@ -36,6 +36,13 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
+        # Google redirects back to the reversed client id after consent. Without
+        # this registration iOS has nowhere to deliver the callback and the
+        # sign-in sheet simply never closes.
+        CFBundleURLTypes:
+          - CFBundleURLName: google-oauth
+            CFBundleURLSchemes:
+              - com.googleusercontent.apps.1009164273104-9vueslno0lnaug94cl848pcesb2j1rnf
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ie.shoonya.vitt

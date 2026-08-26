@@ -39,9 +39,15 @@ kotlin {
             implementation(libs.ktor.client.mock)
         }
         jvmMain.dependencies { implementation(libs.sqldelight.driver.jvm) }
-        androidMain.dependencies { implementation(libs.sqldelight.driver.android) }
+        androidMain.dependencies {
+            implementation(libs.sqldelight.driver.android)
+            implementation(libs.ktor.client.okhttp)
+        }
         jvmTest.dependencies { implementation(libs.sqldelight.driver.jvm) }
-        iosMain.dependencies { implementation(libs.sqldelight.driver.native) }
+        iosMain.dependencies {
+            implementation(libs.sqldelight.driver.native)
+            implementation(libs.ktor.client.darwin)
+        }
     }
 }
 
