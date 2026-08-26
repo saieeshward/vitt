@@ -58,13 +58,14 @@ object CsvImport {
     private val CREDIT_HEADERS = listOf(
         "credit", "deposit", "money in", "paid in", "cr", "deposit amt", "haben",
     )
+    /** Words that mean a header describes a state, not a movement. */
+    private val DISQUALIFYING = listOf("balance", "limit", "saldo", "account no", "acct no", "card no")
+
     private val CURRENCY_HEADERS = listOf("currency", "ccy", "curr", "waehrung", "währung", "divisa")
 
     fun parse(content: String, defaultCurrency: Currency): CsvImportResult {
-        val lines = content.lineSequence()
-            .map { it.trimEnd('\r') }
+        val lines = splitRecords(content, detectDelimiterHint(content))
             .filter { it.isNotBlank() }
-            .toList()
 
         if (lines.isEmpty()) return CsvImportResult(emptyList(), emptyMap(), 0)
 
@@ -132,14 +133,56 @@ object CsvImport {
         forEachIndexed { i, cell ->
             if (i !in exclude && candidates.any { it == cell }) return i
         }
-        // Substring matching only for tokens long enough to be distinctive.
-        // "cr" and "dr" are real header names but appear inside "description",
-        // which would otherwise be detected as a credit column.
+        // Substring matching only for tokens long enough to be distinctive, and
+        // never into a header that names something other than a movement.
+        // "debit balance", "credit limit" and "deposit account" all contain a
+        // money-column word; letting one of them win means the real signed
+        // Amount column is never read and every row takes the balance instead.
         forEachIndexed { i, cell ->
-            if (i !in exclude && candidates.any { it.length >= 4 && cell.contains(it) }) return i
+            if (i in exclude) return@forEachIndexed
+            if (DISQUALIFYING.any { cell.contains(it) }) return@forEachIndexed
+            if (candidates.any { it.length >= 4 && cell.contains(it) }) return i
         }
         return -1
     }
+
+    /**
+     * Splits into records, honouring newlines inside quoted fields.
+     *
+     * RFC 4180 permits a `\n` inside a quoted value, and PayPal, Revolut and
+     * Stripe exports all contain them in descriptions. Splitting on physical
+     * lines turns one transaction into two: the first parses with missing
+     * columns, and the second is read as a new row whose "amount" is whatever
+     * description text landed there — which, once non-digits are stripped,
+     * yields a plausible number rather than a rejection.
+     */
+    internal fun splitRecords(content: String, delimiter: Char): List<String> {
+        val records = mutableListOf<String>()
+        val current = StringBuilder()
+        var inQuotes = false
+        var i = 0
+        while (i < content.length) {
+            val c = content[i]
+            when {
+                c == '"' && inQuotes && i + 1 < content.length && content[i + 1] == '"' -> {
+                    current.append('"').append('"'); i++
+                }
+                c == '"' -> { inQuotes = !inQuotes; current.append(c) }
+                (c == '\n' || c == '\r') && !inQuotes -> {
+                    if (current.isNotEmpty()) { records.add(current.toString()); current.clear() }
+                    if (c == '\r' && i + 1 < content.length && content[i + 1] == '\n') i++
+                }
+                else -> current.append(c)
+            }
+            i++
+        }
+        if (current.isNotEmpty()) records.add(current.toString())
+        return records
+    }
+
+    /** Cheap first pass, only to make quote-aware record splitting possible. */
+    private fun detectDelimiterHint(content: String): Char =
+        detectDelimiter(content.lineSequence().take(25).toList())
 
     /**
      * Picks the delimiter by majority across the first several lines.

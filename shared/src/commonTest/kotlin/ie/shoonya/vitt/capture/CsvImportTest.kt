@@ -236,3 +236,54 @@ class CsvCorruptionTest {
         assertTrue(r.needsReview.any { row -> row.problems.any { it.startsWith("fatal") } })
     }
 }
+
+class CsvColumnTrapTest {
+
+    @Test
+    fun `a balance column does not steal the amount column`() {
+        // "Debit Balance" contains "debit"; letting it claim the money column
+        // means the real signed Amount is never read and every row takes the
+        // running balance instead.
+        val csv = """
+            Date,Description,Amount,Debit Balance
+            2026-08-20,Tesco,-12.50,987.50
+            2026-08-21,Salary,2500.00,3487.50
+        """.trimIndent()
+        val r = CsvImport.parse(csv, Currency.EUR)
+        assertEquals(2, r.usable.size)
+        assertEquals(-1250L, r.usable[0].amount?.minor)
+        assertEquals(250000L, r.usable[1].amount?.minor)
+    }
+
+    @Test
+    fun `a credit limit column does not become the credit column`() {
+        val csv = """
+            Date,Description,Amount,Credit Limit
+            2026-08-20,Coffee,-3.50,5000.00
+        """.trimIndent()
+        val r = CsvImport.parse(csv, Currency.EUR)
+        assertEquals(-350L, r.usable.single().amount?.minor)
+    }
+
+    @Test
+    fun `a newline inside a quoted field does not fabricate a second row`() {
+        // PayPal and Stripe exports contain these in descriptions. Splitting on
+        // physical lines makes the fragment a new row whose amount is invented
+        // from whatever digits the description happened to contain.
+        val csv = "Date,Description,Amount\n" +
+            "2026-08-20,\"TESCO STORES\nDUBLIN 4\",-12.50\n" +
+            "2026-08-21,Salary,2500.00"
+        val r = CsvImport.parse(csv, Currency.EUR)
+        assertEquals(2, r.usable.size, "two transactions, not three")
+        assertEquals(-1250L, r.usable[0].amount?.minor)
+        assertTrue(r.usable[0].description!!.contains("DUBLIN"), "the field stays whole")
+        assertEquals(250000L, r.usable[1].amount?.minor)
+    }
+
+    @Test
+    fun `carriage returns are handled`() {
+        val csv = "Date,Description,Amount\r\n2026-08-20,Tesco,-12.50\r\n"
+        val r = CsvImport.parse(csv, Currency.EUR)
+        assertEquals(-1250L, r.usable.single().amount?.minor)
+    }
+}

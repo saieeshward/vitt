@@ -26,7 +26,15 @@ object EventLog {
 
     const val TOMBSTONE_FIELD = "_deleted"
 
-    fun fold(events: Iterable<Event>): Map<String, Entity> {
+    /**
+     * Identifies an entity by type *and* id.
+     *
+     * Keying on the id alone let two entities of different types sharing an id
+     * collide, and one silently disappeared from the fold.
+     */
+    data class EntityKey(val entity: String, val entityId: String)
+
+    fun fold(events: Iterable<Event>): Map<EntityKey, Entity> {
         val winners = HashMap<Pair<String, String>, MutableMap<String, Event>>()
 
         for (event in events) {
@@ -40,9 +48,12 @@ object EventLog {
             }
         }
 
+        // Keyed by the pair, not by id alone. Two entities of different types
+        // sharing an id — a hand-edited entity column, an id reused across
+        // account and transaction — collided, and one silently disappeared.
         return winners.entries.associate { (key, fields) ->
             val (entity, entityId) = key
-            entityId to Entity(
+            EntityKey(entity, entityId) to Entity(
                 entity = entity,
                 entityId = entityId,
                 fields = fields.mapValues { it.value.value }
@@ -98,6 +109,9 @@ object EventLog {
         }
         return ReadResult(events, bad)
     }
+
+    /** Reads one transaction out of a fold, by id. */
+    fun Map<EntityKey, Entity>.transaction(id: String): Entity? = this[EntityKey("transaction", id)]
 
     fun newEvents(incoming: Iterable<Event>, knownHlcs: Set<String>): List<Event> {
         val seen = knownHlcs.toMutableSet()

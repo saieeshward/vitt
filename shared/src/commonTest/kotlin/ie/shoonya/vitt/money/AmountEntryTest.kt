@@ -63,9 +63,9 @@ class AmountEntryTest {
     }
 
     @Test
-    fun `round trips from an existing amount`() {
+    fun `takes the magnitude of an existing amount — the sign stays outside`() {
         val original = Money(-1250, Currency.EUR)
-        val entry = AmountEntry.of(original)
+        val entry = AmountEntry.ofMagnitude(original)
         assertEquals("€12.50", entry.display())
         assertEquals(1250L, entry.money.minor, "sign is held outside the keypad")
     }

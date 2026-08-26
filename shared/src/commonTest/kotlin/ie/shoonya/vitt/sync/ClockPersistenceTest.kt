@@ -44,7 +44,7 @@ class ClockPersistenceTest {
         )
         assertEquals(
             TaggedValue.Num(-500),
-            second.fold().getValue("txn-1").fields["amount"],
+            second.fold().getValue(EventLog.EntityKey("transaction", "txn-1")).fields["amount"],
             "the user's correction must survive a restart across a clock rollback",
         )
     }
@@ -87,7 +87,7 @@ class ClockPersistenceTest {
             correction.hlc > fromB.hlc,
             "an edit made after seeing a change must order after it",
         )
-        assertEquals(TaggedValue.Num(-1500), store.fold().getValue("txn-1").fields["amount"])
+        assertEquals(TaggedValue.Num(-1500), store.fold().getValue(EventLog.EntityKey("transaction", "txn-1")).fields["amount"])
     }
 
     @Test

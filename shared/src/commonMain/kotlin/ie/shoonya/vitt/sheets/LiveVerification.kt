@@ -92,7 +92,7 @@ class LiveVerification(
             val read = EventLog.readRows(rows, firstRowNumber = 1)
             val parsed = read.events
             val folded = EventLog.fold(parsed)
-            val amount = folded["txn-1"]?.fields?.get("amount")
+            val amount = folded[EventLog.EntityKey("transaction", "txn-1")]?.fields?.get("amount")
             val ok = parsed.size == events.size && amount == TaggedValue.Num(-1250)
             record(
                 "read back and fold",

@@ -168,3 +168,26 @@ class AmountParserTest {
         assertTrue(r.merchant!!.contains("chaiwala", ignoreCase = true), "got '${r.merchant}'")
     }
 }
+
+class CurrencyPrecedenceTest {
+
+    @Test
+    fun `an explicit ISO code beats a stray Rs`() {
+        // "RS McColl" is a real UK newsagent. Matching the INR abbreviation
+        // anywhere in the text turned a sterling payment into rupees.
+        val r = AmountParser.parse("GBP 20.00 paid to RS McColl")
+        assertEquals(ie.shoonya.vitt.money.Currency.GBP, r.amount?.currency)
+    }
+
+    @Test
+    fun `USD wins over a merchant containing Rs`() {
+        val r = AmountParser.parse("USD 45.00 debited at RS TECHNOLOGIES")
+        assertEquals(ie.shoonya.vitt.money.Currency.USD, r.amount?.currency)
+    }
+
+    @Test
+    fun `a genuine rupee message still resolves to INR`() {
+        val r = AmountParser.parse("Rs.500.00 debited from A/c XX1234")
+        assertEquals(ie.shoonya.vitt.money.Currency.INR, r.amount?.currency)
+    }
+}

@@ -154,7 +154,7 @@ class EventStore(
     /** The newest event this device has seen, local or remote. Null when empty. */
     fun maxHlc(): Hlc? = events.maxHlc().executeAsOne().max?.let { Hlc.decode(it) }
 
-    fun fold(): Map<String, EventLog.Entity> = EventLog.fold(allEvents())
+    fun fold(): Map<EventLog.EntityKey, EventLog.Entity> = EventLog.fold(allEvents())
 
     // ---- outbox --------------------------------------------------------------
 

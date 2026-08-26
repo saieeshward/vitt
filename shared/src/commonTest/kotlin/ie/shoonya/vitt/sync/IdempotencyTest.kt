@@ -129,7 +129,7 @@ class IdempotencyTest {
             Event(a.issue(), "transaction", "txn-1", "amount", TaggedValue.Num(-1250)),
             Event(b.issue(), "transaction", "txn-1", "category", TaggedValue.Str("Groceries")),
         )
-        val folded = EventLog.fold(events).getValue("txn-1")
+        val folded = EventLog.fold(events).getValue(EventLog.EntityKey("transaction", "txn-1"))
         assertEquals(TaggedValue.Num(-1250), folded.fields["amount"])
         assertEquals(TaggedValue.Str("Groceries"), folded.fields["category"])
     }
@@ -142,8 +142,8 @@ class IdempotencyTest {
         val late = Event(b.issue(), "transaction", "txn-1", "amount", TaggedValue.Num(-2000))
 
         // Convergence: arrival order must not affect the outcome.
-        val forward = EventLog.fold(listOf(early, late)).getValue("txn-1")
-        val reverse = EventLog.fold(listOf(late, early)).getValue("txn-1")
+        val forward = EventLog.fold(listOf(early, late)).getValue(EventLog.EntityKey("transaction", "txn-1"))
+        val reverse = EventLog.fold(listOf(late, early)).getValue(EventLog.EntityKey("transaction", "txn-1"))
         assertEquals(TaggedValue.Num(-2000), forward.fields["amount"])
         assertEquals(forward, reverse)
     }
@@ -211,7 +211,7 @@ class IdempotencyTest {
             expense(clock, "txn-1", -1250),
             Event(clock.issue(), "transaction", "txn-1", EventLog.TOMBSTONE_FIELD, TaggedValue.Bool(true)),
         )
-        val folded = EventLog.fold(events).getValue("txn-1")
+        val folded = EventLog.fold(events).getValue(EventLog.EntityKey("transaction", "txn-1"))
         assertTrue(folded.deleted)
         assertTrue(EventLog.TOMBSTONE_FIELD !in folded.fields, "tombstone is not a user field")
     }

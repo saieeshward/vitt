@@ -185,7 +185,7 @@ class EventStoreTest {
         s.append(amount(c, "txn-1", -1250), 2)
         s.append(Event(c.issue(), "transaction", "txn-1", "merchant", TaggedValue.Str("Tesco")), 3)
 
-        val folded = s.fold().getValue("txn-1")
+        val folded = s.fold().getValue(EventLog.EntityKey("transaction", "txn-1"))
         assertEquals(TaggedValue.Num(-1250), folded.fields["amount"], "latest write wins")
         assertEquals(TaggedValue.Str("Tesco"), folded.fields["merchant"])
         assertFalse(folded.deleted)
@@ -206,7 +206,7 @@ class EventStoreTest {
         b.append(fromB, 1); b.appendRemote(listOf(fromA))
 
         assertEquals(a.fold(), b.fold(), "order of arrival must not change the outcome")
-        assertEquals(TaggedValue.Num(-2000), a.fold().getValue("txn-1").fields["amount"])
+        assertEquals(TaggedValue.Num(-2000), a.fold().getValue(EventLog.EntityKey("transaction", "txn-1")).fields["amount"])
     }
 
     @Test

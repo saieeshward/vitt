@@ -83,7 +83,15 @@ data class AmountEntry(
 
         private fun maxDigitsFor(currency: Currency) = MAX_DIGITS
 
-        fun of(money: Money): AmountEntry {
+        /**
+         * The keypad holds a magnitude; the sign belongs to the transaction.
+         *
+         * Named for what it does. The previous name implied a round trip it
+         * does not perform — `of(-12.50).money` returns +12.50 — so an edit
+         * screen doing `of(txn.amount)` then `save(entry.money)` would have
+         * flipped every expense to income.
+         */
+        fun ofMagnitude(money: Money): AmountEntry {
             val abs = if (money.minor < 0) -money.minor else money.minor
             return AmountEntry(if (abs == 0L) "" else abs.toString(), money.currency)
         }

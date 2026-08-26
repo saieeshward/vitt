@@ -11,12 +11,6 @@ package ie.shoonya.vitt.money
  */
 data class Money(val minor: Long, val currency: Currency) {
 
-    init {
-        // Adding two currencies is meaningless, so the invariant is enforced at
-        // the boundary rather than checked at every call site.
-        require(true)
-    }
-
     operator fun plus(other: Money): Money {
         requireSameCurrency(other)
         return Money(minor + other.minor, currency)
@@ -94,7 +88,12 @@ data class Money(val minor: Long, val currency: Currency) {
             require(trimmed.isNotEmpty()) { "empty amount" }
             val neg = trimmed.startsWith('-')
             val body = trimmed.removePrefix("-").removePrefix("+")
-            require(body.all { it.isDigit() || it == '.' }) { "not a plain decimal: $value" }
+            // Char.isDigit() is Unicode-aware in Kotlin, so Arabic-Indic and
+            // Devanagari digits pass it — and String.toLong() then behaves
+            // differently on JVM and Native, so the same pasted amount parses on
+            // Android and throws on iOS.
+            require(body.all { it in '0'..'9' || it == '.' }) { "not a plain decimal: $value" }
+            require(body.count { it == '.' } <= 1) { "not a plain decimal: $value" }
             val dot = body.indexOf('.')
             val whole = if (dot < 0) body else body.substring(0, dot)
             val fracRaw = if (dot < 0) "" else body.substring(dot + 1)
@@ -102,7 +101,8 @@ data class Money(val minor: Long, val currency: Currency) {
                 "$value has more precision than ${currency.code} supports"
             }
             val frac = fracRaw.padEnd(currency.exponent, '0')
-            val minor = (whole.ifEmpty { "0" } + frac).toLong()
+            val minor = (whole.ifEmpty { "0" } + frac).toLongOrNull()
+                ?: throw IllegalArgumentException("not a plain decimal: $value")
             return Money(if (neg) -minor else minor, currency)
         }
     }

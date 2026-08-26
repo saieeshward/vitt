@@ -92,7 +92,10 @@ class AuthManager(
         }
         if (!response.ok()) return AuthResult.Failed(response.errorText())
 
-        val body: TokenResponse = response.body()
+        // Captive-portal Wi-Fi answers with HTTP 200 and an HTML login page, so
+        // a successful status is not a promise of JSON.
+        val body: TokenResponse = runCatching { response.body<TokenResponse>() }
+            .getOrElse { return AuthResult.Failed("unexpected response from Google") }
         if (body.refreshToken == null) {
             // Without a refresh token every session dies in an hour. This means
             // access_type=offline or prompt=consent went missing.
@@ -154,7 +157,8 @@ class AuthManager(
             return null
         }
 
-        val body: TokenResponse = response.body()
+        val body: TokenResponse = runCatching { response.body<TokenResponse>() }
+            .getOrElse { return null }
         val updated = stored.copy(
             accessToken = body.accessToken,
             // Google usually omits the refresh token on refresh; keeping the old

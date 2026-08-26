@@ -87,7 +87,7 @@ class SheetsClient(
      */
     suspend fun append(spreadsheetId: String, tab: String, rows: List<List<String>>): AppendResponse =
         request {
-            http.post("$SHEETS_BASE/spreadsheets/$spreadsheetId/values/$tab:append") {
+            http.post("$SHEETS_BASE/spreadsheets/$spreadsheetId/values/${encodePathSegment(tab)}:append") {
                 auth()
                 parameter("valueInputOption", "RAW")
                 parameter("insertDataOption", "INSERT_ROWS")
@@ -99,7 +99,7 @@ class SheetsClient(
     /** Reads a closed range. Never pass an open range like `A:F` — see below. */
     suspend fun read(spreadsheetId: String, range: String): List<List<String>> =
         request<ValueRangeResponse> {
-            http.get("$SHEETS_BASE/spreadsheets/$spreadsheetId/values/$range") {
+            http.get("$SHEETS_BASE/spreadsheets/$spreadsheetId/values/${encodePathSegment(range)}") {
                 auth()
                 parameter("majorDimension", "ROWS")
             }
@@ -195,8 +195,16 @@ class SheetsClient(
         return when (status.value) {
             401 -> SheetsError.Unauthorized(message)
             403 -> when {
-                // 403 is overloaded: quota exhaustion and permission denial share it.
-                reason.contains("rateLimit", true) || reason.contains("quota", true) ->
+                // 403 is overloaded: quota exhaustion and permission denial share
+                // it. Newer RESOURCE_EXHAUSTED responses carry an empty errors[]
+                // and put the signal in status/message instead, so keying only on
+                // reason told the user their spreadsheet was gone every time they
+                // hit the write ceiling — and poisoned the batch.
+                reason.contains("rateLimit", true) ||
+                    reason.contains("quota", true) ||
+                    parsed?.status == "RESOURCE_EXHAUSTED" ||
+                    message.contains("quota", true) ||
+                    message.contains("rate limit", true) ->
                     SheetsError.RateLimited(retryAfterSeconds())
                 else -> SheetsError.FileNotAccessible("unknown", message)
             }
@@ -237,3 +245,20 @@ class SheetsClient(
 }
 
 private fun HttpStatusCode.isSuccess() = value in 200..299
+
+/**
+ * Percent-encodes a value going into the URL path.
+ *
+ * A1 notation quotes any tab name containing a space (`'My Tab'!A2:F50`), and a
+ * `#` in a raw URL becomes a fragment — so a user renaming a tab, which the
+ * design explicitly invites, otherwise breaks reads and writes as a 400. A 400
+ * is classified non-retryable, so it would poison the batch rather than surface
+ * as "your tab was renamed".
+ */
+internal fun encodePathSegment(value: String): String = buildString {
+    value.encodeToByteArray().forEach { b ->
+        val c = b.toInt().toChar()
+        if (c.isLetterOrDigit() || c in "-._~!$&()*+,;=:@") append(c)
+        else append('%').append((b.toInt() and 0xFF).toString(16).uppercase().padStart(2, '0'))
+    }
+}

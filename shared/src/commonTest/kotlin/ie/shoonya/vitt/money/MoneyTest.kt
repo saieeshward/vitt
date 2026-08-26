@@ -98,3 +98,22 @@ class MoneyDisplayTest {
         assertEquals("€0.00", Money(0, Currency.EUR).display())
     }
 }
+
+class MoneyParsingSafetyTest {
+
+    @Test
+    fun `non-ASCII digits are refused rather than parsed differently per platform`() {
+        // Char.isDigit() is Unicode-aware, so these passed validation — and then
+        // String.toLong() behaved differently on JVM and Native, so the same
+        // pasted amount parsed on Android and threw on iOS.
+        assertFailsWith<IllegalArgumentException> { Money.ofPlain("١٢.٥٠", Currency.EUR) }
+        assertFailsWith<IllegalArgumentException> { Money.ofPlain("१२.५०", Currency.INR) }
+    }
+
+    @Test
+    fun `malformed decimals raise the documented exception type`() {
+        assertFailsWith<IllegalArgumentException> { Money.ofPlain("12..50", Currency.EUR) }
+        assertFailsWith<IllegalArgumentException> { Money.ofPlain("1..2", Currency.EUR) }
+        assertFailsWith<IllegalArgumentException> { Money.ofPlain("", Currency.EUR) }
+    }
+}

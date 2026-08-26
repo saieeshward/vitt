@@ -138,8 +138,16 @@ object AmountParser {
         Regex("\\bUSD\\b|\\$", RegexOption.IGNORE_CASE) to Currency.USD,
     )
 
-    internal fun detectCurrency(text: String): Currency? =
-        CURRENCY_PATTERNS.firstOrNull { (re, _) -> re.containsMatchIn(text) }?.second
+    /** Explicit ISO codes, checked before any symbol or abbreviation. */
+    private val ISO_CODES = Regex("\\b(EUR|INR|GBP|USD|AED|JPY)\\b", RegexOption.IGNORE_CASE)
+
+    internal fun detectCurrency(text: String): Currency? {
+        // An explicit code wins outright. Otherwise "GBP 20.00 paid to RS McColl"
+        // resolves to rupees, because the INR pattern matches "RS" anywhere and
+        // is checked first.
+        ISO_CODES.find(text)?.let { return Currency.ofCode(it.value.uppercase()) }
+        return CURRENCY_PATTERNS.firstOrNull { (re, _) -> re.containsMatchIn(text) }?.second
+    }
 
     // ---- direction -----------------------------------------------------------
 
