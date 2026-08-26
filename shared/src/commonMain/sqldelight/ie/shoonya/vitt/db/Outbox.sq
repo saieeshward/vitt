@@ -61,3 +61,9 @@ SELECT * FROM outbox WHERE state = ? ORDER BY seq;
 
 reconcileInFlight:
 SELECT hlc FROM outbox WHERE state = 'IN_FLIGHT' ORDER BY seq;
+
+selectAll:
+SELECT * FROM outbox ORDER BY seq;
+
+retry:
+UPDATE outbox SET state = 'PENDING', attempts = 0, last_error = NULL WHERE hlc = ?;

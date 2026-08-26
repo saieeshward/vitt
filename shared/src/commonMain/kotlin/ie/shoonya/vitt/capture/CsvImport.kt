@@ -68,7 +68,7 @@ object CsvImport {
 
         if (lines.isEmpty()) return CsvImportResult(emptyList(), emptyMap(), 0)
 
-        val delimiter = detectDelimiter(lines.first())
+        val delimiter = detectDelimiter(lines)
         val headerIndex = findHeaderRow(lines, delimiter)
         if (headerIndex < 0) {
             return CsvImportResult(
@@ -102,6 +102,21 @@ object CsvImport {
             "currency" to header.indexOfFirstMatching(CURRENCY_HEADERS),
         ).filterValues { it >= 0 }
 
+        // A real header resolves at least two *distinct* columns. One column
+        // doing every job means the delimiter was wrong and the "header" is an
+        // undivided line — from which every amount would be fabricated by
+        // stripping non-digits out of the whole row.
+        if (cols.values.distinct().size < 2) {
+            return CsvImportResult(
+                rows = listOf(
+                    CsvRow(headerIndex + 1, null, null, null,
+                        listOf("fatal: could not separate columns — is the delimiter right?")),
+                ),
+                detectedColumns = cols,
+                skippedLines = lines.size,
+            )
+        }
+
         val rows = lines.drop(headerIndex + 1).mapIndexed { i, line ->
             parseRow(line, delimiter, cols, headerIndex + i + 2, defaultCurrency)
         }
@@ -126,9 +141,22 @@ object CsvImport {
         return -1
     }
 
-    /** Picks whichever delimiter yields the most fields; European exports often use ';'. */
-    internal fun detectDelimiter(line: String): Char =
-        listOf(',', ';', '\t', '|').maxByOrNull { splitLine(line, it).size } ?: ','
+    /**
+     * Picks the delimiter by majority across the first several lines.
+     *
+     * Deciding from line one alone breaks on the preamble banks routinely emit
+     * ("Kontoauszug 08/2026"), which contains no delimiter at all: every
+     * candidate scores 1, and `maxByOrNull` returns the first on a tie — a
+     * comma. A semicolon-delimited file then parses as one giant column, and
+     * because that column contains both "datum" and "betrag" it is *accepted* as
+     * the header, after which every amount is fabricated from a whole line.
+     */
+    internal fun detectDelimiter(lines: List<String>): Char {
+        val sample = lines.take(25)
+        return listOf(',', ';', '\t', '|').maxByOrNull { candidate ->
+            sample.sumOf { splitLine(it, candidate).size - 1 }
+        } ?: ','
+    }
 
     private fun findHeaderRow(lines: List<String>, delimiter: Char): Int {
         // Banks prepend account summaries and blank rows before the real header.
@@ -176,7 +204,19 @@ object CsvImport {
         fun cell(name: String): String? =
             cols[name]?.let { cells.getOrNull(it) }?.takeIf { it.isNotBlank() }
 
-        val currency = cell("currency")?.let { Currency.ofCode(it) } ?: defaultCurrency
+        // C3: a Wise or Revolut export carries rows in currencies this app does
+        // not model. Falling back to the default stamps CHF 340 as EUR 340 —
+        // silently, at face value — which is precisely the blending the product
+        // exists to refuse.
+        val declared = cell("currency")
+        val currency = if (declared != null) {
+            Currency.ofCode(declared) ?: run {
+                problems += "fatal: unsupported currency '$declared'"
+                defaultCurrency
+            }
+        } else {
+            defaultCurrency
+        }
         val date = cell("date")
         if (date == null) problems += "no date"
         val description = cell("description")
@@ -209,9 +249,22 @@ object CsvImport {
 
     private fun parseSignedAmount(raw: String, currency: Currency, problems: MutableList<String>): Money? {
         var s = raw.trim()
-        // Accounting negatives: (12.50) means -12.50.
         var negative = false
+
+        // Accounting negatives: (12.50) means -12.50.
         if (s.startsWith("(") && s.endsWith(")")) { negative = true; s = s.substring(1, s.length - 1) }
+
+        // C4: German and Austrian exports write debits with a *trailing* minus
+        // (1.234,56-), and many Indian and UK exports use a DR/CR suffix. The
+        // digit filter below strips both, so without this every debit imported
+        // as income — with the header lists advertising German support.
+        val upper = s.uppercase()
+        when {
+            upper.endsWith("DR") -> { negative = true; s = s.dropLast(2).trim() }
+            upper.endsWith("CR") -> { negative = false; s = s.dropLast(2).trim() }
+        }
+        if (s.endsWith("-")) { negative = true; s = s.dropLast(1).trim() }
+
         if (s.startsWith("-")) { negative = true; s = s.substring(1) }
         if (s.startsWith("+")) s = s.substring(1)
         s = s.filter { it.isDigit() || it == '.' || it == ',' }

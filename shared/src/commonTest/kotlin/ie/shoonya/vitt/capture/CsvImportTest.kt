@@ -159,3 +159,80 @@ class CsvImportTest {
         assertEquals(0, CsvImport.parse("", Currency.EUR).rows.size)
     }
 }
+
+/**
+ * The three silent-corruption paths: input that produced a plausible but wrong
+ * number instead of a rejection.
+ */
+class CsvCorruptionTest {
+
+    @Test
+    fun `an unsupported currency is refused, never stamped as the default`() {
+        // A Wise export with a CHF row: importing it as EUR 340 is exactly the
+        // currency blending the product exists to refuse.
+        val csv = """
+            Date,Description,Amount,Currency
+            2026-08-20,Zurich hotel,-340.00,CHF
+            2026-08-21,Dublin lunch,-12.50,EUR
+        """.trimIndent()
+        val r = CsvImport.parse(csv, Currency.EUR)
+        assertEquals(1, r.usable.size, "only the EUR row is importable")
+        assertEquals(-1250L, r.usable.single().amount?.minor)
+        assertTrue(r.needsReview.single().problems.any { it.contains("CHF") })
+    }
+
+    @Test
+    fun `a trailing minus is a debit, not income`() {
+        // German and Austrian convention. Previously the digit filter stripped
+        // the sign and every debit imported as income.
+        val csv = """
+            Buchungstag;Verwendungszweck;Betrag
+            20.08.2026;Supermarkt;1.234,56-
+            21.08.2026;Gehalt;2.500,00
+        """.trimIndent()
+        val r = CsvImport.parse(csv, Currency.EUR)
+        assertEquals(2, r.usable.size)
+        assertEquals(-123456L, r.usable[0].amount?.minor, "trailing minus means debit")
+        assertEquals(250000L, r.usable[1].amount?.minor)
+    }
+
+    @Test
+    fun `DR and CR suffixes set the direction`() {
+        val csv = """
+            Date,Narration,Amount
+            25/08/26,UPI-CHAIWALA,500.00 DR
+            26/08/26,SALARY,45000.00 CR
+        """.trimIndent()
+        val r = CsvImport.parse(csv, Currency.INR)
+        assertEquals(-50000L, r.usable[0].amount?.minor)
+        assertEquals(4500000L, r.usable[1].amount?.minor)
+    }
+
+    @Test
+    fun `a preamble line does not decide the delimiter`() {
+        // The killer case: a non-delimited first line made every candidate score
+        // equally, comma won the tie, and a semicolon file parsed as one column
+        // whose "amount" was the whole row with non-digits stripped.
+        val csv = """
+            Kontoauszug 08/2026
+            Konto DE89 3704 0044 0532 0130 00
+            Buchungstag;Verwendungszweck;Betrag
+            20.08.2026;Supermarkt;-12,50
+            21.08.2026;Tankstelle;-60,00
+        """.trimIndent()
+        val r = CsvImport.parse(csv, Currency.EUR)
+        assertEquals(';', CsvImport.detectDelimiter(csv.lines()))
+        assertEquals(2, r.usable.size)
+        assertEquals(-1250L, r.usable[0].amount?.minor, "must not fabricate from the whole line")
+        assertEquals(-6000L, r.usable[1].amount?.minor)
+    }
+
+    @Test
+    fun `a file whose columns cannot be separated fails loudly`() {
+        // Better to refuse than to import invented amounts.
+        val csv = "Datum Betrag Beschreibung\n20.08.2026 12,50 Supermarkt"
+        val r = CsvImport.parse(csv, Currency.EUR)
+        assertEquals(0, r.usable.size)
+        assertTrue(r.needsReview.any { row -> row.problems.any { it.startsWith("fatal") } })
+    }
+}

@@ -180,15 +180,47 @@ class EventStore(
         batch.forEach { outbox.markState(OutboxState.ACKED.name, it.hlc.encode()) }
     }
 
+    /**
+     * A retryable failure for the whole batch.
+     *
+     * Attempts are read per entry rather than by scanning the in-flight list —
+     * the previous version ran a full scan inside the loop, and counted from
+     * zero for any entry reconcile had already moved off IN_FLIGHT, so such an
+     * entry could never reach [OutboxState.POISON] however often it failed.
+     */
     fun markFailed(batch: List<Event>, error: String, maxAttempts: Int = 8) = db.transaction {
+        val byHlc = outbox.selectAll().executeAsList().associateBy { it.hlc }
         batch.forEach { event ->
             val hlc = event.hlc.encode()
-            val current = outbox.selectByState(OutboxState.IN_FLIGHT.name)
-                .executeAsList().firstOrNull { it.hlc == hlc }
-            val attempts = (current?.attempts ?: 0) + 1
+            val attempts = (byHlc[hlc]?.attempts ?: 0) + 1
             val next = if (attempts >= maxAttempts) OutboxState.POISON else OutboxState.FAILED
             outbox.markFailed(state = next.name, last_error = error, hlc = hlc)
         }
+    }
+
+    /**
+     * Poisons only the events that are actually to blame and returns the rest to
+     * the queue.
+     *
+     * The distinction matters more than it sounds: a 400 fails the whole append,
+     * so without this one bad row takes up to 500 good financial records with
+     * it, unrecoverably — `nextBatch` never selects POISON again.
+     */
+    fun poisonOnly(offenders: List<Event>, rest: List<Event>, error: String) = db.transaction {
+        offenders.forEach { outbox.markFailed(OutboxState.POISON.name, error, it.hlc.encode()) }
+        rest.forEach { outbox.markState(OutboxState.PENDING.name, it.hlc.encode()) }
+    }
+
+    /**
+     * Returns poisoned entries to the queue with their attempt count cleared.
+     *
+     * Poison is not a grave. A row rejected because a cell was too long becomes
+     * sendable once the user shortens the note, and there has to be a way back.
+     */
+    fun retryPoisoned(): Int = db.transactionWithResult {
+        val poisoned = outbox.selectByState(OutboxState.POISON.name).executeAsList()
+        poisoned.forEach { outbox.retry(it.hlc) }
+        poisoned.size
     }
 
     /**
