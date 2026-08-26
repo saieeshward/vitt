@@ -62,3 +62,25 @@ Things that cost time to work out, recorded so they cost nobody else any:
   silently cap the app at 60fps on ProMotion displays.
 - **Do not `.ignoresSafeArea(.all)`** around the Compose view — content then draws
   under the Dynamic Island. Only the keyboard inset should be ceded to Compose.
+
+## Simulator vs device — which to use
+
+The simulator is the faster loop and is right for almost everything: no
+provisioning, no certificate expiry, and it can be driven end to end with
+`simctl` (install, launch, screenshot, reset).
+
+**Two things it cannot do.**
+
+- **Judge how the app feels under a thumb.** Touch latency and scroll physics
+  need real hardware. This is why the amount keypad was verified on a device.
+- **Hold a Keychain credential.** A simulator build is signed ad hoc, which
+  carries no keychain entitlement — `SecItemAdd` fails with `-34018` and
+  `securityd` logs *"Requestor lacks required entitlement"*. Embedding a
+  `keychain-access-groups` entitlement does not help: ad-hoc signing drops it.
+  So **sign-in does not persist in the simulator**, and the live verification
+  checks must be run on a device.
+
+That second point is worth knowing before it costs an hour. It also produced a
+useful finding: the failure used to be *silent*, because `SecItemAdd`'s status
+was ignored and the app reported a successful sign-in while holding no token.
+It now throws (`TokenStoreException`).
