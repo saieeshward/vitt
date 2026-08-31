@@ -23,6 +23,22 @@ data class Transaction(
     val day: Int,
     /** Set only when the expense was split; the full amount that was paid. */
     val totalPaid: Money?,
+    /**
+     * Who else was in on this, as the user labelled them — usually an email.
+     *
+     * Labels rather than identities: nothing here is verified, and nobody else's
+     * app learns about it. Two-sided splits would need the shared-sheet
+     * architecture in `docs/groups-plan.md`.
+     */
+    val splitWith: Set<String>,
+    /**
+     * How much of what was owed has actually come back.
+     *
+     * An absolute figure, not a running increment, so it is LWW-safe for the same
+     * reason `amount` is (`PLAN.md:220`): two devices correcting a repayment to
+     * the same value must not sum to double.
+     */
+    val settled: Money,
     val deleted: Boolean,
 ) {
     /** What the budget and the categories see: your share, not what you fronted. */
@@ -32,6 +48,22 @@ data class Transaction(
 
     /** What someone else owes on this, in the currency it was incurred in. */
     fun owed(): Money? = totalPaid?.let { it.abs() - amount.abs() }
+
+    /**
+     * What is still owed after repayments, never below zero.
+     *
+     * Floored because an over-repayment is someone rounding up, not the user
+     * owing them money back — turning it negative would quietly net against
+     * another split.
+     */
+    fun outstanding(): Money? {
+        val gross = owed() ?: return null
+        val left = gross - settled
+        return if (left.minor < 0) Money(0, gross.currency) else left
+    }
+
+    /** True when a split has been fully repaid. */
+    val isSettled: Boolean get() = outstanding()?.minor == 0L
 
     companion object {
         const val ENTITY = "transaction"
@@ -43,6 +75,29 @@ data class Transaction(
         const val FIELD_ACCOUNT = "account"
         const val FIELD_DAY = "day"
         const val FIELD_TOTAL_PAID = "total_paid"
+        const val FIELD_SETTLED = "settled"
+
+        /**
+         * Split participants are one field each, not one field holding a list.
+         *
+         * `PLAN.md:221` calls for an OR-Set here, because LWW on a JSON array
+         * drops a concurrent add: two devices each adding a different person
+         * would keep only one of them. Giving every participant its own field
+         * gets that property out of the per-field LWW the project already has —
+         * different people touch different fields and cannot collide, while a
+         * concurrent add and remove of the *same* person resolves by HLC.
+         */
+        const val FIELD_SPLIT_PREFIX = "split_with:"
+
+        /**
+         * Participants are matched case-insensitively.
+         *
+         * Email addresses are case-insensitive in practice, and `Bob@x.com`
+         * arriving from a phone while `bob@x.com` arrives from a laptop would
+         * otherwise fork one person into two.
+         */
+        fun splitKey(participant: String): String =
+            FIELD_SPLIT_PREFIX + participant.trim().lowercase()
 
         /**
          * Builds the events that record a new transaction.
@@ -59,6 +114,7 @@ data class Transaction(
             category: String?,
             accountId: String?,
             totalPaid: Money?,
+            splitWith: Set<String> = emptySet(),
             issue: () -> Hlc,
         ): List<Event> = buildList {
             fun put(field: String, value: TaggedValue) =
@@ -71,6 +127,7 @@ data class Transaction(
             category?.let { put(FIELD_CATEGORY, TaggedValue.Str(it)) }
             accountId?.let { put(FIELD_ACCOUNT, TaggedValue.Str(it)) }
             totalPaid?.let { put(FIELD_TOTAL_PAID, TaggedValue.Num(it.minor)) }
+            splitWith.forEach { put(splitKey(it), TaggedValue.Bool(true)) }
         }
 
         /**
@@ -95,6 +152,16 @@ data class Transaction(
                 day = ((entity.fields[FIELD_DAY] as? TaggedValue.Num)?.value ?: 0L).toInt(),
                 totalPaid = (entity.fields[FIELD_TOTAL_PAID] as? TaggedValue.Num)
                     ?.let { Money(it.value, currency) },
+                splitWith = entity.fields
+                    .filterKeys { it.startsWith(FIELD_SPLIT_PREFIX) }
+                    .filterValues { (it as? TaggedValue.Bool)?.value == true }
+                    .keys
+                    .map { it.removePrefix(FIELD_SPLIT_PREFIX) }
+                    .toSet(),
+                settled = Money(
+                    (entity.fields[FIELD_SETTLED] as? TaggedValue.Num)?.value ?: 0L,
+                    currency,
+                ),
                 deleted = entity.deleted,
             )
         }

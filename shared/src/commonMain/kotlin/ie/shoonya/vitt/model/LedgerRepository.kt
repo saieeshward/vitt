@@ -35,9 +35,13 @@ class LedgerRepository(
         category: String? = null,
         accountId: String? = null,
         totalPaid: Money? = null,
+        splitWith: Set<String> = emptySet(),
     ) {
         require(totalPaid == null || totalPaid.currency == amount.currency) {
             "a split cannot cross currencies"
+        }
+        require(splitWith.isEmpty() || totalPaid != null) {
+            "naming who a expense was split with needs the total that was paid"
         }
         // An account this device has not seen yet is not an error: its event may
         // still be in flight from another device, and refusing would lose the
@@ -56,11 +60,88 @@ class LedgerRepository(
             category = category,
             accountId = accountId,
             totalPaid = totalPaid,
+            splitWith = splitWith,
             issue = store::issue,
         )
         val at = now()
         events.forEach { store.append(it, at) }
     }
+
+    /**
+     * Records how much of a split has been repaid.
+     *
+     * Absolute, not incremental: pass the running total received, not the latest
+     * instalment. `PLAN.md:220` is explicit that a counter CRDT is wrong here —
+     * two devices correcting the same repayment must not sum to double.
+     */
+    fun settle(id: String, received: Money) {
+        require(received.minor >= 0) { "a repayment cannot be negative" }
+        store.append(
+            Event(
+                store.issue(),
+                Transaction.ENTITY,
+                id,
+                Transaction.FIELD_SETTLED,
+                TaggedValue.Num(received.minor),
+            ),
+            now(),
+        )
+    }
+
+    /** Marks a split fully repaid, whatever it was owed. */
+    fun settleInFull(id: String) {
+        val owed = transactions().firstOrNull { it.id == id }?.owed() ?: return
+        settle(id, owed)
+    }
+
+    /** Adds someone to a split. Their own field, so concurrent adds cannot collide. */
+    fun addSplitParticipant(id: String, participant: String) =
+        putSplitParticipant(id, participant, true)
+
+    /** Removes someone from a split, resolved against a concurrent add by HLC. */
+    fun removeSplitParticipant(id: String, participant: String) =
+        putSplitParticipant(id, participant, false)
+
+    private fun putSplitParticipant(id: String, participant: String, present: Boolean) {
+        require(participant.isNotBlank()) { "a participant needs a label" }
+        store.append(
+            Event(
+                store.issue(),
+                Transaction.ENTITY,
+                id,
+                Transaction.splitKey(participant),
+                TaggedValue.Bool(present),
+            ),
+            now(),
+        )
+    }
+
+    /** Splits with anything still outstanding, newest first. */
+    fun openSplits(): List<Transaction> = transactions()
+        .filter { it.isSplit && !it.isSettled }
+
+    /**
+     * What one participant still owes, per currency, never netted across them.
+     *
+     * Per currency for the same reason every other balance is (§0.6), and because
+     * Splitwise's free tier does the same: a single blended figure would move with
+     * the market after the fact.
+     */
+    fun outstandingBy(participant: String): Map<Currency, Money> {
+        val key = Transaction.splitKey(participant).removePrefix(Transaction.FIELD_SPLIT_PREFIX)
+        return openSplits()
+            .filter { key in it.splitWith }
+            .mapNotNull { t -> t.outstanding()?.let { t.amount.currency to it } }
+            .groupBy({ it.first }, { it.second })
+            .mapValues { (currency, amounts) ->
+                amounts.fold(Money(0, currency)) { acc, m -> acc + m }
+            }
+            .filterValues { it.minor > 0 }
+    }
+
+    /** Everyone who appears in an unsettled split, in a stable order. */
+    fun openSplitParticipants(): List<String> =
+        openSplits().flatMap { it.splitWith }.distinct().sorted()
 
     /** Soft-deletes. The row stays in the log so other devices learn about it. */
     fun delete(id: String) {
@@ -295,7 +376,7 @@ class LedgerRepository(
 
     /** Unsettled amounts owed to the user, per currency — never netted across them. */
     fun owed(): Map<Currency, Money> = transactions()
-        .mapNotNull { t -> t.owed()?.let { t.amount.currency to it } }
+        .mapNotNull { t -> t.outstanding()?.let { t.amount.currency to it } }
         .groupBy({ it.first }, { it.second })
         .mapValues { (currency, amounts) ->
             amounts.fold(Money(0, currency)) { acc, m -> acc + m }
