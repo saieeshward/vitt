@@ -2,7 +2,9 @@ package ie.shoonya.vitt.model
 
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.Money
+import ie.shoonya.vitt.sync.Event
 import ie.shoonya.vitt.sync.EventStore
+import ie.shoonya.vitt.sync.TaggedValue
 
 /**
  * Reads the app's state out of the event log, and records new transactions into
@@ -35,6 +37,15 @@ class LedgerRepository(
         require(totalPaid == null || totalPaid.currency == amount.currency) {
             "a split cannot cross currencies"
         }
+        // An account this device has not seen yet is not an error: its event may
+        // still be in flight from another device, and refusing would lose the
+        // transaction outright. Only a *known* mismatch is a caller bug.
+        if (accountId != null) {
+            val account = accounts(includeArchived = true).firstOrNull { it.id == accountId }
+            require(account == null || account.currency == amount.currency) {
+                "a transaction cannot be recorded into an account of another currency"
+            }
+        }
         val events = Transaction.events(
             id = id,
             amount = amount,
@@ -62,6 +73,90 @@ class LedgerRepository(
             now(),
         )
     }
+
+    /**
+     * Records a new account and queues it for the sheet.
+     *
+     * The currency is fixed at creation and there is deliberately no way to
+     * change it: the transactions already recorded against the account are
+     * denominated in it, and re-denominating them would require a rate the app
+     * refuses to invent (`PLAN.md` §0.6).
+     */
+    fun openAccount(
+        id: String,
+        name: String,
+        currency: Currency,
+        kind: AccountKind = AccountKind.CURRENT,
+        opening: Money = Money(0, currency),
+    ) {
+        val events = Account.events(
+            id = id,
+            name = name,
+            currency = currency,
+            kind = kind,
+            opening = opening,
+            issue = store::issue,
+        )
+        val at = now()
+        events.forEach { store.append(it, at) }
+    }
+
+    /** Renames an account. One field, so a concurrent archive still wins separately. */
+    fun renameAccount(id: String, name: String) =
+        putAccountField(id, Account.FIELD_NAME, TaggedValue.Str(name))
+
+    /**
+     * Archives or unarchives an account.
+     *
+     * Not a delete: the account leaves the pickers but its transactions stay in
+     * the ledger, because they happened.
+     */
+    fun setAccountArchived(id: String, archived: Boolean) =
+        putAccountField(id, Account.FIELD_ARCHIVED, TaggedValue.Bool(archived))
+
+    private fun putAccountField(id: String, field: String, value: TaggedValue) {
+        store.append(Event(store.issue(), Account.ENTITY, id, field, value), now())
+    }
+
+    /** Every live account, in creation order, archived ones last. */
+    fun accounts(includeArchived: Boolean = false): List<Account> = store.fold()
+        .mapNotNull { (key, entity) -> Account.from(key, entity) }
+        .filterNot { it.deleted }
+        .filter { includeArchived || !it.archived }
+        .sortedWith(compareBy<Account> { it.archived }.thenBy { it.id })
+
+    /**
+     * Each account with its balance, folded out of the transactions assigned to it.
+     *
+     * A transaction whose currency does not match its account is ignored rather
+     * than coerced — that combination can only arrive from a hand-edited sheet
+     * row, and adding it would produce a balance in no currency at all.
+     * Transactions with no account are not attributed to any account.
+     */
+    fun accountBalances(includeArchived: Boolean = false): List<AccountBalance> {
+        val byAccount = transactions()
+            .filter { it.accountId != null }
+            .groupBy { it.accountId!! }
+
+        return accounts(includeArchived).map { account ->
+            val mine = byAccount[account.id].orEmpty()
+                .filter { it.amount.currency == account.currency }
+            AccountBalance(
+                account = account,
+                balance = mine.fold(account.opening) { acc, t -> acc + t.amount },
+                transactionCount = mine.size,
+            )
+        }
+    }
+
+    /**
+     * Transactions not assigned to any account.
+     *
+     * Surfaced rather than hidden: share-sheet and CSV capture cannot always tell
+     * which account paid, and an unassigned pile the user never sees is how a
+     * balance quietly stops matching the bank.
+     */
+    fun unassigned(): List<Transaction> = transactions().filter { it.accountId == null }
 
     /** Every live transaction, newest first. */
     fun transactions(): List<Transaction> = store.fold()
