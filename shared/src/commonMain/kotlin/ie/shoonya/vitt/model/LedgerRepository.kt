@@ -2,7 +2,9 @@ package ie.shoonya.vitt.model
 
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.Money
+import ie.shoonya.vitt.money.Rate
 import ie.shoonya.vitt.sync.Event
+import ie.shoonya.vitt.sync.EventLog
 import ie.shoonya.vitt.sync.EventStore
 import ie.shoonya.vitt.sync.TaggedValue
 
@@ -138,13 +140,23 @@ class LedgerRepository(
             .filter { it.accountId != null }
             .groupBy { it.accountId!! }
 
+        val moves = transfers()
+
         return accounts(includeArchived).map { account ->
             val mine = byAccount[account.id].orEmpty()
                 .filter { it.amount.currency == account.currency }
+            // Transfers move the balance even though they are not spending. A
+            // leg whose currency does not match the account can only come from a
+            // hand-edited row, and adding it would produce a balance in no
+            // currency at all.
+            val legs = moves.mapNotNull { it.effectOn(account.id) }
+                .filter { it.currency == account.currency }
             AccountBalance(
                 account = account,
-                balance = mine.fold(account.opening) { acc, t -> acc + t.amount },
+                balance = (mine.map { it.amount } + legs)
+                    .fold(account.opening) { acc, m -> acc + m },
                 transactionCount = mine.size,
+                transferCount = legs.size,
             )
         }
     }
@@ -194,6 +206,88 @@ class LedgerRepository(
             )
         }
     }
+
+    /**
+     * Records money moved between two of the user's own accounts.
+     *
+     * Both amounts are magnitudes; direction comes from the two account ids. When
+     * they differ in currency their quotient becomes the transfer's locked rate —
+     * observed, not fetched (§0.6).
+     *
+     * @param sent what left [fromAccountId], positive.
+     * @param received what arrived in [toAccountId], positive. Equal to [sent]
+     * for a clean same-currency move; smaller when a fee was taken.
+     */
+    fun transfer(
+        id: String,
+        fromAccountId: String,
+        toAccountId: String,
+        sent: Money,
+        received: Money,
+        day: Int,
+        note: String? = null,
+    ) {
+        Transfer.validate(fromAccountId, toAccountId, sent, received)
+        // As with `record`, an account this device has not seen yet is not an
+        // error — its event may still be in flight. Only a known mismatch is a
+        // caller bug, and re-denominating a leg would need a rate we refuse to
+        // invent.
+        val known = accounts(includeArchived = true).associateBy { it.id }
+        known[fromAccountId]?.let {
+            require(it.currency == sent.currency) {
+                "the sent leg must be in the source account's currency"
+            }
+        }
+        known[toAccountId]?.let {
+            require(it.currency == received.currency) {
+                "the received leg must be in the destination account's currency"
+            }
+        }
+
+        val events = Transfer.events(
+            id = id,
+            fromAccountId = fromAccountId,
+            toAccountId = toAccountId,
+            sent = sent,
+            received = received,
+            day = day,
+            note = note,
+            issue = store::issue,
+        )
+        val at = now()
+        events.forEach { store.append(it, at) }
+    }
+
+    /** Soft-deletes a transfer, so other devices learn the move did not happen. */
+    fun deleteTransfer(id: String) {
+        store.append(
+            Event(
+                store.issue(),
+                Transfer.ENTITY,
+                id,
+                EventLog.TOMBSTONE_FIELD,
+                TaggedValue.Bool(true),
+            ),
+            now(),
+        )
+    }
+
+    /** Every live transfer, newest first. */
+    fun transfers(): List<Transfer> = store.fold()
+        .mapNotNull { (key, entity) -> Transfer.from(key, entity) }
+        .filterNot { it.deleted }
+        .sortedWith(compareByDescending<Transfer> { it.day }.thenByDescending { it.id })
+
+    /**
+     * Every rate this user's own money actually moved at, newest first.
+     *
+     * The app's complete FX record. Deliberately not a rate *table*: there is no
+     * entry for a pair the user never transferred, and no interpolation between
+     * the ones they did.
+     */
+    fun observedRates(): List<Pair<Int, Rate>> = transfers()
+        .filter { it.isCrossCurrency }
+        .mapNotNull { t -> t.rate?.let { t.day to it } }
 
     /** Transactions grouped by day, newest day first, for the activity list. */
     fun byDay(): List<Pair<Int, List<Transaction>>> =

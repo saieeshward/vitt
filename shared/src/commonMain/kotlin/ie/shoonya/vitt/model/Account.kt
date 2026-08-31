@@ -154,6 +154,8 @@ data class AccountBalance(
     val account: Account,
     val balance: Money,
     val transactionCount: Int,
+    /** Transfer legs touching this account — moves in or out, never spending. */
+    val transferCount: Int = 0,
 ) {
     /**
      * The magnitude to display, with [owed] saying which way to read it.
