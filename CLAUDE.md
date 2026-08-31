@@ -6,17 +6,25 @@ about how to work in the repo.
 
 ## Repo state (keep this accurate)
 
-Pre-alpha, Phase 1 complete. Four modules exist: `:shared`, `:composeApp` (KMP
-library holding the shared Compose UI), `:androidApp` and `iosApp/` (thin shells that
-only host it). Display name is **VITT**; the package namespace stays
-`ie.shoonya.vitt`.
+Pre-alpha. Phase 1 (all three spikes) and the OAuth + Sheets write path are done;
+Phase 2's engine exists and Phase 3's app shell is standing. Four modules:
+`:shared`, `:composeApp` (KMP library holding the shared Compose UI), `:androidApp`
+and `iosApp/` (thin shells that only host it). Display name is **VITT**; the package
+namespace stays `ie.shoonya.vitt`.
 
 ```
 shared/src/commonMain/kotlin/ie/shoonya/vitt/
+  auth/      Pkce, AuthFlow, AuthManager, TokenStore, Crypto — drive.file OAuth
   capture/   AmountParser, CsvImport
+  model/     Transaction, LedgerRepository
   money/     Money, AmountEntry  — minor-unit integers, never Double
-  sync/      Hlc, Iso8601, Event, EventLog, Outbox
-composeApp/src/commonMain/.../ui/   AmountKeypad, SpikeApp
+  net/       HttpClientFactory
+  sheets/    SheetsClient, SheetsWire, SheetsError, LiveVerification
+  sync/      Hlc, Iso8601, Event, EventLog, EventStore, Outbox, DeviceIdentity, Bisect
+composeApp/src/commonMain/.../ui/
+  VittApp, AppRoot, AmountKeypad, MoneyLine, Pip, Icons, VerifyScreen
+  screens/   AddScreen, ActivityScreen, LedgersScreen, HabitScreen
+  theme/     VittTheme, VittColors, Palette
 ```
 
 Build constraints worth knowing before touching Gradle are in
@@ -90,3 +98,26 @@ Kotlin/Native rejects a comma inside a backticked function name where the JVM
 accepts it, so `./gradlew :shared:jvmTest` can pass while the iOS target fails to
 compile. Use an em dash instead, and run `:shared:allTests` before relying on a
 green suite.
+
+## Updates log — `vitt.clan`
+
+State lives in **`vitt.clan`** at the repo root, not in this file. It is a
+[CLAN](https://github.com/saieeshward/clan) file — a ZIP of structured members the
+`clan` CLI mutates, with attribution enforced at write time.
+
+```bash
+clan read agent vitt.clan      # start here every session: phase, next tasks, blockers
+clan info vitt.clan            # manifest and lineage
+```
+
+Append before you report a piece of work done:
+
+```bash
+clan patch-data vitt.clan --set phase='...' --agent claude-code \
+  --action '<verb>' --rationale '<why>'          # state changed
+clan patch-decision vitt.clan --agent claude-code \
+  --action '<verb>' --rationale '<why>'          # decision worth more than the data
+```
+
+Arrays replace by default — use `--append next` to add rather than overwrite.
+Keep this file for conventions and constraints; keep *where we are* in `vitt.clan`.
