@@ -126,12 +126,16 @@ class LedgerRepository(
      * Per currency for the same reason every other balance is (§0.6), and because
      * Splitwise's free tier does the same: a single blended figure would move with
      * the market after the fact.
+     *
+     * A split shared with several people contributes only this person's share of
+     * what is outstanding — see [Transaction.outstandingFor]. Attributing the
+     * whole amount to each of them would count one debt once per participant.
      */
     fun outstandingBy(participant: String): Map<Currency, Money> {
         val key = Transaction.splitKey(participant).removePrefix(Transaction.FIELD_SPLIT_PREFIX)
         return openSplits()
             .filter { key in it.splitWith }
-            .mapNotNull { t -> t.outstanding()?.let { t.amount.currency to it } }
+            .mapNotNull { t -> t.outstandingFor(key)?.let { t.amount.currency to it } }
             .groupBy({ it.first }, { it.second })
             .mapValues { (currency, amounts) ->
                 amounts.fold(Money(0, currency)) { acc, m -> acc + m }

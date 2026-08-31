@@ -78,6 +78,22 @@ class SettlementSummaryTest {
     }
 
     @Test
+    fun `a summary bills one person only their share of a shared split`() {
+        val r = repo()
+        r.record(
+            "t1", Money(-3000, Currency.EUR), day = 20_000, merchant = "Taxi",
+            totalPaid = Money(-9000, Currency.EUR),
+            splitWith = setOf("bob@example.com", "cara@example.com"),
+        )
+        val m = assertNotNull(summaryFor(r, "bob@example.com"))
+        assertTrue(m.body.contains("between 2"))
+        assertTrue(m.body.contains("EUR 30.00 owed"))
+        assertTrue(m.body.contains("Total owed: EUR 30.00"))
+        // Never the whole remainder, which would bill the same money twice.
+        assertTrue(!m.body.contains("EUR 60.00 owed"))
+    }
+
+    @Test
     fun `a settled split produces no summary`() {
         val r = repo()
         r.record(

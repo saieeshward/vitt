@@ -65,6 +65,30 @@ data class Transaction(
     /** True when a split has been fully repaid. */
     val isSettled: Boolean get() = outstanding()?.minor == 0L
 
+    /**
+     * What one participant still owes, of a split shared between several.
+     *
+     * The outstanding amount divided equally, because per-participant shares are
+     * not recorded — only the total the user fronted and their own share. Equal
+     * division is an assumption, but the alternative is worse: attributing the
+     * *whole* outstanding to each of them counts one debt twice, so three friends
+     * owing €40 between them would read as €120.
+     *
+     * [Money.splitEvenly] distributes the remainder, so the shares always sum
+     * back to exactly what is outstanding — nobody's rounding invents money.
+     *
+     * Participants are sorted so every device assigns the same remainder cent to
+     * the same person.
+     */
+    fun outstandingFor(participant: String): Money? {
+        val left = outstanding() ?: return null
+        val who = participant.trim().lowercase()
+        val index = splitWith.sorted().indexOf(who)
+        if (index < 0) return null
+        if (splitWith.isEmpty()) return left
+        return left.splitEvenly(splitWith.size)[index]
+    }
+
     companion object {
         const val ENTITY = "transaction"
 

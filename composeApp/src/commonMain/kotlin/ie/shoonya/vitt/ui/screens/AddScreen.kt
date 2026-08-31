@@ -1,5 +1,7 @@
 package ie.shoonya.vitt.ui.screens
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import ie.shoonya.vitt.model.Account
 import ie.shoonya.vitt.money.AmountEntry
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.Money
@@ -35,16 +38,35 @@ enum class EntryKind { Expense, Income }
 @Composable
 fun AddScreen(
     currencies: List<Currency>,
-    onSave: (amount: Money, merchant: String?, category: String?) -> Unit,
+    accounts: List<Account>,
+    onSave: (
+        amount: Money,
+        merchant: String?,
+        category: String?,
+        accountId: String?,
+        totalPaid: Money?,
+    ) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var entry by remember { mutableStateOf(AmountEntry(currency = currencies.firstOrNull() ?: Currency.EUR)) }
     var kind by remember { mutableStateOf(EntryKind.Expense) }
     var category by remember { mutableStateOf<String?>(null) }
+    var account by remember { mutableStateOf(accounts.firstOrNull()) }
+    var split by remember { mutableStateOf(false) }
+    // The second leg of a split: what was actually handed over, of which the
+    // amount above is only the user's share.
+    var paidEntry by remember { mutableStateOf(AmountEntry(currency = entry.currency)) }
+    var onPaidStep by remember { mutableStateOf(false) }
 
     Column(
-        modifier = modifier.fillMaxWidth().padding(Vitt.space.loose),
+        modifier = modifier
+            .fillMaxWidth()
+            // The keypad plus the category chips is taller than the sheet, and a
+            // plain Column clips the overflow — the last row of categories was
+            // simply unreachable. Scrolling keeps all of it available.
+            .verticalScroll(rememberScrollState())
+            .padding(Vitt.space.loose),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
     ) {
         Row(
@@ -52,20 +74,56 @@ fun AddScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextButton(onClick = onCancel) { Text("Cancel") }
-            Text("New", style = Vitt.type.title, color = Vitt.colors.ink)
-            Button(
-                enabled = !entry.isEmpty,
-                onClick = {
-                    // The keypad holds a magnitude; the sign comes from the
-                    // chosen direction, never guessed from the input.
-                    val signed = when (kind) {
-                        EntryKind.Expense -> Money(-entry.money.minor, entry.currency)
-                        EntryKind.Income -> entry.money
-                    }
-                    onSave(signed, null, category)
-                },
-            ) { Text("Save") }
+            TextButton(onClick = if (onPaidStep) ({ onPaidStep = false }) else onCancel) {
+                Text(if (onPaidStep) "Back" else "Cancel")
+            }
+            Text(
+                if (onPaidStep) "Total paid" else "New",
+                style = Vitt.type.title,
+                color = Vitt.colors.ink,
+            )
+            if (split && !onPaidStep) {
+                Button(enabled = !entry.isEmpty, onClick = { onPaidStep = true }) { Text("Next") }
+            } else {
+                Button(
+                    enabled = !entry.isEmpty && (!split || paidEntry.money.minor >= entry.money.minor),
+                    onClick = {
+                        // The keypad holds a magnitude; the sign comes from the
+                        // chosen direction, never guessed from the input.
+                        val signed = when (kind) {
+                            EntryKind.Expense -> Money(-entry.money.minor, entry.currency)
+                            EntryKind.Income -> entry.money
+                        }
+                        val paid = if (split) {
+                            Money(
+                                if (signed.minor < 0) -paidEntry.money.minor else paidEntry.money.minor,
+                                entry.currency,
+                            )
+                        } else {
+                            null
+                        }
+                        onSave(signed, null, category, account?.id, paid)
+                    },
+                ) { Text("Save") }
+            }
+        }
+
+        if (onPaidStep) {
+            Text(
+                "The whole bill, not your share. Your share stays " +
+                    "${entry.display()}, and the difference is what someone owes you.",
+                style = Vitt.type.label,
+                color = Vitt.colors.inkMuted,
+            )
+            AmountKeypad(entry = paidEntry, onEntryChange = { paidEntry = it })
+            if (!paidEntry.isEmpty && paidEntry.money.minor < entry.money.minor) {
+                Text(
+                    "The total paid cannot be less than your own share.",
+                    style = Vitt.type.label,
+                    color = Vitt.colors.destructive,
+                )
+            }
+            return@Column
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.snug)) {
@@ -90,7 +148,42 @@ fun AddScreen(
             }
         }
 
+        if (accounts.isNotEmpty()) {
+            Text("Account", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
+            @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+            androidx.compose.foundation.layout.FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+                verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+            ) {
+                accounts.forEach { a ->
+                    FilterChip(
+                        selected = account == a,
+                        // Tapping the chosen account clears it. Capture often
+                        // cannot tell which account paid, and forcing a guess is
+                        // worse than leaving it unassigned and visible.
+                        onClick = {
+                            account = if (account == a) null else a
+                            if (account != null) entry = entry.withCurrency(a.currency)
+                        },
+                        label = { Text(a.name, style = Vitt.type.label) },
+                    )
+                }
+            }
+        }
+
         AmountKeypad(entry = entry, onEntryChange = { entry = it })
+
+        Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.snug)) {
+            FilterChip(
+                selected = split,
+                onClick = {
+                    split = !split
+                    if (split) paidEntry = paidEntry.withCurrency(entry.currency)
+                },
+                label = { Text("Split this", style = Vitt.type.label) },
+            )
+        }
 
         // Deliberately no text fields on this screen.
         //

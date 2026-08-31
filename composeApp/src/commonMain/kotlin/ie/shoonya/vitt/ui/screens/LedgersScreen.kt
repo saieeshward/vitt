@@ -39,6 +39,12 @@ fun LedgersScreen(
     ledgers: List<Ledger>,
     owed: Map<Currency, Money>,
     daysRecorded: Int,
+    balances: List<ie.shoonya.vitt.model.AccountBalance>,
+    transfers: List<ie.shoonya.vitt.model.Transfer>,
+    onAddAccount: () -> Unit,
+    onTransfer: () -> Unit,
+    accountName: (String) -> String,
+    formatDay: (Int) -> String,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -71,6 +77,15 @@ fun LedgersScreen(
         if (owed.isNotEmpty()) {
             item { OwedRow(owed) }
         }
+
+        accountsSection(
+            balances = balances,
+            transfers = transfers,
+            onAddAccount = onAddAccount,
+            onTransfer = onTransfer,
+            accountName = accountName,
+            formatDay = formatDay,
+        )
     }
 }
 

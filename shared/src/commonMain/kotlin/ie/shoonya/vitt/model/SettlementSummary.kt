@@ -43,7 +43,7 @@ object SettlementSummary {
         if (theirs.isEmpty()) return null
 
         val totals = theirs
-            .mapNotNull { t -> t.outstanding()?.let { t.amount.currency to it } }
+            .mapNotNull { t -> t.outstandingFor(participant)?.let { t.amount.currency to it } }
             .groupBy({ it.first }, { it.second })
             .mapValues { (currency, amounts) ->
                 amounts.fold(Money(0, currency)) { acc, m -> acc + m }
@@ -55,7 +55,11 @@ object SettlementSummary {
         lines += theirs.map { t ->
             val what = t.merchant ?: t.category ?: "expense"
             val paid = t.totalPaid?.abs()?.format() ?: t.amount.abs().format()
-            "${formatDay(t.day)} — $what, $paid paid, ${t.outstanding()?.format()} owed"
+            // Their share of what is left, not the split's whole remainder —
+            // otherwise two people each get billed for the same money.
+            val theirShare = t.outstandingFor(participant)?.format()
+            val between = if (t.splitWith.size > 1) " between ${t.splitWith.size}" else ""
+            "${formatDay(t.day)} — $what, $paid paid$between, $theirShare owed"
         }
         lines += ""
         lines += if (totals.size == 1) {

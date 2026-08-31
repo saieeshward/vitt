@@ -57,6 +57,29 @@ class VittServices(
         val eur = ie.shoonya.vitt.money.Currency.EUR
         val inr = ie.shoonya.vitt.money.Currency.INR
 
+        // Accounts first: `record` checks a transaction's currency against its
+        // account, so they have to exist before anything references them.
+        ledger.openAccount(
+            "sample-acc-aib", "AIB current", eur,
+            ie.shoonya.vitt.model.AccountKind.CURRENT,
+            ie.shoonya.vitt.money.Money(214_500, eur),
+        )
+        ledger.openAccount(
+            "sample-acc-revolut", "Revolut", eur,
+            ie.shoonya.vitt.model.AccountKind.CURRENT,
+            ie.shoonya.vitt.money.Money(38_000, eur),
+        )
+        ledger.openAccount(
+            "sample-acc-visa", "Visa", eur,
+            ie.shoonya.vitt.model.AccountKind.CREDIT,
+            ie.shoonya.vitt.money.Money(-42_150, eur),
+        )
+        ledger.openAccount(
+            "sample-acc-hdfc", "HDFC savings", inr,
+            ie.shoonya.vitt.model.AccountKind.SAVINGS,
+            ie.shoonya.vitt.money.Money(1_450_000, inr),
+        )
+
         // Two weeks of a plausible month across two currencies: salary in, rent
         // out, a scatter of daily spending, and one split. Enough for the ledger
         // cards, the activity list and the owed row to each have something real.
@@ -80,12 +103,21 @@ class VittServices(
         )
 
         seeds.forEachIndexed { i, (day, amount, what) ->
+            val currency = amount.second
             ledger.record(
                 id = "sample-" + i.toString().padStart(2, '0'),
-                amount = ie.shoonya.vitt.money.Money(amount.first, amount.second),
+                amount = ie.shoonya.vitt.money.Money(amount.first, currency),
                 day = day,
                 merchant = what.first,
                 category = what.second,
+                // Most entries land in an account; a couple deliberately do not,
+                // so the unassigned case is visible rather than theoretical.
+                accountId = when {
+                    currency == inr -> "sample-acc-hdfc"
+                    what.second == "Subscriptions" -> "sample-acc-visa"
+                    i % 5 == 3 -> null
+                    else -> "sample-acc-aib"
+                },
             )
         }
 
@@ -97,7 +129,43 @@ class VittServices(
             day = today - 5,
             merchant = "Dinner with Anya",
             category = "Dining",
+            accountId = "sample-acc-revolut",
             totalPaid = ie.shoonya.vitt.money.Money(-4610, eur),
+            splitWith = setOf("anya@example.com"),
+        )
+
+        // A second split, partly repaid, so the settlement path has something to
+        // show that is neither untouched nor closed.
+        ledger.record(
+            id = "sample-split-2",
+            amount = ie.shoonya.vitt.money.Money(-3000, eur),
+            day = today - 9,
+            merchant = "Taxi to airport",
+            category = "Transport",
+            accountId = "sample-acc-aib",
+            totalPaid = ie.shoonya.vitt.money.Money(-9000, eur),
+            splitWith = setOf("anya@example.com", "dev@example.com"),
+        )
+        ledger.settle("sample-split-2", ie.shoonya.vitt.money.Money(2000, eur))
+
+        // Two transfers: one across currencies, which is the only place a rate is
+        // ever recorded, and one within a currency that lost money to a fee.
+        ledger.transfer(
+            id = "sample-transfer-1",
+            fromAccountId = "sample-acc-aib",
+            toAccountId = "sample-acc-hdfc",
+            sent = ie.shoonya.vitt.money.Money(50_000, eur),
+            received = ie.shoonya.vitt.money.Money(4_455_000, inr),
+            day = today - 7,
+            note = "rent home",
+        )
+        ledger.transfer(
+            id = "sample-transfer-2",
+            fromAccountId = "sample-acc-aib",
+            toAccountId = "sample-acc-revolut",
+            sent = ie.shoonya.vitt.money.Money(20_000, eur),
+            received = ie.shoonya.vitt.money.Money(19_950, eur),
+            day = today - 2,
         )
     }
 

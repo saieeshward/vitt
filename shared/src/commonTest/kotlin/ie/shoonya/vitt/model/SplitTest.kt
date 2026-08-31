@@ -219,6 +219,57 @@ class SplitTest {
     }
 
     @Test
+    fun `a debt shared between two people is not billed to each in full`() {
+        // Caught in the simulator: a EUR 90 taxi split three ways showed EUR 40
+        // outstanding under *both* named participants, so one debt read as two.
+        val r = repo()
+        r.record(
+            "t1", Money(-3000, Currency.EUR), day = 20_000, merchant = "Taxi",
+            totalPaid = Money(-9000, Currency.EUR),
+            splitWith = setOf("bob@example.com", "cara@example.com"),
+        )
+        assertEquals(Money(3000, Currency.EUR), r.outstandingBy("bob@example.com")[Currency.EUR])
+        assertEquals(Money(3000, Currency.EUR), r.outstandingBy("cara@example.com")[Currency.EUR])
+        // And together they account for exactly what is owed, no more.
+        assertEquals(Money(6000, Currency.EUR), r.transactions().single().outstanding())
+    }
+
+    @Test
+    fun `an odd share distributes the remainder without inventing money`() {
+        val r = repo()
+        r.record(
+            "t1", Money(-1, Currency.EUR), day = 20_000,
+            totalPaid = Money(-101, Currency.EUR),
+            splitWith = setOf("a@x.com", "b@x.com", "c@x.com"),
+        )
+        val t = r.transactions().single()
+        val shares = listOf("a@x.com", "b@x.com", "c@x.com").map { t.outstandingFor(it)!!.minor }
+        assertEquals(100L, t.outstanding()!!.minor)
+        assertEquals(100L, shares.sum())
+        assertEquals(listOf(34L, 33L, 33L), shares)
+    }
+
+    @Test
+    fun `a partial repayment reduces every participant's share`() {
+        val r = repo()
+        r.record(
+            "t1", Money(-3000, Currency.EUR), day = 20_000,
+            totalPaid = Money(-9000, Currency.EUR),
+            splitWith = setOf("bob@example.com", "cara@example.com"),
+        )
+        r.settle("t1", Money(2000, Currency.EUR))
+        assertEquals(Money(2000, Currency.EUR), r.outstandingBy("bob@example.com")[Currency.EUR])
+        assertEquals(Money(2000, Currency.EUR), r.outstandingBy("cara@example.com")[Currency.EUR])
+    }
+
+    @Test
+    fun `somebody not in a split owes nothing on it`() {
+        val r = repo()
+        r.dinner("bob@example.com")
+        assertNull(r.transactions().single().outstandingFor("cara@example.com"))
+    }
+
+    @Test
     fun `open participants are listed once and sorted`() {
         val r = repo()
         r.record(
