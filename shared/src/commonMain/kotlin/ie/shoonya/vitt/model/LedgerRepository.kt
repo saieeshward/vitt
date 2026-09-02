@@ -6,6 +6,7 @@ import ie.shoonya.vitt.money.Rate
 import ie.shoonya.vitt.sync.Event
 import ie.shoonya.vitt.sync.EventLog
 import ie.shoonya.vitt.sync.EventStore
+import ie.shoonya.vitt.time.YearMonth
 import ie.shoonya.vitt.sync.TaggedValue
 
 /**
@@ -264,11 +265,16 @@ class LedgerRepository(
     /**
      * One ledger per currency the user actually has, in a stable order.
      *
+     * @param month restricts the spent and received figures to one calendar
+     * month. Null totals all of history, which is what a lifetime view wants —
+     * but the home screen's cards are monthly and must pass one.
+     *
      * Order is by first appearance rather than by size, so a currency's colour
      * does not change under the user when they spend more in another one.
      */
-    fun ledgers(budgets: Map<Currency, Money> = emptyMap()): List<Ledger> {
+    fun ledgers(month: YearMonth? = null): List<Ledger> {
         val all = transactions()
+        val limits = budgets()
         // True first appearance: oldest day first, and within a day the order
         // the rows were written. Reversing the display list instead made the
         // order depend on how ids happened to sort, so a currency's colour was
@@ -279,7 +285,12 @@ class LedgerRepository(
             .distinct()
 
         return order.mapIndexed { index, currency ->
-            val forCurrency = all.filter { it.amount.currency == currency }
+            // Order comes from all of history so a currency's colour never moves,
+            // but the amounts are the period's — the card says "out this month"
+            // and has to mean it.
+            val forCurrency = all
+                .filter { it.amount.currency == currency }
+                .filter { month == null || it.day in month }
             Ledger(
                 currency = currency,
                 index = index,
@@ -287,10 +298,42 @@ class LedgerRepository(
                     .fold(Money(0, currency)) { acc, t -> acc + t.amount.abs() },
                 received = forCurrency.filter { it.amount.isInflow }
                     .fold(Money(0, currency)) { acc, t -> acc + t.amount },
-                budget = budgets[currency],
+                budget = limits[currency]?.limit,
             )
         }
     }
+
+    /**
+     * Sets a currency's monthly limit, replacing any previous one.
+     *
+     * Keyed by currency, so this is an edit rather than an insert however many
+     * times it is called or from how many devices.
+     */
+    fun setBudget(currency: Currency, limit: Money) {
+        val events = Budget.events(currency, limit, store::issue)
+        val at = now()
+        events.forEach { store.append(it, at) }
+    }
+
+    /** Removes a currency's budget. Soft, so other devices learn it is gone. */
+    fun clearBudget(currency: Currency) {
+        store.append(
+            Event(
+                store.issue(),
+                Budget.ENTITY,
+                Budget.idFor(currency),
+                EventLog.TOMBSTONE_FIELD,
+                TaggedValue.Bool(true),
+            ),
+            now(),
+        )
+    }
+
+    /** Every live budget, by currency. */
+    fun budgets(): Map<Currency, Budget> = store.fold()
+        .mapNotNull { (key, entity) -> Budget.from(key, entity) }
+        .filterNot { it.deleted }
+        .associateBy { it.currency }
 
     /**
      * Records money moved between two of the user's own accounts.

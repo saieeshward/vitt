@@ -73,7 +73,8 @@ class LedgerRepositoryTest {
         r.record("t1", Money(-1250, Currency.EUR), day = 20_000)
         assertNull(r.ledgers().single().remaining(), "no budget means no figure, not zero")
 
-        val budgeted = r.ledgers(mapOf(Currency.EUR to Money(180000, Currency.EUR))).single()
+        r.setBudget(Currency.EUR, Money(180000, Currency.EUR))
+        val budgeted = r.ledgers().single()
         assertEquals(178750L, budgeted.remaining()?.minor)
         assertEquals(1250f / 180000f, budgeted.pressure())
     }

@@ -1,5 +1,7 @@
 package ie.shoonya.vitt.sync
 
+import ie.shoonya.vitt.time.Civil
+
 /**
  * Fixed-width UTC timestamp formatting: exactly `2026-08-25T22:23:42.123Z`,
  * 24 characters, always.
@@ -22,7 +24,7 @@ internal object Iso8601 {
         var days = epochMillis.floorDiv(MILLIS_PER_DAY)
         var millisOfDay = epochMillis.mod(MILLIS_PER_DAY)
 
-        val (y, m, d) = civilFromDays(days)
+        val (y, m, d) = Civil.fromDays(days.toInt())
         val millis = (millisOfDay % 1000).toInt()
         millisOfDay /= 1000
         val second = (millisOfDay % 60).toInt()
@@ -51,7 +53,7 @@ internal object Iso8601 {
         val minute = iso.substring(14, 16).toInt()
         val second = iso.substring(17, 19).toInt()
         val millis = iso.substring(20, 23).toInt()
-        val days = daysFromCivil(year, month, day)
+        val days = Civil.toDays(year, month, day).toLong()
         return days * MILLIS_PER_DAY +
             hour * 3_600_000L + minute * 60_000L + second * 1_000L + millis
     }
@@ -62,26 +64,5 @@ internal object Iso8601 {
     }
 
     /** Days since 1970-01-01 for a civil date. Exact; no leap-year special cases missed. */
-    private fun daysFromCivil(y: Int, m: Int, d: Int): Long {
-        val yAdj = if (m <= 2) y - 1 else y
-        val era = (if (yAdj >= 0) yAdj else yAdj - 399) / 400
-        val yoe = yAdj - era * 400
-        val mp = (m + 9) % 12
-        val doy = (153 * mp + 2) / 5 + d - 1
-        val doe = yoe * 365 + yoe / 4 - yoe / 100 + doy
-        return era.toLong() * 146_097L + doe.toLong() - 719_468L
-    }
 
-    private fun civilFromDays(daysSinceEpoch: Long): Triple<Int, Int, Int> {
-        val z = daysSinceEpoch + 719_468L
-        val era = (if (z >= 0) z else z - 146_096L) / 146_097L
-        val doe = z - era * 146_097L
-        val yoe = (doe - doe / 1460 + doe / 36524 - doe / 146_096) / 365
-        val y = yoe + era * 400
-        val doy = doe - (365 * yoe + yoe / 4 - yoe / 100)
-        val mp = (5 * doy + 2) / 153
-        val d = doy - (153 * mp + 2) / 5 + 1
-        val m = if (mp < 10) mp + 3 else mp - 9
-        return Triple((if (m <= 2) y + 1 else y).toInt(), m.toInt(), d.toInt())
-    }
 }

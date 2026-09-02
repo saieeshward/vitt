@@ -1,6 +1,7 @@
 package ie.shoonya.vitt.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ fun LedgersScreen(
     ledgers: List<Ledger>,
     owed: Map<Currency, Money>,
     daysRecorded: Int,
+    onSetBudget: (Currency) -> Unit,
     balances: List<ie.shoonya.vitt.model.AccountBalance>,
     transfers: List<ie.shoonya.vitt.model.Transfer>,
     onAddAccount: () -> Unit,
@@ -70,7 +72,7 @@ fun LedgersScreen(
         if (ledgers.isEmpty()) {
             item { EmptyLedgers() }
         } else {
-            items(ledgers) { LedgerCard(it) }
+            items(ledgers) { LedgerCard(it, onSetBudget) }
             item { NoTotalNote() }
         }
 
@@ -90,7 +92,7 @@ fun LedgersScreen(
 }
 
 @Composable
-private fun LedgerCard(ledger: Ledger) {
+private fun LedgerCard(ledger: Ledger, onSetBudget: (Currency) -> Unit) {
     val colors = Vitt.colors
     val remaining = ledger.remaining()
     val pressure = ledger.pressure()
@@ -110,6 +112,10 @@ private fun LedgerCard(ledger: Ledger) {
             )
             .clip(RoundedCornerShape(Vitt.radius.card))
             .background(colors.card)
+            // The whole card opens the budget for its currency. Tapping the thing
+            // the limit applies to needs no separate affordance, and the card has
+            // no other action competing for the gesture.
+            .clickable { onSetBudget(ledger.currency) }
             .padding(Vitt.space.loose),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.hair),
     ) {
@@ -141,10 +147,13 @@ private fun LedgerCard(ledger: Ledger) {
         Text(
             text = when {
                 remaining != null && remaining.minor >= 0 ->
-                    "left of ${ledger.budget!!.display()}"
+                    // A limit is a threshold, not a flow, so it takes no sign. `display()`
+                    // prefixes "+" for anything positive, which rendered the budget
+                    // as "left of +€1,800.00".
+                    "left of ${ledger.budget!!.displayUnsigned()}"
                 remaining != null ->
-                    "past ${ledger.budget!!.display()}"
-                else -> "out this month"
+                    "past ${ledger.budget!!.displayUnsigned()}"
+                else -> "out this month · tap to set a budget"
             },
             style = Vitt.type.label,
             color = colors.inkMuted,
@@ -199,7 +208,10 @@ private fun Figure(label: String, amount: Money) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(label, style = Vitt.type.caption, color = Vitt.colors.inkFaint)
         Text(
-            "  " + amount.display(),
+            // The label already says which way the money went, and `spent` is
+            // held as a positive magnitude — so signing it produced the flatly
+            // contradictory "Out +€1,852.04".
+            "  " + amount.displayUnsigned(),
             style = Vitt.type.money.copy(fontSize = 14.sp),
             color = Vitt.colors.inkMuted,
         )

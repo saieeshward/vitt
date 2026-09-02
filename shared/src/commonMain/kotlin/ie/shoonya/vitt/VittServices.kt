@@ -54,6 +54,13 @@ class VittServices(
     fun seedSampleData() {
         if (ledger.transactions().isNotEmpty()) return
         val today = today()
+        // Spread across the *current* month, not the last fortnight. The ledger
+        // cards are monthly, so dating the sample two weeks back leaves them
+        // reading near-zero for the first half of every month — which defeats the
+        // one purpose this function has.
+        val monthStart = ie.shoonya.vitt.time.YearMonth.of(today).firstDay
+        val elapsed = (today - monthStart + 1).coerceAtLeast(1)
+        fun day(index: Int) = monthStart + (index % elapsed)
         val eur = ie.shoonya.vitt.money.Currency.EUR
         val inr = ie.shoonya.vitt.money.Currency.INR
 
@@ -84,22 +91,22 @@ class VittServices(
         // out, a scatter of daily spending, and one split. Enough for the ledger
         // cards, the activity list and the owed row to each have something real.
         val seeds = listOf(
-            Triple(today - 13, 341000L to eur, "Salary" to "Income"),
-            Triple(today - 13, -145000L to eur, "Rent" to "Housing"),
-            Triple(today - 12, -6820L to eur, "Tesco" to "Groceries"),
-            Triple(today - 12, -350L to eur, "Coffee" to "Dining"),
-            Triple(today - 11, -1899L to eur, "Dublin Bus" to "Transport"),
-            Triple(today - 10, 1200000L to inr, "Consulting" to "Income"),
-            Triple(today - 10, -18000L to inr, "Swiggy" to "Dining"),
-            Triple(today - 9, -4590L to eur, "Boots" to "Health"),
-            Triple(today - 8, -1250L to eur, "Spotify" to "Subscriptions"),
-            Triple(today - 7, -8940L to eur, "Tesco" to "Groceries"),
-            Triple(today - 6, -60000L to inr, "Ola" to "Transport"),
-            Triple(today - 4, -2200L to eur, "Aer Lingus seat" to "Travel"),
-            Triple(today - 3, -35000L to inr, "Amazon.in" to "Shopping"),
-            Triple(today - 2, -1180L to eur, "Coffee" to "Dining"),
-            Triple(today - 1, -7250L to eur, "Lidl" to "Groceries"),
-            Triple(today, -420L to eur, "Coffee" to "Dining"),
+            Triple(day(0), 341000L to eur, "Salary" to "Income"),
+            Triple(day(0), -145000L to eur, "Rent" to "Housing"),
+            Triple(day(1), -6820L to eur, "Tesco" to "Groceries"),
+            Triple(day(1), -350L to eur, "Coffee" to "Dining"),
+            Triple(day(2), -1899L to eur, "Dublin Bus" to "Transport"),
+            Triple(day(3), 1200000L to inr, "Consulting" to "Income"),
+            Triple(day(3), -18000L to inr, "Swiggy" to "Dining"),
+            Triple(day(4), -4590L to eur, "Boots" to "Health"),
+            Triple(day(5), -1250L to eur, "Spotify" to "Subscriptions"),
+            Triple(day(6), -8940L to eur, "Tesco" to "Groceries"),
+            Triple(day(7), -60000L to inr, "Ola" to "Transport"),
+            Triple(day(9), -2200L to eur, "Aer Lingus seat" to "Travel"),
+            Triple(day(10), -35000L to inr, "Amazon.in" to "Shopping"),
+            Triple(day(11), -1180L to eur, "Coffee" to "Dining"),
+            Triple(day(12), -7250L to eur, "Lidl" to "Groceries"),
+            Triple(day(13), -420L to eur, "Coffee" to "Dining"),
         )
 
         seeds.forEachIndexed { i, (day, amount, what) ->
@@ -126,7 +133,7 @@ class VittServices(
         ledger.record(
             id = "sample-split",
             amount = ie.shoonya.vitt.money.Money(-2305, eur),
-            day = today - 5,
+            day = day(8),
             merchant = "Dinner with Anya",
             category = "Dining",
             accountId = "sample-acc-revolut",
@@ -139,7 +146,7 @@ class VittServices(
         ledger.record(
             id = "sample-split-2",
             amount = ie.shoonya.vitt.money.Money(-3000, eur),
-            day = today - 9,
+            day = day(4),
             merchant = "Taxi to airport",
             category = "Transport",
             accountId = "sample-acc-aib",
@@ -156,16 +163,21 @@ class VittServices(
             toAccountId = "sample-acc-hdfc",
             sent = ie.shoonya.vitt.money.Money(50_000, eur),
             received = ie.shoonya.vitt.money.Money(4_455_000, inr),
-            day = today - 7,
+            day = day(6),
             note = "rent home",
         )
+        // A budget per currency, so the ledger cards' health bar and room-left
+        // copy are exercised rather than sitting behind a null.
+        ledger.setBudget(eur, ie.shoonya.vitt.money.Money(180_000, eur))
+        ledger.setBudget(inr, ie.shoonya.vitt.money.Money(4_000_000, inr))
+
         ledger.transfer(
             id = "sample-transfer-2",
             fromAccountId = "sample-acc-aib",
             toAccountId = "sample-acc-revolut",
             sent = ie.shoonya.vitt.money.Money(20_000, eur),
             received = ie.shoonya.vitt.money.Money(19_950, eur),
-            day = today - 2,
+            day = day(11),
         )
     }
 

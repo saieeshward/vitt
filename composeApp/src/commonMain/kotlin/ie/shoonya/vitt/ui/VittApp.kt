@@ -31,10 +31,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ie.shoonya.vitt.model.LedgerRepository
 import ie.shoonya.vitt.money.Currency
+import ie.shoonya.vitt.time.YearMonth
 import ie.shoonya.vitt.model.SettlementSummary
 import ie.shoonya.vitt.ui.screens.AccountSheet
 import ie.shoonya.vitt.ui.screens.ActivityScreen
 import ie.shoonya.vitt.ui.screens.AddScreen
+import ie.shoonya.vitt.ui.screens.BudgetSheet
 import ie.shoonya.vitt.ui.screens.HabitScreen
 import ie.shoonya.vitt.ui.screens.LedgersScreen
 import ie.shoonya.vitt.ui.screens.PeopleScreen
@@ -56,6 +58,7 @@ private sealed interface Sheet {
     data object Transfer : Sheet
     data class Split(val id: String) : Sheet
     data class Summary(val subject: String, val body: String) : Sheet
+    data class SetBudget(val currency: Currency) : Sheet
 }
 
 /**
@@ -78,7 +81,10 @@ fun VittApp(
     // Bumped after a write so the screens re-read the log.
     var revision by remember { mutableStateOf(0) }
 
-    val ledgers = remember(revision) { repository.ledgers() }
+    // The cards are monthly, so they must be asked for a month. Without one
+    // `ledgers()` totals all of history while the card says "out this month".
+    val thisMonth = remember(today) { YearMonth.of(today) }
+    val ledgers = remember(revision, thisMonth) { repository.ledgers(thisMonth) }
     val days = remember(revision) { repository.byDay() }
     val owed = remember(revision) { repository.owed() }
     val recorded = remember(revision) { repository.daysRecorded(today) }
@@ -108,6 +114,7 @@ fun VittApp(
                     ledgers = ledgers,
                     owed = owed,
                     daysRecorded = recorded,
+                    onSetBudget = { sheet = Sheet.SetBudget(it) },
                     balances = balances,
                     transfers = transfers,
                     onAddAccount = { sheet = Sheet.NewAccount },
@@ -227,6 +234,24 @@ fun VittApp(
                         )
                     }
                 }
+
+                is Sheet.SetBudget -> BudgetSheet(
+                    currency = open.currency,
+                    existing = remember(revision, open.currency) {
+                        repository.budgets()[open.currency]?.limit
+                    },
+                    onSet = {
+                        repository.setBudget(open.currency, it)
+                        revision++
+                        sheet = null
+                    },
+                    onClear = {
+                        repository.clearBudget(open.currency)
+                        revision++
+                        sheet = null
+                    },
+                    onCancel = { sheet = null },
+                )
 
                 is Sheet.Summary -> SummarySheet(
                     subject = open.subject,
