@@ -6,6 +6,9 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.Canvas
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import ie.shoonya.vitt.ui.platform.prefersReducedMotion
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.offset
@@ -48,11 +51,18 @@ fun Pip(
 ) {
     val colors = Vitt.colors
     val warmth = daysRecorded.coerceIn(0, 30) / 30f
+    // Motion is the whole of what this setting governs here. Pip's colour still
+    // deepens with the streak, because that is state rather than movement.
+    val still = prefersReducedMotion()
 
     // A slow blink is the only motion. It reads as alive without reacting to
     // anything the user did, which is the line this character must not cross.
     val transition = rememberInfiniteTransition(label = "pip")
-    val eyeScale by transition.animateFloat(
+    val eyeScale by if (still) {
+        // Eyes open, not shut: a blink frozen mid-cycle would look like a
+        // character asleep, which §5 forbids reading as neglect.
+        remember { mutableStateOf(1f) }
+    } else transition.animateFloat(
         initialValue = 1f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -70,7 +80,9 @@ fun Pip(
 
     // A slow bob. The design animates Pip at 3.2s, and without it the home
     // screen reads as a still illustration rather than a companion.
-    val bob by transition.animateFloat(
+    val bob by if (still) {
+        remember { mutableStateOf(0f) }
+    } else transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(

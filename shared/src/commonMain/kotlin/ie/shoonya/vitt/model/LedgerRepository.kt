@@ -1,5 +1,10 @@
 package ie.shoonya.vitt.model
 
+import ie.shoonya.vitt.capture.Categorisation
+import ie.shoonya.vitt.capture.Categoriser
+import ie.shoonya.vitt.capture.Category
+import ie.shoonya.vitt.capture.CategorySource
+import ie.shoonya.vitt.capture.MerchantName
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.Money
 import ie.shoonya.vitt.money.Rate
@@ -53,12 +58,25 @@ class LedgerRepository(
                 "a transaction cannot be recorded into an account of another currency"
             }
         }
+        // Categorise when the caller did not. Capture is the daily path and
+        // every required field is a future uninstall, so the tiers run here
+        // rather than asking — and record which tier fired, so a wrong answer
+        // can be explained instead of guessed at.
+        val suggested = if (category == null) suggestCategory(merchant) else null
+        // Store the canonical code, never a display label. `Category.ofCode`
+        // reads both, so older rows still resolve — but writing two spellings
+        // for one category would make the log's own history ambiguous.
+        val stored = category?.let { Category.ofCode(it)?.code ?: it } ?: suggested?.category?.code
         val events = Transaction.events(
             id = id,
             amount = amount,
             day = day,
             merchant = merchant,
-            category = category,
+            category = stored,
+            categorySource = when {
+                category != null -> CategorySource.MANUAL
+                else -> suggested?.source
+            },
             accountId = accountId,
             totalPaid = totalPaid,
             splitWith = splitWith,
@@ -255,6 +273,131 @@ class LedgerRepository(
      * balance quietly stops matching the bank.
      */
     fun unassigned(): List<Transaction> = transactions().filter { it.accountId == null }
+
+    /**
+     * Every rule the user has taught, keyed by normalised merchant.
+     */
+    fun categoryRules(): Map<String, Category> = store.fold()
+        .mapNotNull { (key, entity) -> CategoryRule.from(key, entity) }
+        .filterNot { it.deleted }
+        .associate { it.merchantKey to it.category }
+
+    /** A categoriser loaded with this user's own rules ahead of the seeds. */
+    fun categoriser(): Categoriser = Categoriser(categoryRules())
+
+    /**
+     * Suggests a category for a merchant, with the tier that produced it.
+     *
+     * Null means ask — §6's third tier. A wrong guess is worse than an empty
+     * field, because it distorts a budget nobody thinks to check.
+     */
+    fun suggestCategory(merchant: String?): Categorisation? = categoriser().categorise(merchant)
+
+    /**
+     * Sets a transaction's category and, when it has a merchant, teaches the rule.
+     *
+     * The teaching is the point: §6's third tier is *ask, then write a tier-1
+     * rule*, so a correction made once should never need making again. Recorded
+     * as [CategorySource.MANUAL] on this transaction — the user chose it here,
+     * whatever fires on the next one.
+     */
+    /**
+     * Past entries from the same merchant that a new rule could safely restate.
+     *
+     * Excludes anything the user categorised by hand: a rule learned today must
+     * not overwrite a decision they made deliberately last month. Only rows a
+     * tier guessed at are candidates.
+     */
+    fun pastMatching(id: String): List<Transaction> {
+        val all = transactions()
+        val subject = all.firstOrNull { it.id == id } ?: return emptyList()
+        val key = subject.merchant?.let { MerchantName.key(it) } ?: return emptyList()
+        return all.filter { other ->
+            other.id != id &&
+                other.categorySource != CategorySource.MANUAL &&
+                other.merchant
+                    ?.let { MerchantName.key(it) }
+                    ?.let { Categoriser.applies(key, it) } == true
+        }
+    }
+
+    fun categorise(
+        id: String,
+        category: Category,
+        teach: Boolean = true,
+        /**
+         * Restate the category on past entries from the same merchant.
+         *
+         * Off by default, because rewriting history should be asked for. But a
+         * rule that leaves visibly wrong rows on the same screen reads as broken,
+         * so the UI offers it whenever there is anything to apply it to.
+         */
+        applyToPast: Boolean = false,
+    ) {
+        val at = now()
+        val transaction = transactions().firstOrNull { it.id == id }
+        store.append(
+            Event(
+                store.issue(),
+                Transaction.ENTITY,
+                id,
+                Transaction.FIELD_CATEGORY,
+                TaggedValue.Str(category.code),
+            ),
+            at,
+        )
+        store.append(
+            Event(
+                store.issue(),
+                Transaction.ENTITY,
+                id,
+                Transaction.FIELD_CATEGORY_SOURCE,
+                TaggedValue.Str(CategorySource.MANUAL.code),
+            ),
+            at,
+        )
+        if (applyToPast) {
+            // Marked LEARNED rather than MANUAL: the user chose it once, on the
+            // entry they were looking at, and the rule is what reached these.
+            pastMatching(id).forEach { past ->
+                store.append(
+                    Event(
+                        store.issue(), Transaction.ENTITY, past.id,
+                        Transaction.FIELD_CATEGORY, TaggedValue.Str(category.code),
+                    ),
+                    at,
+                )
+                store.append(
+                    Event(
+                        store.issue(), Transaction.ENTITY, past.id,
+                        Transaction.FIELD_CATEGORY_SOURCE,
+                        TaggedValue.Str(CategorySource.LEARNED.code),
+                    ),
+                    at,
+                )
+            }
+        }
+
+        if (!teach) return
+        transaction?.merchant?.let { merchant ->
+            CategoryRule.events(merchant, category, store::issue)
+                ?.forEach { store.append(it, at) }
+        }
+    }
+
+    /** Forgets a learned rule, so the merchant falls back to the seeds. */
+    fun forgetCategoryRule(merchantKey: String) {
+        store.append(
+            Event(
+                store.issue(),
+                CategoryRule.ENTITY,
+                CategoryRule.idFor(merchantKey),
+                EventLog.TOMBSTONE_FIELD,
+                TaggedValue.Bool(true),
+            ),
+            now(),
+        )
+    }
 
     /** Every live transaction, newest first. */
     fun transactions(): List<Transaction> = store.fold()

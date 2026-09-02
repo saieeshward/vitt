@@ -65,7 +65,7 @@ fun SplitSheet(
                 Text(if (settling) "Back" else "Done")
             }
             Text(
-                split.merchant ?: split.category ?: "Split",
+                split.merchantLabel ?: split.categoryOrNull?.label ?: "Split",
                 style = Vitt.type.title,
                 color = Vitt.colors.ink,
             )

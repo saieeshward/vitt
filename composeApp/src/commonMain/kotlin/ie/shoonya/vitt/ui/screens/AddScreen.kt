@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import ie.shoonya.vitt.capture.Category
 import ie.shoonya.vitt.model.Account
 import ie.shoonya.vitt.money.AmountEntry
 import ie.shoonya.vitt.money.Currency
@@ -42,7 +43,7 @@ fun AddScreen(
     onSave: (
         amount: Money,
         merchant: String?,
-        category: String?,
+        category: Category?,
         accountId: String?,
         totalPaid: Money?,
     ) -> Unit,
@@ -51,7 +52,7 @@ fun AddScreen(
 ) {
     var entry by remember { mutableStateOf(AmountEntry(currency = currencies.firstOrNull() ?: Currency.EUR)) }
     var kind by remember { mutableStateOf(EntryKind.Expense) }
-    var category by remember { mutableStateOf<String?>(null) }
+    var category by remember { mutableStateOf<Category?>(null) }
     var account by remember { mutableStateOf(accounts.firstOrNull()) }
     var split by remember { mutableStateOf(false) }
     // The second leg of a split: what was actually handed over, of which the
@@ -130,7 +131,15 @@ fun AddScreen(
             EntryKind.entries.forEach { k ->
                 FilterChip(
                     selected = kind == k,
-                    onClick = { kind = k },
+                    onClick = {
+                        kind = k
+                        // Income and Transfer leave the list when the direction
+                        // flips, so a selection that is no longer offered has to
+                        // go with it rather than persist invisibly.
+                        if (category?.isSpending == (k == EntryKind.Income)) {
+                            category = null
+                        }
+                    },
                     label = { Text(k.name) },
                 )
             }
@@ -197,7 +206,11 @@ fun AddScreen(
         // design specifies: it arrives pre-filled from the learned rules, so
         // free text was never the intended input.
         Text("Category", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
-        CategoryChips(selected = category, onSelect = { category = it })
+        CategoryChips(
+            selected = category,
+            income = kind == EntryKind.Income,
+            onSelect = { category = it },
+        )
 
         Text(
             "Two taps: type, then Save. The category is optional.",
@@ -208,33 +221,34 @@ fun AddScreen(
 }
 
 /**
- * The default category set, as chips.
+ * The locked taxonomy, as chips.
  *
- * Twelve fixed categories, assigned by purpose rather than by merchant — a work
- * coffee and a personal coffee are both Food. Chips rather than a text field
- * because the design has the category arriving pre-filled from the learned
- * rules; typing it was never the intended path, and a text field here would
- * summon the keyboard over the keypad.
+ * Fourteen, from `PLAN.md` §6 — the list used to be a hand-written twelve here,
+ * missing Income and Transfer and spelling two others differently. Reading it off
+ * [Category] means it cannot drift again.
+ *
+ * Chips rather than a text field because the design has the category arriving
+ * pre-filled from the learned rules; typing it was never the intended path, and a
+ * text field here would summon the keyboard over the keypad.
  */
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-private fun CategoryChips(selected: String?, onSelect: (String?) -> Unit) {
-    val categories = listOf(
-        "Groceries", "Dining", "Transport", "Housing", "Utilities", "Health",
-        "Shopping", "Entertainment", "Travel", "Family", "Subscriptions", "Other",
-    )
+private fun CategoryChips(selected: Category?, income: Boolean, onSelect: (Category?) -> Unit) {
+    // Direction is already chosen above, so offering the categories that
+    // contradict it is just a way to record something incoherent.
+    val offered = Category.entries.filter { if (income) !it.isSpending else it.isSpending }
     androidx.compose.foundation.layout.FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
     ) {
-        categories.forEach { name ->
+        offered.forEach { category ->
             FilterChip(
-                selected = selected == name,
+                selected = selected == category,
                 // Tapping the chosen one clears it: the field is optional, so
                 // there has to be a way back to none.
-                onClick = { onSelect(if (selected == name) null else name) },
-                label = { Text(name, style = Vitt.type.label) },
+                onClick = { onSelect(if (selected == category) null else category) },
+                label = { Text(category.label, style = Vitt.type.label) },
             )
         }
     }

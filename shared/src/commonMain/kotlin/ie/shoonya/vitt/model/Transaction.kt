@@ -1,5 +1,8 @@
 package ie.shoonya.vitt.model
 
+import ie.shoonya.vitt.capture.Category
+import ie.shoonya.vitt.capture.CategorySource
+import ie.shoonya.vitt.capture.MerchantName
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.Money
 import ie.shoonya.vitt.sync.Event
@@ -18,6 +21,15 @@ data class Transaction(
     val amount: Money,
     val merchant: String?,
     val category: String?,
+    /**
+     * Which tier of the categoriser produced [category].
+     *
+     * `PLAN.md` §6 calls this the single best debugging affordance in the
+     * system: without it a wrong category is a mystery, and with it the fix is
+     * obviously either the rule or the seed list. Null for rows that predate it
+     * or arrived from a hand-edited sheet.
+     */
+    val categorySource: CategorySource?,
     val accountId: String?,
     /** Days since the Unix epoch — a date, with no time and no zone. */
     val day: Int,
@@ -45,6 +57,19 @@ data class Transaction(
     val share: Money get() = amount
 
     val isSplit: Boolean get() = totalPaid != null
+
+    /** The stored category resolved against the locked taxonomy, if it is one. */
+    val categoryOrNull: Category? get() = category?.let { Category.ofCode(it) }
+
+    /**
+     * The merchant as a person reads it: `TESCO STORES 3421 DUBLIN IE` → `Tesco`.
+     *
+     * Derived rather than stored, because the raw acquirer string is the truth
+     * the bank sent and belongs in the sheet unaltered — while a screen showing
+     * a terminal id is showing noise. Falls back to the raw string if nothing
+     * recognisable survives, since that is still better than a blank row.
+     */
+    val merchantLabel: String? get() = merchant?.let { MerchantName.clean(it) ?: it }
 
     /** What someone else owes on this, in the currency it was incurred in. */
     fun owed(): Money? = totalPaid?.let { it.abs() - amount.abs() }
@@ -96,6 +121,7 @@ data class Transaction(
         const val FIELD_CURRENCY = "currency"
         const val FIELD_MERCHANT = "merchant"
         const val FIELD_CATEGORY = "category"
+        const val FIELD_CATEGORY_SOURCE = "categorized_by"
         const val FIELD_ACCOUNT = "account"
         const val FIELD_DAY = "day"
         const val FIELD_TOTAL_PAID = "total_paid"
@@ -136,6 +162,7 @@ data class Transaction(
             day: Int,
             merchant: String?,
             category: String?,
+            categorySource: CategorySource? = null,
             accountId: String?,
             totalPaid: Money?,
             splitWith: Set<String> = emptySet(),
@@ -149,6 +176,7 @@ data class Transaction(
             put(FIELD_DAY, TaggedValue.Num(day.toLong()))
             merchant?.let { put(FIELD_MERCHANT, TaggedValue.Str(it)) }
             category?.let { put(FIELD_CATEGORY, TaggedValue.Str(it)) }
+            categorySource?.let { put(FIELD_CATEGORY_SOURCE, TaggedValue.Str(it.code)) }
             accountId?.let { put(FIELD_ACCOUNT, TaggedValue.Str(it)) }
             totalPaid?.let { put(FIELD_TOTAL_PAID, TaggedValue.Num(it.minor)) }
             splitWith.forEach { put(splitKey(it), TaggedValue.Bool(true)) }
@@ -172,6 +200,8 @@ data class Transaction(
                 amount = Money(minor, currency),
                 merchant = (entity.fields[FIELD_MERCHANT] as? TaggedValue.Str)?.value,
                 category = (entity.fields[FIELD_CATEGORY] as? TaggedValue.Str)?.value,
+                categorySource = (entity.fields[FIELD_CATEGORY_SOURCE] as? TaggedValue.Str)
+                    ?.value?.let { CategorySource.ofCode(it) },
                 accountId = (entity.fields[FIELD_ACCOUNT] as? TaggedValue.Str)?.value,
                 day = ((entity.fields[FIELD_DAY] as? TaggedValue.Num)?.value ?: 0L).toInt(),
                 totalPaid = (entity.fields[FIELD_TOTAL_PAID] as? TaggedValue.Num)

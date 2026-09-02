@@ -134,7 +134,7 @@ private fun PersonCard(
                     buildString {
                         append(formatDay(split.day))
                         append(" · ")
-                        append(split.merchant ?: split.category ?: "expense")
+                        append(split.merchantLabel ?: split.categoryOrNull?.label ?: "expense")
                         // Says why the line is a fraction of what was owed.
                         if (split.splitWith.size > 1) append(" · 1 of ${split.splitWith.size}")
                     },

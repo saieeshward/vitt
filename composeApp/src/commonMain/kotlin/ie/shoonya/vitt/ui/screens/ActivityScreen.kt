@@ -1,6 +1,7 @@
 package ie.shoonya.vitt.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,8 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import ie.shoonya.vitt.capture.CategorySource
 import ie.shoonya.vitt.model.Transaction
 import ie.shoonya.vitt.money.Currency
+import ie.shoonya.vitt.time.Civil
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -32,6 +35,7 @@ import ie.shoonya.vitt.ui.theme.Vitt
 fun ActivityScreen(
     days: List<Pair<Int, List<Transaction>>>,
     currencyIndex: (Currency) -> Int,
+    onEdit: (Transaction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -62,17 +66,24 @@ fun ActivityScreen(
                 )
             }
             items(transactions.size) { i ->
-                TransactionRow(transactions[i], currencyIndex)
+                TransactionRow(transactions[i], currencyIndex, onEdit)
             }
         }
     }
 }
 
 @Composable
-private fun TransactionRow(txn: Transaction, currencyIndex: (Currency) -> Int) {
+private fun TransactionRow(
+    txn: Transaction,
+    currencyIndex: (Currency) -> Int,
+    onEdit: (Transaction) -> Unit,
+) {
     val colors = Vitt.colors
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = Vitt.space.hair),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onEdit(txn) }
+            .padding(vertical = Vitt.space.hair),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
@@ -83,13 +94,18 @@ private fun TransactionRow(txn: Transaction, currencyIndex: (Currency) -> Int) {
             modifier = Modifier.padding(start = Vitt.space.snug).fillMaxWidth(0.62f),
         ) {
             Text(
-                txn.merchant ?: txn.category ?: "—",
+                txn.merchantLabel ?: txn.categoryOrNull?.label ?: "—",
                 style = Vitt.type.body,
                 color = colors.ink,
                 maxLines = 1,
             )
             val subtitle = buildList {
-                txn.category?.let { add(it) }
+                // The label, not the stored code — "groceries" reads as a
+                // database field.
+                txn.categoryOrNull?.let { add(it.label) } ?: txn.category?.let { add(it) }
+                // Which tier produced it. §6 calls this the single best
+                // debugging affordance in the system, and it costs one word.
+                txn.categorySource?.let { if (it != CategorySource.MANUAL) add(it.code) }
                 if (txn.isSplit) add("your share")
             }.joinToString(" · ")
             if (subtitle.isNotEmpty()) {
@@ -111,24 +127,14 @@ private fun TransactionRow(txn: Transaction, currencyIndex: (Currency) -> Int) {
 /**
  * A day, as a person reads it.
  *
- * Hand-rolled from the epoch-day integer rather than pulled from a date library:
- * the model stores a day with no time and no zone, and formatting it must not
- * quietly reintroduce either.
+ * The calendar arithmetic lives in `time/Civil.kt`; this file used to carry its
+ * own copy, which was the third in the repo.
  */
 internal fun formatDay(epochDay: Int): String {
-    var days = epochDay.toLong() + 719_468L
-    val era = (if (days >= 0) days else days - 146_096L) / 146_097L
-    val doe = days - era * 146_097L
-    val yoe = (doe - doe / 1460 + doe / 36524 - doe / 146_096) / 365
-    val y = yoe + era * 400
-    val doy = doe - (365 * yoe + yoe / 4 - yoe / 100)
-    val mp = (5 * doy + 2) / 153
-    val d = doy - (153 * mp + 2) / 5 + 1
-    val m = if (mp < 10) mp + 3 else mp - 9
-    val year = if (m <= 2) y + 1 else y
-    val month = listOf(
+    val (year, month, day) = Civil.fromDays(epochDay)
+    val name = listOf(
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December",
-    )[(m - 1).toInt()]
-    return "$d $month $year"
+    )[month - 1]
+    return "$day $name $year"
 }

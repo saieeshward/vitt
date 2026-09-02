@@ -26,7 +26,7 @@ class LedgerRepositoryTest {
         val t = r.transactions().single()
         assertEquals(-1250L, t.amount.minor)
         assertEquals("Tesco", t.merchant)
-        assertEquals("Groceries", t.category)
+        assertEquals("groceries", t.category)
     }
 
     @Test

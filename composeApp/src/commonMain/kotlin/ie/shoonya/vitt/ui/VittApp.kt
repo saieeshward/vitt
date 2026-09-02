@@ -37,6 +37,7 @@ import ie.shoonya.vitt.ui.screens.AccountSheet
 import ie.shoonya.vitt.ui.screens.ActivityScreen
 import ie.shoonya.vitt.ui.screens.AddScreen
 import ie.shoonya.vitt.ui.screens.BudgetSheet
+import ie.shoonya.vitt.ui.screens.CategorySheet
 import ie.shoonya.vitt.ui.screens.HabitScreen
 import ie.shoonya.vitt.ui.screens.LedgersScreen
 import ie.shoonya.vitt.ui.screens.PeopleScreen
@@ -59,6 +60,7 @@ private sealed interface Sheet {
     data class Split(val id: String) : Sheet
     data class Summary(val subject: String, val body: String) : Sheet
     data class SetBudget(val currency: Currency) : Sheet
+    data class EditCategory(val id: String) : Sheet
 }
 
 /**
@@ -122,7 +124,11 @@ fun VittApp(
                     accountName = nameOf,
                     formatDay = formatDay,
                 )
-                Tab.Activity -> ActivityScreen(days, indexOf)
+                Tab.Activity -> ActivityScreen(
+                    days = days,
+                    currencyIndex = indexOf,
+                    onEdit = { sheet = Sheet.EditCategory(it.id) },
+                )
                 Tab.People -> PeopleScreen(
                     participants = participants,
                     outstandingFor = { repository.outstandingBy(it) },
@@ -173,7 +179,7 @@ fun VittApp(
                             amount = amount,
                             day = today,
                             merchant = merchant,
-                            category = category,
+                            category = category?.code,
                             accountId = accountId,
                             totalPaid = totalPaid,
                         )
@@ -229,6 +235,33 @@ fun VittApp(
                             onSettle = { repository.settle(open.id, it); revision++ },
                             onSettleInFull = {
                                 repository.settleInFull(open.id); revision++; sheet = null
+                            },
+                            onDone = { sheet = null },
+                        )
+                    }
+                }
+
+                is Sheet.EditCategory -> {
+                    val txn = remember(revision, open.id) {
+                        repository.transactions().firstOrNull { it.id == open.id }
+                    }
+                    if (txn == null) {
+                        sheet = null
+                    } else {
+                        CategorySheet(
+                            transaction = txn,
+                            pastCount = remember(revision, open.id) {
+                                repository.pastMatching(open.id).size
+                            },
+                            onPick = { category, teach, applyToPast ->
+                                repository.categorise(
+                                    open.id,
+                                    category,
+                                    teach = teach,
+                                    applyToPast = applyToPast,
+                                )
+                                revision++
+                                sheet = null
                             },
                             onDone = { sheet = null },
                         )

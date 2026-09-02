@@ -53,7 +53,9 @@ object SettlementSummary {
 
         val lines = mutableListOf<String>()
         lines += theirs.map { t ->
-            val what = t.merchant ?: t.category ?: "expense"
+            // The label, not the stored code: this text is sent to another
+            // person, and "groceries" reads as a database field.
+            val what = t.merchantLabel ?: t.categoryOrNull?.label ?: "expense"
             val paid = t.totalPaid?.abs()?.format() ?: t.amount.abs().format()
             // Their share of what is left, not the split's whole remainder —
             // otherwise two people each get billed for the same money.

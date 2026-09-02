@@ -91,22 +91,25 @@ class VittServices(
         // out, a scatter of daily spending, and one split. Enough for the ledger
         // cards, the activity list and the owed row to each have something real.
         val seeds = listOf(
-            Triple(day(0), 341000L to eur, "Salary" to "Income"),
-            Triple(day(0), -145000L to eur, "Rent" to "Housing"),
-            Triple(day(1), -6820L to eur, "Tesco" to "Groceries"),
-            Triple(day(1), -350L to eur, "Coffee" to "Dining"),
-            Triple(day(2), -1899L to eur, "Dublin Bus" to "Transport"),
-            Triple(day(3), 1200000L to inr, "Consulting" to "Income"),
-            Triple(day(3), -18000L to inr, "Swiggy" to "Dining"),
-            Triple(day(4), -4590L to eur, "Boots" to "Health"),
-            Triple(day(5), -1250L to eur, "Spotify" to "Subscriptions"),
-            Triple(day(6), -8940L to eur, "Tesco" to "Groceries"),
-            Triple(day(7), -60000L to inr, "Ola" to "Transport"),
-            Triple(day(9), -2200L to eur, "Aer Lingus seat" to "Travel"),
-            Triple(day(10), -35000L to inr, "Amazon.in" to "Shopping"),
-            Triple(day(11), -1180L to eur, "Coffee" to "Dining"),
-            Triple(day(12), -7250L to eur, "Lidl" to "Groceries"),
-            Triple(day(13), -420L to eur, "Coffee" to "Dining"),
+            Triple(day(0), 341000L to eur, "SALARY PAYROLL" to null),
+            Triple(day(0), -145000L to eur, "KILKENNY DESIGN CENTRE" to null),
+            Triple(day(1), -6820L to eur, "TESCO STORES 3421 DUBLIN IE" to null),
+            Triple(day(1), -350L to eur, "SQ *COFFEE ANGEL" to null),
+            // Left uncategorised on purpose: the third tier is to ask, and the
+            // review path needs something to show.
+            Triple(day(2), -3400L to eur, "THE WINDING STAIR" to null),
+            Triple(day(2), -1899L to eur, "DUBLINBUS 4419" to null),
+            Triple(day(3), 1200000L to inr, "CONSULTING INVOICE" to null),
+            Triple(day(3), -18000L to inr, "SWIGGY BANGALORE" to null),
+            Triple(day(4), -4590L to eur, "BOOTS PHARMACY 88" to null),
+            Triple(day(5), -1250L to eur, "SPOTIFY AB" to null),
+            Triple(day(6), -8940L to eur, "TESCO STORES 3421 DUBLIN IE" to null),
+            Triple(day(7), -60000L to inr, "OLA CABS" to null),
+            Triple(day(9), -2200L to eur, "AERLINGUS DUBLIN" to null),
+            Triple(day(10), -35000L to inr, "AMAZON IN MUMBAI" to null),
+            Triple(day(11), -1180L to eur, "SQ *COFFEE ANGEL" to null),
+            Triple(day(12), -7250L to eur, "LIDL 0417 CORK" to null),
+            Triple(day(13), -420L to eur, "SQ *COFFEE ANGEL" to null),
         )
 
         seeds.forEachIndexed { i, (day, amount, what) ->
@@ -116,6 +119,7 @@ class VittServices(
                 amount = ie.shoonya.vitt.money.Money(amount.first, currency),
                 day = day,
                 merchant = what.first,
+                // Null lets the tiers run, which is the point of the sample.
                 category = what.second,
                 // Most entries land in an account; a couple deliberately do not,
                 // so the unassigned case is visible rather than theoretical.
@@ -135,7 +139,7 @@ class VittServices(
             amount = ie.shoonya.vitt.money.Money(-2305, eur),
             day = day(8),
             merchant = "Dinner with Anya",
-            category = "Dining",
+            category = "dining",
             accountId = "sample-acc-revolut",
             totalPaid = ie.shoonya.vitt.money.Money(-4610, eur),
             splitWith = setOf("anya@example.com"),
@@ -148,7 +152,7 @@ class VittServices(
             amount = ie.shoonya.vitt.money.Money(-3000, eur),
             day = day(4),
             merchant = "Taxi to airport",
-            category = "Transport",
+            category = "transport",
             accountId = "sample-acc-aib",
             totalPaid = ie.shoonya.vitt.money.Money(-9000, eur),
             splitWith = setOf("anya@example.com", "dev@example.com"),
