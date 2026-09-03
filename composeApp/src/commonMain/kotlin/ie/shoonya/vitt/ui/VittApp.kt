@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.clip
@@ -138,6 +139,16 @@ fun VittApp(
     }
     val theme = remember(revision) { ThemeChoice.ofCode(repository.choice(Choice.THEME)) }
     val accent = remember(revision) { AccentChoice.ofCode(repository.choice(Choice.ACCENT)) }
+    // Stored as thousandths of the screen in each axis, so the same value means
+    // the same place on a phone and a tablet.
+    val companionHome = remember(revision) {
+        repository.choice(Choice.COMPANION_HOME)
+            ?.split(',')
+            ?.mapNotNull { it.trim().toIntOrNull() }
+            ?.takeIf { it.size == 2 }
+            ?.let { Offset(it[0] / 1000f, it[1] / 1000f) }
+            ?: DEFAULT_COMPANION_HOME
+    }
     // Zero when the layer is off, so nothing downstream can key off it — rather
     // than computing it and trusting every screen to ignore it.
     val recorded = remember(revision, habitOn) {
@@ -179,8 +190,9 @@ fun VittApp(
     // a pet that ate a tap would be a bug, not a character.
     var interactions by remember { mutableStateOf(0) }
 
+    Box(modifier = modifier.fillMaxSize()) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(Vitt.colors.ground)
             .pointerInput(Unit) {
@@ -255,28 +267,34 @@ fun VittApp(
         // Her strip: a fixed band that is never over a number or a control, and
         // has nothing interactive behind it. Hidden with the habit layer, since
         // a wandering pet is the loudest thing the layer does.
-        // Her strip is on the home screen only, which is where the design's
-        // artboard puts her ("Today, with Penny on her strip"). It was on every
-        // tab, and a pet wandering under a dense transaction list competes with
-        // the scanning that list exists for — and costs a row of real data to
-        // do it. No strip when the user picked no pet, and none when the layer
-        // is off; either reason is enough on its own.
-        if (habitOn && companion != null && tab == Tab.Ledgers) {
-            CompanionStrip(
-                daysRecorded = recorded,
-                currencyCount = ledgers.size,
-                animal = companion,
-                mood = mood,
-                interactionTick = interactions,
-            )
-        }
-
         TabBar(
             current = tab,
             onSelect = { tab = it },
             onAdd = { sheet = Sheet.Add },
             rightTabs = if (habitOn) listOf(Tab.People, Tab.Habit) else listOf(Tab.People),
         )
+    }
+
+    // An overlay, so she consumes no layout and can be anywhere the user drops
+    // her. On the home screen only: a pet over a dense transaction list
+    // competes with the scanning that list exists for.
+    if (habitOn && companion != null && tab == Tab.Ledgers) {
+        CompanionLayer(
+            daysRecorded = recorded,
+            currencyCount = ledgers.size,
+            animal = companion,
+            mood = mood,
+            home = companionHome,
+            onHomeChange = {
+                repository.setChoice(
+                    Choice.COMPANION_HOME,
+                    "${(it.x * 1000).toInt()},${(it.y * 1000).toInt()}",
+                )
+                revision++
+            },
+            interactionTick = interactions,
+        )
+    }
     }
 
     sheet?.let { open ->

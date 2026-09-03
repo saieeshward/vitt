@@ -39,6 +39,16 @@ data class Choice(val key: String, val value: String, val deleted: Boolean) {
         /** Which accent marks what is live, within the chosen palette. */
         const val ACCENT = "accent"
 
+        /**
+         * Where the companion lives, as thousandths of the screen: `"620,810"`.
+         *
+         * Normalised rather than in pixels, so a home set on a phone means the
+         * same place on a tablet. Stored as a choice like the others because
+         * someone who moved their pet meant to move it, and having it snap back
+         * on a second device would override a decision already made.
+         */
+        const val COMPANION_HOME = "companion_home"
+
         fun events(key: String, value: String, issue: () -> Hlc): List<Event> {
             require(key.isNotBlank()) { "a choice needs a key" }
             require(value.isNotBlank()) { "a choice needs a value" }

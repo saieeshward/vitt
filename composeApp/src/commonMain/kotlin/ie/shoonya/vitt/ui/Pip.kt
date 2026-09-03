@@ -8,8 +8,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,6 +28,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -37,39 +40,43 @@ import kotlin.math.sin
 import kotlinx.coroutines.delay
 
 /**
- * The companion's own strip: a fixed band above the tab bar that it wanders.
+ * The companion, living wherever the user put her.
  *
- * Straight from the design's wander artboard, and the rules there are what keep
- * it charming rather than irritating:
+ * An overlay rather than a row in the layout, which is what lets her be
+ * anywhere and is also why she is layout-safe: nothing in a `Box` overlay can
+ * remeasure the list underneath it, which was the original hazard
+ * `docs/pip-motion.md` warned about. It also gives back the 60dp the fixed
+ * strip used to reserve on the home screen.
  *
- * > A pet that only ever sits in a box is furniture. One that occasionally walks
- * > somewhere is alive.
+ * **She is placed, then she lives there.** The drop point is not a position but
+ * a *home*: she patrols a band around it, so moving her moves her territory.
+ * The band above the tab bar is now simply the default home rather than a
+ * special case.
  *
- * - **Her strip, her business.** A fixed 60dp band and nothing else: never over
- *   a number, never over a control, never obscuring a row being read. Because
- *   the strip is its own row between the content and the tab bar rather than an
- *   item inside the scrolling list, wandering cannot remeasure anything — the
- *   layout hazard `docs/pip-motion.md` warned about is gone by construction
- *   rather than by care.
- * - **Never blocks a tap.** There is nothing interactive behind the strip, and
- *   the strip itself takes no input.
- * - **Any touch stops her mid-step.** She freezes where she is and looks up.
- * - **Rare enough to notice.** Fourteen seconds for a round trip, at most one
- *   trip per idle minute, and only while the app is in front.
- * - **Still on first paint.** The screen has to answer "can I spend?" before
- *   anything moves.
- * - **Reduce Motion holds a still idle pose** rather than a frozen mid-step one.
+ * This deliberately relaxes one design rule. The wander artboard's rule is
+ * "never over your numbers or your buttons", which exists to stop *the app*
+ * putting a pet in the user's way — and a pet the user dragged onto their
+ * balance is not the app doing anything. What stays forbidden is the tab bar
+ * and the Add button, because that is the daily path and nothing may block it.
  *
- * Note the wander is *idle* behaviour: it is triggered by nothing happening,
- * which is why it sits inside `PLAN.md` §5 without argument. It is not a
- * reaction to anything the user did.
+ * Horizontal patrol only. A pet walks on a surface, and letting her drift
+ * vertically would carry her onto figures the user did not put her on.
  */
 @Composable
-fun CompanionStrip(
+fun CompanionLayer(
     daysRecorded: Int,
     currencyCount: Int,
     animal: CompanionAnimal = CompanionAnimal.DEFAULT,
     mood: Mood? = null,
+    /**
+     * Where she lives, as a fraction of the screen in each axis.
+     *
+     * Normalised rather than in pixels so it survives a different screen size
+     * and means the same thing on a phone and a tablet.
+     */
+    home: Offset,
+    /** Called once on drop, with the new normalised home. */
+    onHomeChange: (Offset) -> Unit,
     /**
      * Bumped on every touch anywhere in the app.
      *
@@ -78,68 +85,79 @@ fun CompanionStrip(
      * rather than finishing the step or snapping home.
      */
     interactionTick: Int = 0,
+    /** Height of the tab bar, which she may never be dropped onto. */
+    forbiddenBottom: Dp = 92.dp,
     pixelSize: Dp = 2.dp,
     modifier: Modifier = Modifier,
 ) {
     val still = prefersReducedMotion()
-    val step = with(LocalDensity.current) { pixelSize.toPx() }
+    val density = LocalDensity.current
+    val step = with(density) { pixelSize.toPx() }
+    val cell = floor(step).coerceAtLeast(1f)
 
-    BoxWithConstraints(
-        // Inset, so the ends of her walk are inside the screen rather than
-        // flush against it. Standing half-off the edge reads as clipping.
-        modifier = modifier
-            .fillMaxWidth()
-            .height(STRIP_HEIGHT)
-            .padding(horizontal = 14.dp),
-        // Standing on the floor of her band rather than floating in it.
-        contentAlignment = androidx.compose.ui.Alignment.BottomStart,
-    ) {
-        val stripPx = with(LocalDensity.current) { maxWidth.toPx() }
-        val cell = floor(step).coerceAtLeast(1f)
-        val far = (stripPx - CompanionSprites.WIDTH * cell).coerceAtLeast(0f)
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val boxW = with(density) { maxWidth.toPx() }
+        val boxH = with(density) { maxHeight.toPx() }
+        val petW = CompanionSprites.WIDTH * cell
+        val petH = CompanionSprites.HEIGHT * cell
+        val bottomPx = with(density) { forbiddenBottom.toPx() }
+        val edge = with(density) { 8.dp.toPx() }
 
-        val pos = remember { Animatable(0f) }
+        // The placeable region: on screen, clear of the tab bar and the Add
+        // button inside it, and not half off an edge.
+        val minX = edge
+        val maxX = (boxW - petW - edge).coerceAtLeast(minX)
+        val minY = edge
+        val maxY = (boxH - bottomPx - petH).coerceAtLeast(minY)
+
+        // Where home sits in pixels, and how far she may roam around it.
+        val homeX = (minX + home.x * (maxX - minX)).coerceIn(minX, maxX)
+        val homeY = (minY + home.y * (maxY - minY)).coerceIn(minY, maxY)
+        val roam = with(density) { 80.dp.toPx() }
+        val roamMin = (homeX - roam).coerceAtLeast(minX)
+        val roamMax = (homeX + roam).coerceAtMost(maxX)
+
+        // Patrol offset from home, in pixels along x only.
+        val walked = remember { Animatable(0f) }
         var pose by remember { mutableStateOf(CompanionPose.STAND) }
         var facingLeft by remember { mutableStateOf(true) }
 
-        LaunchedEffect(still, interactionTick) {
-            if (still) {
+        // Drag state. While she is held, the patrol is suspended and she simply
+        // follows the finger.
+        var dragging by remember { mutableStateOf(false) }
+        var dragX by remember { mutableStateOf(0f) }
+        var dragY by remember { mutableStateOf(0f) }
+
+        LaunchedEffect(still, interactionTick, dragging, homeX, roamMin, roamMax) {
+            if (still || dragging) {
                 pose = CompanionPose.STAND
                 return@LaunchedEffect
             }
-            // Still on first paint, and still again for a beat after any touch.
+            // Her patrol is measured from home, so a new home resets it: this
+            // effect is keyed on homeX and re-entering it is what clears the
+            // distance she had walked from the old one.
+            walked.snapTo(0f)
             delay(SETTLE_BEFORE_WANDER)
             while (true) {
-                // A bout is a handful of moves rather than one there-and-back.
-                // The design's budget is "one trip per idle minute at most", and
-                // this spends that minute's worth of movement as two to four
-                // short errands instead of a single lap: the same amount of
-                // motion, far less of a track. A fixed full-width lap is what
-                // made her read as a sprite on rails.
                 repeat(2 + Random.nextInt(3)) {
-                    val here = pos.value
-                    // Somewhere new, and far enough to be worth walking to. A
-                    // destination two pixels away looks like a twitch.
-                    var target = Random.nextFloat()
-                    if (kotlin.math.abs(target - here) < 0.22f) {
-                        target = if (here < 0.5f) here + 0.3f else here - 0.3f
+                    val here = homeX + walked.value
+                    var target = roamMin + Random.nextFloat() * (roamMax - roamMin)
+                    if (kotlin.math.abs(target - here) < petW * 0.6f) {
+                        target = if (here < (roamMin + roamMax) / 2f) here + petW else here - petW
                     }
-                    target = target.coerceIn(0f, 1f)
+                    target = target.coerceIn(roamMin, roamMax)
 
                     facingLeft = target < here
                     pose = CompanionPose.WALK
-                    // Constant speed, so distance decides duration. A fixed
-                    // duration regardless of distance makes a short step look
-                    // like slow motion and a long one like a scurry.
                     val travel = kotlin.math.abs(target - here)
-                    pos.animateTo(
-                        target,
-                        tween((travel * FULL_WIDTH_MILLIS).toInt().coerceAtLeast(400), easing = LinearEasing),
+                    val fullWidth = (maxX - minX).coerceAtLeast(1f)
+                    walked.animateTo(
+                        target - homeX,
+                        tween(
+                            ((travel / fullWidth) * FULL_WIDTH_MILLIS).toInt().coerceAtLeast(400),
+                            easing = LinearEasing,
+                        ),
                     )
-
-                    // At the end of a move she either turns to face you or just
-                    // stands there. Both, unpredictably, is what stops the stop
-                    // itself becoming a pattern.
                     pose = if (Random.nextFloat() < 0.45f) {
                         CompanionPose.FRONT
                     } else {
@@ -148,23 +166,52 @@ fun CompanionStrip(
                     delay(900L + Random.nextLong(2_600))
                 }
                 pose = CompanionPose.STAND
-                // The long quiet. This is the part that keeps her an event
-                // rather than wallpaper.
                 delay(REST_BETWEEN_TRIPS + Random.nextLong(12_000))
             }
         }
 
-        // Snapped to the pixel grid, which the design says in as many words. A
-        // fractional translation resamples the whole layer: the sprite grew
-        // vertical seams down the body on exactly the frames she was mid-step,
-        // which reads as a rendering fault rather than as motion.
-        val snapped = kotlin.math.round(pos.value * far / cell) * cell
+        // Snapped to whole grid pixels: a fractional translation resamples the
+        // sprite and grows seams down the body on exactly the frames she moves.
+        val restingX = if (dragging) dragX else homeX + walked.value
+        val restingY = if (dragging) dragY else homeY
+        val x = kotlin.math.round(restingX / cell) * cell
+        val y = kotlin.math.round(restingY / cell) * cell
 
         Box(
-            // Horizontal only. The vertical bob belongs to the rig, where the
-            // body and the legs disagree about it on purpose; lifting the whole
-            // sprite as well made her bounce twice per step.
-            modifier = Modifier.graphicsLayer { translationX = snapped },
+            modifier = Modifier
+                .graphicsLayer {
+                    translationX = x
+                    translationY = y
+                    // A small lift while held, which is the whole affordance:
+                    // it is how someone finds out she can be moved at all,
+                    // without a tutorial telling them.
+                    scaleX = if (dragging) 1.15f else 1f
+                    scaleY = if (dragging) 1.15f else 1f
+                }
+                .width(pixelSize * CompanionSprites.WIDTH)
+                .height(pixelSize * CompanionSprites.HEIGHT)
+                .pointerInput(homeX, homeY, minX, maxX, minY, maxY) {
+                    detectDragGesturesAfterLongPress(
+                        onDragStart = {
+                            dragX = homeX + walked.value
+                            dragY = homeY
+                            dragging = true
+                        },
+                        onDrag = { _, delta ->
+                            dragX = (dragX + delta.x).coerceIn(minX, maxX)
+                            dragY = (dragY + delta.y).coerceIn(minY, maxY)
+                        },
+                        onDragEnd = {
+                            dragging = false
+                            // Back to normalised, so the stored home means the
+                            // same thing on a screen of another size.
+                            val nx = if (maxX > minX) (dragX - minX) / (maxX - minX) else 0f
+                            val ny = if (maxY > minY) (dragY - minY) / (maxY - minY) else 1f
+                            onHomeChange(Offset(nx.coerceIn(0f, 1f), ny.coerceIn(0f, 1f)))
+                        },
+                        onDragCancel = { dragging = false },
+                    )
+                },
         ) {
             CompanionPet(
                 daysRecorded = daysRecorded,
@@ -173,16 +220,16 @@ fun CompanionStrip(
                 mood = mood,
                 pixelSize = pixelSize,
                 facingLeft = facingLeft,
-                walking = pose == CompanionPose.WALK,
-                pose = pose,
-                still = still,
+                walking = pose == CompanionPose.WALK && !dragging,
+                pose = if (dragging) CompanionPose.FRONT else pose,
+                still = still || dragging,
             )
         }
     }
 }
 
-/** The design's own band height: 60px above the tab bar, and nothing else. */
-val STRIP_HEIGHT = 60.dp
+/** Her default home: the band above the tab bar, at the left, as the design had it. */
+val DEFAULT_COMPANION_HOME = Offset(0.06f, 1f)
 
 /**
  * How long crossing the whole strip takes, which sets her walking speed.
