@@ -167,6 +167,38 @@ class BudgetTest {
     }
 
     @Test
+    fun `a budget only shows at month grain`() {
+        // A monthly limit spread over a week is invented, and wrong in a
+        // predictable direction: rent lands on the 1st, so week one always looks
+        // catastrophic. The figure is withheld rather than pro-rated.
+        val r = repo()
+        r.setBudget(Currency.EUR, Money(100_000, Currency.EUR))
+        r.record("t1", Money(-10_000, Currency.EUR), day = sept(3))
+
+        assertEquals(
+            Money(100_000, Currency.EUR),
+            r.ledgers(september).single().budget,
+        )
+        assertNull(r.ledgers(ie.shoonya.vitt.time.Week.containing(sept(3))).single().budget)
+        assertNull(r.ledgers(ie.shoonya.vitt.time.Day(sept(3))).single().budget)
+        assertNull(r.ledgers(ie.shoonya.vitt.time.Year(2026)).single().budget)
+        assertNull(r.ledgers().single().budget, "all time has no monthly budget either")
+    }
+
+    @Test
+    fun `spending is still totalled at every grain`() {
+        // Withholding the budget must not withhold the figure the period is for.
+        val r = repo()
+        r.record("t1", Money(-10_000, Currency.EUR), day = sept(3))
+        r.record("t2", Money(-2_000, Currency.EUR), day = sept(20))
+        assertEquals(
+            Money(10_000, Currency.EUR),
+            r.ledgers(ie.shoonya.vitt.time.Week.containing(sept(3))).single().spent,
+        )
+        assertEquals(Money(12_000, Currency.EUR), r.ledgers(september).single().spent)
+    }
+
+    @Test
     fun `no month given totals all of history`() {
         val r = repo()
         r.record("old", Money(-90_000, Currency.EUR), day = Civil.toDays(2026, 8, 20))

@@ -100,6 +100,81 @@ class YearMonthTest {
     }
 
     @Test
+    fun `day of week is Monday-based — and correct at the epoch`() {
+        // 1 January 1970 was a Thursday, which is index 3 when Monday is 0.
+        assertEquals(3, Civil.dayOfWeek(0))
+        assertEquals(0, Civil.dayOfWeek(Civil.toDays(2026, 9, 7)))   // a Monday
+        assertEquals(6, Civil.dayOfWeek(Civil.toDays(2026, 9, 6)))   // the Sunday before
+    }
+
+    @Test
+    fun `day of week stays in range before the epoch`() {
+        // Kotlin's % keeps the dividend's sign, so this is where a naive
+        // implementation returns a negative index and crashes a lookup.
+        (-800..800).forEach { assertTrue(Civil.dayOfWeek(it) in 0..6, "out of range at $it") }
+    }
+
+    @Test
+    fun `a week runs Monday to Sunday`() {
+        val wednesday = Civil.toDays(2026, 9, 2)
+        val week = Week.containing(wednesday)
+        assertEquals(Civil.toDays(2026, 8, 31), week.firstDay)  // Monday
+        assertEquals(Civil.toDays(2026, 9, 6), week.lastDay)     // Sunday
+        assertEquals(7, week.lastDay - week.firstDay + 1)
+        assertTrue(wednesday in week)
+    }
+
+    @Test
+    fun `a Monday belongs to its own week and a Sunday to the week before`() {
+        val monday = Civil.toDays(2026, 9, 7)
+        assertEquals(monday, Week.containing(monday).firstDay)
+        val sunday = Civil.toDays(2026, 9, 6)
+        assertEquals(Civil.toDays(2026, 8, 31), Week.containing(sunday).firstDay)
+    }
+
+    @Test
+    fun `weeks step by seven and cross year boundaries`() {
+        val week = Week.containing(Civil.toDays(2026, 12, 30))
+        assertEquals(week.firstDay + 7, week.next().firstDay)
+        assertEquals(week.firstDay - 7, week.previous().firstDay)
+        // The week containing 30 December 2026 runs into January.
+        val (y, _, _) = Civil.fromDays(week.lastDay)
+        assertEquals(2027, y)
+    }
+
+    @Test
+    fun `every day belongs to exactly one week`() {
+        var day = Civil.toDays(2025, 1, 1)
+        val end = Civil.toDays(2027, 1, 1)
+        while (day < end) {
+            val week = Week.containing(day)
+            assertTrue(day in week, "day $day not in its own week")
+            assertTrue(day !in week.previous(), "day $day also in the previous week")
+            assertTrue(day !in week.next(), "day $day also in the next week")
+            day += 1
+        }
+    }
+
+    @Test
+    fun `a day period is one day`() {
+        val d = Day(Civil.toDays(2026, 9, 2))
+        assertEquals(d.firstDay, d.lastDay)
+        assertTrue(d.firstDay in d)
+        assertTrue(d.firstDay + 1 !in d)
+        assertEquals(d.firstDay + 1, d.next().firstDay)
+    }
+
+    @Test
+    fun `a year period spans the whole year and knows leap days`() {
+        val leap = Year(2024)
+        assertEquals(Civil.toDays(2024, 1, 1), leap.firstDay)
+        assertEquals(Civil.toDays(2024, 12, 31), leap.lastDay)
+        assertEquals(366, leap.lastDay - leap.firstDay + 1)
+        assertEquals(365, Year(2026).let { it.lastDay - it.firstDay + 1 })
+        assertEquals(Year(2027), Year(2026).next())
+    }
+
+    @Test
     fun `a month renders machine-plain`() {
         assertEquals("2026-09", YearMonth(2026, 9).toString())
         assertEquals("2026-12", YearMonth(2026, 12).toString())

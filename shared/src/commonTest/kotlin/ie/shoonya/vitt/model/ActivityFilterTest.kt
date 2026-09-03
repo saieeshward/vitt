@@ -47,8 +47,8 @@ class ActivityFilterTest {
     fun `a month narrows to that month only`() {
         val r = repo()
         r.populate()
-        assertEquals(listOf("b", "c", "d"), ids(r.byDay(month = september)))
-        assertEquals(listOf("a"), ids(r.byDay(month = august)))
+        assertEquals(listOf("b", "c", "d"), ids(r.byDay(period = september)))
+        assertEquals(listOf("a"), ids(r.byDay(period = august)))
     }
 
     @Test
@@ -64,9 +64,9 @@ class ActivityFilterTest {
         // The axes are independent, which is why they are chips and not tabs.
         val r = repo()
         r.populate()
-        assertEquals(listOf("b", "d"), ids(r.byDay(month = september, currency = Currency.EUR)))
-        assertEquals(listOf("c"), ids(r.byDay(month = september, currency = Currency.INR)))
-        assertTrue(r.byDay(month = august, currency = Currency.INR).isEmpty())
+        assertEquals(listOf("b", "d"), ids(r.byDay(period = september, currency = Currency.EUR)))
+        assertEquals(listOf("c"), ids(r.byDay(period = september, currency = Currency.INR)))
+        assertTrue(r.byDay(period = august, currency = Currency.INR).isEmpty())
     }
 
     @Test

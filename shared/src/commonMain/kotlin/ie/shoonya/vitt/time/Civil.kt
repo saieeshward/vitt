@@ -40,6 +40,18 @@ object Civil {
         return (era * 146_097L + doe - 719_468L).toInt()
     }
 
+    /**
+     * Day of the week, 0 = Monday through 6 = Sunday.
+     *
+     * Epoch day 0 was Thursday 1 January 1970, which is where the +3 comes from.
+     * The double modulo is not decoration: Kotlin's `%` keeps the sign of the
+     * dividend, so a date before 1970 would otherwise come back negative.
+     */
+    fun dayOfWeek(daysSinceEpoch: Int): Int = (((daysSinceEpoch + 3) % 7) + 7) % 7
+
+    /** How many days back the Monday of this day's week is. */
+    fun mondayOffset(daysSinceEpoch: Int): Int = dayOfWeek(daysSinceEpoch)
+
     /** Days in a month, honouring the full leap-year rule. */
     fun daysInMonth(year: Int, month: Int): Int = when (month) {
         1, 3, 5, 7, 8, 10, 12 -> 31
@@ -57,20 +69,21 @@ object Civil {
  * standing orders land, and a budget that resets on a different day each month
  * cannot be reconciled against a bank statement.
  */
-data class YearMonth(val year: Int, val month: Int) : Comparable<YearMonth> {
+data class YearMonth(val year: Int, val month: Int) : Comparable<YearMonth>, Period {
     init {
         require(month in 1..12) { "no month $month" }
     }
 
-    val firstDay: Int get() = Civil.toDays(year, month, 1)
+    override val firstDay: Int get() = Civil.toDays(year, month, 1)
 
-    val lastDay: Int get() = Civil.toDays(year, month, Civil.daysInMonth(year, month))
+    override val lastDay: Int get() = Civil.toDays(year, month, Civil.daysInMonth(year, month))
 
-    operator fun contains(day: Int): Boolean = day in firstDay..lastDay
+    override val grain: Period.Grain get() = Period.Grain.MONTH
 
-    fun next(): YearMonth = if (month == 12) YearMonth(year + 1, 1) else YearMonth(year, month + 1)
+    override fun next(): YearMonth =
+        if (month == 12) YearMonth(year + 1, 1) else YearMonth(year, month + 1)
 
-    fun previous(): YearMonth =
+    override fun previous(): YearMonth =
         if (month == 1) YearMonth(year - 1, 12) else YearMonth(year, month - 1)
 
     override fun compareTo(other: YearMonth): Int =

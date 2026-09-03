@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import ie.shoonya.vitt.model.Ledger
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.Money
+import ie.shoonya.vitt.time.periodPhrase
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -42,6 +43,11 @@ fun LedgersScreen(
     daysRecorded: Int,
     onSetBudget: (Currency) -> Unit,
     onOpenSettings: () -> Unit,
+    period: ie.shoonya.vitt.time.Period?,
+    dataRange: IntRange?,
+    today: Int,
+    onPeriodChange: (ie.shoonya.vitt.time.Period?) -> Unit,
+    onPickGrain: () -> Unit,
     balances: List<ie.shoonya.vitt.model.AccountBalance>,
     transfers: List<ie.shoonya.vitt.model.Transfer>,
     onAddAccount: () -> Unit,
@@ -79,6 +85,16 @@ fun LedgersScreen(
             }
         }
 
+        item {
+            PeriodControl(
+                period = period,
+                dataRange = dataRange,
+                today = today,
+                onChange = onPeriodChange,
+                onPickGrain = onPickGrain,
+            )
+        }
+
         // Pip leads the home screen rather than hiding in a tab: the character
         // is how the no-conversion rule is explained without words — one coin
         // slot per currency, and coins never move between them.
@@ -93,7 +109,16 @@ fun LedgersScreen(
         if (ledgers.isEmpty()) {
             item { EmptyLedgers() }
         } else {
-            items(ledgers) { LedgerCard(it, onSetBudget) }
+            items(ledgers) {
+                LedgerCard(
+                    ledger = it,
+                    onSetBudget = onSetBudget,
+                    periodPhrase = periodPhrase(period, today),
+                    // A monthly limit can only be set against a month, so the
+                    // invitation only appears where acting on it makes sense.
+                    canSetBudget = period is ie.shoonya.vitt.time.YearMonth,
+                )
+            }
             item { NoTotalNote() }
         }
 
@@ -113,7 +138,12 @@ fun LedgersScreen(
 }
 
 @Composable
-private fun LedgerCard(ledger: Ledger, onSetBudget: (Currency) -> Unit) {
+private fun LedgerCard(
+    ledger: Ledger,
+    onSetBudget: (Currency) -> Unit,
+    periodPhrase: String,
+    canSetBudget: Boolean,
+) {
     val colors = Vitt.colors
     val remaining = ledger.remaining()
     val pressure = ledger.pressure()
@@ -136,7 +166,7 @@ private fun LedgerCard(ledger: Ledger, onSetBudget: (Currency) -> Unit) {
             // The whole card opens the budget for its currency. Tapping the thing
             // the limit applies to needs no separate affordance, and the card has
             // no other action competing for the gesture.
-            .clickable { onSetBudget(ledger.currency) }
+            .clickable(enabled = canSetBudget) { onSetBudget(ledger.currency) }
             .padding(Vitt.space.loose),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.hair),
     ) {
@@ -174,7 +204,11 @@ private fun LedgerCard(ledger: Ledger, onSetBudget: (Currency) -> Unit) {
                     "left of ${ledger.budget!!.displayUnsigned()}"
                 remaining != null ->
                     "past ${ledger.budget!!.displayUnsigned()}"
-                else -> "out this month · tap to set a budget"
+                // Says which period, because the card no longer only ever shows
+                // a month. A budget line appears only at month grain — the
+                // repository withholds it elsewhere rather than pro-rating it.
+                canSetBudget -> "out $periodPhrase · tap to set a budget"
+                else -> "out $periodPhrase"
             },
             style = Vitt.type.label,
             color = colors.inkMuted,

@@ -22,7 +22,8 @@ import ie.shoonya.vitt.capture.CategorySource
 import ie.shoonya.vitt.model.Transaction
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.time.Civil
-import ie.shoonya.vitt.time.YearMonth
+import ie.shoonya.vitt.time.Period
+import ie.shoonya.vitt.time.periodPhrase
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -38,11 +39,14 @@ fun ActivityScreen(
     currencyIndex: (Currency) -> Int,
     onEdit: (Transaction) -> Unit,
     filter: ActivityFilter,
-    months: List<YearMonth>,
+    period: Period?,
+    dataRange: IntRange?,
+    today: Int,
     currencies: List<Currency>,
     needingCategory: Int,
     onFilterChange: (ActivityFilter) -> Unit,
-    monthName: (YearMonth) -> String,
+    onPeriodChange: (Period?) -> Unit,
+    onPickGrain: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -53,13 +57,21 @@ fun ActivityScreen(
         item { Text("Activity", style = Vitt.type.display, color = Vitt.colors.ink) }
 
         item {
+            PeriodControl(
+                period = period,
+                dataRange = dataRange,
+                today = today,
+                onChange = onPeriodChange,
+                onPickGrain = onPickGrain,
+            )
+        }
+
+        item {
             ActivityFilters(
                 filter = filter,
-                months = months,
                 currencies = currencies,
                 needingCategory = needingCategory,
                 onChange = onFilterChange,
-                monthName = monthName,
             )
         }
 
@@ -72,10 +84,12 @@ fun ActivityScreen(
                     when {
                         filter.needingCategory ->
                             "Everything here has a category. Nothing to review."
-                        filter.currency != null && filter.month != null ->
-                            "Nothing in ${filter.currency.code} this month."
+                        filter.currency != null && period != null ->
+                            "Nothing in ${filter.currency.code} " +
+                                periodPhrase(period, today) + "."
                         filter.currency != null -> "Nothing in ${filter.currency.code} yet."
-                        filter.month != null -> "Nothing recorded this month."
+                        period != null ->
+                            "Nothing recorded " + periodPhrase(period, today) + "."
                         else -> "Nothing here yet."
                     },
                     style = Vitt.type.body,
@@ -94,8 +108,7 @@ fun ActivityScreen(
                         acc + t.amount.abs()
                     }
                 Text(
-                    "${total.displayUnsigned()} out" +
-                        if (filter.month != null) " this month" else " in total",
+                    "${total.displayUnsigned()} out ${periodPhrase(period, today)}",
                     style = Vitt.type.label,
                     color = Vitt.colors.inkMuted,
                     modifier = Modifier.padding(bottom = Vitt.space.tight),

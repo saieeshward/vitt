@@ -74,7 +74,10 @@ class LedgerRepositoryTest {
         assertNull(r.ledgers().single().remaining(), "no budget means no figure, not zero")
 
         r.setBudget(Currency.EUR, Money(180000, Currency.EUR))
-        val budgeted = r.ledgers().single()
+        // A month, because a monthly limit is only meaningful at month grain —
+        // ledgers() withholds it for a week, a year or all time rather than
+        // pro-rating it into a number nobody agreed to.
+        val budgeted = r.ledgers(ie.shoonya.vitt.time.YearMonth.of(20_000)).single()
         assertEquals(178750L, budgeted.remaining()?.minor)
         assertEquals(1250f / 180000f, budgeted.pressure())
     }

@@ -37,11 +37,12 @@ import ie.shoonya.vitt.model.SettlementSummary
 import ie.shoonya.vitt.ui.screens.AccountSheet
 import ie.shoonya.vitt.ui.screens.ActivityFilter
 import ie.shoonya.vitt.ui.screens.ActivityScreen
-import ie.shoonya.vitt.ui.screens.monthLabel
+import ie.shoonya.vitt.time.Period
 import ie.shoonya.vitt.ui.screens.AddScreen
 import ie.shoonya.vitt.ui.screens.BudgetSheet
 import ie.shoonya.vitt.ui.screens.CategorySheet
 import ie.shoonya.vitt.ui.screens.HabitScreen
+import ie.shoonya.vitt.ui.screens.GrainSheet
 import ie.shoonya.vitt.ui.screens.LedgersScreen
 import ie.shoonya.vitt.ui.screens.SettingsSheet
 import ie.shoonya.vitt.ui.screens.PeopleScreen
@@ -66,6 +67,7 @@ private sealed interface Sheet {
     data class SetBudget(val currency: Currency) : Sheet
     data class EditCategory(val id: String) : Sheet
     data object Settings : Sheet
+    data object PickGrain : Sheet
 }
 
 /**
@@ -88,26 +90,25 @@ fun VittApp(
     // Bumped after a write so the screens re-read the log.
     var revision by remember { mutableStateOf(0) }
 
-    // The cards are monthly, so they must be asked for a month. Without one
-    // `ledgers()` totals all of history while the card says "out this month".
-    val thisMonth = remember(today) { YearMonth.of(today) }
-    val ledgers = remember(revision, thisMonth) { repository.ledgers(thisMonth) }
-    val months = remember(revision) { repository.monthsWithActivity() }
-    // Opens on the newest month with anything in it, rather than on every
-    // transaction ever recorded. Computed before this, so it needs no effect —
-    // and an empty install simply starts on "All time", which is honest.
-    var activityFilter by remember {
-        mutableStateOf(ActivityFilter(month = months.firstOrNull(), currency = null))
-    }
-    val days = remember(revision, activityFilter) {
+    // One period for the whole app. Pull up August on Ledgers, switch to
+    // Activity, and it is still August — otherwise it reads as two apps that
+    // happen to share data. Opens on the current month, which is the grain a
+    // budget is defined at.
+    var period by remember { mutableStateOf<Period?>(YearMonth.of(today)) }
+    // Asked for the period explicitly: without one `ledgers()` totals all of
+    // history while the card claims a month.
+    val ledgers = remember(revision, period) { repository.ledgers(period) }
+    var activityFilter by remember { mutableStateOf(ActivityFilter(currency = null)) }
+    val dataRange = remember(revision) { repository.activityDayRange() }
+    val days = remember(revision, period, activityFilter) {
         repository.byDay(
-            month = activityFilter.month,
+            period = period,
             currency = activityFilter.currency,
             needingCategory = activityFilter.needingCategory,
         )
     }
-    val needingCategory = remember(revision, activityFilter.month) {
-        repository.needingCategoryCount(activityFilter.month)
+    val needingCategory = remember(revision, period) {
+        repository.needingCategoryCount(period)
     }
     val owed = remember(revision) { repository.owed() }
     val habitOn = remember(revision) { repository.gamificationEnabled() }
@@ -144,6 +145,11 @@ fun VittApp(
                     daysRecorded = recorded,
                     onSetBudget = { sheet = Sheet.SetBudget(it) },
                     onOpenSettings = { sheet = Sheet.Settings },
+                    period = period,
+                    dataRange = dataRange,
+                    today = today,
+                    onPeriodChange = { period = it },
+                    onPickGrain = { sheet = Sheet.PickGrain },
                     balances = balances,
                     transfers = transfers,
                     onAddAccount = { sheet = Sheet.NewAccount },
@@ -156,11 +162,14 @@ fun VittApp(
                     currencyIndex = indexOf,
                     onEdit = { sheet = Sheet.EditCategory(it.id) },
                     filter = activityFilter,
-                    months = months,
+                    period = period,
+                    dataRange = dataRange,
+                    today = today,
                     currencies = ledgers.map { it.currency },
                     needingCategory = needingCategory,
                     onFilterChange = { activityFilter = it },
-                    monthName = { monthLabel(it, Civil.fromDays(today).first) },
+                    onPeriodChange = { period = it },
+                    onPickGrain = { sheet = Sheet.PickGrain },
                 )
                 Tab.People -> PeopleScreen(
                     participants = participants,
@@ -301,6 +310,15 @@ fun VittApp(
                         )
                     }
                 }
+
+                Sheet.PickGrain -> GrainSheet(
+                    period = period,
+                    today = today,
+                    onPick = {
+                        period = it
+                        sheet = null
+                    },
+                )
 
                 Sheet.Settings -> SettingsSheet(
                     gamificationEnabled = habitOn,

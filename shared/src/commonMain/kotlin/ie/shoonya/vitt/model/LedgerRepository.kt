@@ -11,6 +11,7 @@ import ie.shoonya.vitt.money.Rate
 import ie.shoonya.vitt.sync.Event
 import ie.shoonya.vitt.sync.EventLog
 import ie.shoonya.vitt.sync.EventStore
+import ie.shoonya.vitt.time.Period
 import ie.shoonya.vitt.time.YearMonth
 import ie.shoonya.vitt.sync.TaggedValue
 
@@ -432,14 +433,15 @@ class LedgerRepository(
     /**
      * One ledger per currency the user actually has, in a stable order.
      *
-     * @param month restricts the spent and received figures to one calendar
-     * month. Null totals all of history, which is what a lifetime view wants —
-     * but the home screen's cards are monthly and must pass one.
+     * @param period restricts the spent and received figures to one stretch of
+     * days. Null totals all of history. The budget figure is filled in only for
+     * a [YearMonth], because that is the only grain a monthly limit means
+     * anything at.
      *
      * Order is by first appearance rather than by size, so a currency's colour
      * does not change under the user when they spend more in another one.
      */
-    fun ledgers(month: YearMonth? = null): List<Ledger> {
+    fun ledgers(period: Period? = null): List<Ledger> {
         val all = transactions()
         val limits = budgets()
         // True first appearance: oldest day first, and within a day the order
@@ -457,7 +459,7 @@ class LedgerRepository(
             // and has to mean it.
             val forCurrency = all
                 .filter { it.amount.currency == currency }
-                .filter { month == null || it.day in month }
+                .filter { period == null || it.day in period }
             Ledger(
                 currency = currency,
                 index = index,
@@ -465,7 +467,14 @@ class LedgerRepository(
                     .fold(Money(0, currency)) { acc, t -> acc + t.amount.abs() },
                 received = forCurrency.filter { it.amount.isInflow }
                     .fold(Money(0, currency)) { acc, t -> acc + t.amount },
-                budget = limits[currency]?.limit,
+                // Only at month grain. A monthly limit spread over a week is an
+                // invented number, and wrong in a predictable direction: rent
+                // lands on the 1st, so week one always looks catastrophic and
+                // week four always looks virtuous. §5.3 makes the same point
+                // about naive projection being biased high when rent has landed,
+                // and §5.1's test is whether the app is cheaper to open on a bad
+                // day — a fake weekly overspend fails it badly.
+                budget = if (period is YearMonth) limits[currency]?.limit else null,
             )
         }
     }
@@ -586,8 +595,8 @@ class LedgerRepository(
 
     /** Transactions grouped by day, newest day first, for the activity list. */
     fun byDay(
-        /** Restrict to one calendar month. Null browses everything. */
-        month: YearMonth? = null,
+        /** Restrict to one stretch of days. Null browses everything. */
+        period: Period? = null,
         /** Restrict to one currency. Null shows every currency, never summed. */
         currency: Currency? = null,
         /**
@@ -599,7 +608,7 @@ class LedgerRepository(
          */
         needingCategory: Boolean = false,
     ): List<Pair<Int, List<Transaction>>> = transactions()
-        .filter { month == null || it.day in month }
+        .filter { period == null || it.day in period }
         .filter { currency == null || it.amount.currency == currency }
         .filter { !needingCategory || it.category == null }
         .groupBy { it.day }
@@ -618,9 +627,21 @@ class LedgerRepository(
         .sortedDescending()
 
     /** How many entries the tiers could not categorise. */
-    fun needingCategoryCount(month: YearMonth? = null): Int = transactions()
-        .filter { month == null || it.day in month }
+    fun needingCategoryCount(period: Period? = null): Int = transactions()
+        .filter { period == null || it.day in period }
         .count { it.category == null }
+
+    /**
+     * The span of days that have anything in them, or null when nothing does.
+     *
+     * Lets a period stepper stop at the edges of the data at any grain, without
+     * enumerating every week or day — which would have to cope with gaps.
+     */
+    fun activityDayRange(): IntRange? {
+        val days = transactions().map { it.day }
+        val min = days.minOrNull() ?: return null
+        return min..days.max()
+    }
 
     /** Unsettled amounts owed to the user, per currency — never netted across them. */
     fun owed(): Map<Currency, Money> = transactions()
