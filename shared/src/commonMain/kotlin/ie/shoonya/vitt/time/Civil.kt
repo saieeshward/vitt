@@ -52,6 +52,21 @@ object Civil {
     /** How many days back the Monday of this day's week is. */
     fun mondayOffset(daysSinceEpoch: Int): Int = dayOfWeek(daysSinceEpoch)
 
+    /**
+     * `2026-09-03` — a plain, fixed-width, unambiguous date.
+     *
+     * ISO-8601 rather than anything localised, because this is what goes into
+     * the sheet and into a CSV export: `03/09/2026` is the third of September in
+     * Dublin and the ninth of March in Chicago, and a date column that changes
+     * meaning with the reader is not an export.
+     */
+    fun isoDate(daysSinceEpoch: Int): String {
+        val (y, m, d) = fromDays(daysSinceEpoch)
+        return y.toString().padStart(4, '0') + "-" +
+            m.toString().padStart(2, '0') + "-" +
+            d.toString().padStart(2, '0')
+    }
+
     /** Days in a month, honouring the full leap-year rule. */
     fun daysInMonth(year: Int, month: Int): Int = when (month) {
         1, 3, 5, 7, 8, 10, 12 -> 31

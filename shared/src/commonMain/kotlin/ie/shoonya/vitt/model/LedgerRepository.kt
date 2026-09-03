@@ -419,6 +419,39 @@ class LedgerRepository(
     fun setGamificationEnabled(enabled: Boolean) =
         setPreference(Preference.GAMIFICATION, enabled)
 
+    /**
+     * Every named choice the user has explicitly made.
+     *
+     * Values are returned exactly as stored, including one this build does not
+     * recognise. See [Choice] for why that is deliberate.
+     */
+    fun choices(): Map<String, String> = store.fold()
+        .mapNotNull { (key, entity) -> Choice.from(key, entity) }
+        .filterNot { it.deleted }
+        .associate { it.key to it.value }
+
+    /** One choice, or null when the user has not made it. Null means the default. */
+    fun choice(key: String): String? = choices()[key]
+
+    fun setChoice(key: String, value: String) {
+        val at = now()
+        Choice.events(key, value, store::issue).forEach { store.append(it, at) }
+    }
+
+    /** Forgets a choice, so it falls back to the default on every device. */
+    fun clearChoice(key: String) {
+        store.append(
+            Event(
+                store.issue(),
+                Choice.ENTITY,
+                key,
+                EventLog.TOMBSTONE_FIELD,
+                TaggedValue.Bool(true),
+            ),
+            now(),
+        )
+    }
+
     fun setPreference(key: String, enabled: Boolean) {
         val at = now()
         Preference.events(key, enabled, store::issue).forEach { store.append(it, at) }
