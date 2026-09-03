@@ -22,6 +22,7 @@ import ie.shoonya.vitt.capture.CategorySource
 import ie.shoonya.vitt.model.Transaction
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.time.Civil
+import ie.shoonya.vitt.time.YearMonth
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -36,6 +37,12 @@ fun ActivityScreen(
     days: List<Pair<Int, List<Transaction>>>,
     currencyIndex: (Currency) -> Int,
     onEdit: (Transaction) -> Unit,
+    filter: ActivityFilter,
+    months: List<YearMonth>,
+    currencies: List<Currency>,
+    needingCategory: Int,
+    onFilterChange: (ActivityFilter) -> Unit,
+    monthName: (YearMonth) -> String,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -45,13 +52,53 @@ fun ActivityScreen(
     ) {
         item { Text("Activity", style = Vitt.type.display, color = Vitt.colors.ink) }
 
+        item {
+            ActivityFilters(
+                filter = filter,
+                months = months,
+                currencies = currencies,
+                needingCategory = needingCategory,
+                onChange = onFilterChange,
+                monthName = monthName,
+            )
+        }
+
         if (days.isEmpty()) {
             item {
+                // Says which filter emptied the list, so the way out is obvious.
+                // "Nothing here yet" is a lie when there are two hundred entries
+                // one chip away.
                 Text(
-                    "Nothing here yet.",
+                    when {
+                        filter.needingCategory ->
+                            "Everything here has a category. Nothing to review."
+                        filter.currency != null && filter.month != null ->
+                            "Nothing in ${filter.currency.code} this month."
+                        filter.currency != null -> "Nothing in ${filter.currency.code} yet."
+                        filter.month != null -> "Nothing recorded this month."
+                        else -> "Nothing here yet."
+                    },
                     style = Vitt.type.body,
                     color = Vitt.colors.inkMuted,
                     modifier = Modifier.padding(top = Vitt.space.tight),
+                )
+            }
+        } else if (filter.currency != null) {
+            // A single-currency view can carry a total, because there is only one
+            // currency in it. The unfiltered view deliberately cannot — that is
+            // the figure §0.6 forbids, and its absence is the point.
+            item {
+                val total = days.flatMap { it.second }
+                    .filter { it.amount.isOutflow }
+                    .fold(ie.shoonya.vitt.money.Money(0, filter.currency)) { acc, t ->
+                        acc + t.amount.abs()
+                    }
+                Text(
+                    "${total.displayUnsigned()} out" +
+                        if (filter.month != null) " this month" else " in total",
+                    style = Vitt.type.label,
+                    color = Vitt.colors.inkMuted,
+                    modifier = Modifier.padding(bottom = Vitt.space.tight),
                 )
             }
         }

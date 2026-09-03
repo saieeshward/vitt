@@ -585,8 +585,42 @@ class LedgerRepository(
         .mapNotNull { t -> t.rate?.let { t.day to it } }
 
     /** Transactions grouped by day, newest day first, for the activity list. */
-    fun byDay(): List<Pair<Int, List<Transaction>>> =
-        transactions().groupBy { it.day }.toList().sortedByDescending { it.first }
+    fun byDay(
+        /** Restrict to one calendar month. Null browses everything. */
+        month: YearMonth? = null,
+        /** Restrict to one currency. Null shows every currency, never summed. */
+        currency: Currency? = null,
+        /**
+         * Only entries with no category.
+         *
+         * §6.1 calls for a review queue for anything the tiers could not place.
+         * Without one the third tier is theoretical: an uncategorised entry is
+         * findable only by scrolling past everything else.
+         */
+        needingCategory: Boolean = false,
+    ): List<Pair<Int, List<Transaction>>> = transactions()
+        .filter { month == null || it.day in month }
+        .filter { currency == null || it.amount.currency == currency }
+        .filter { !needingCategory || it.category == null }
+        .groupBy { it.day }
+        .toList()
+        .sortedByDescending { it.first }
+
+    /**
+     * Months that have at least one transaction, newest first.
+     *
+     * Lets a month stepper stop at the ends of the data rather than walking into
+     * empty years.
+     */
+    fun monthsWithActivity(): List<YearMonth> = transactions()
+        .map { YearMonth.of(it.day) }
+        .distinct()
+        .sortedDescending()
+
+    /** How many entries the tiers could not categorise. */
+    fun needingCategoryCount(month: YearMonth? = null): Int = transactions()
+        .filter { month == null || it.day in month }
+        .count { it.category == null }
 
     /** Unsettled amounts owed to the user, per currency — never netted across them. */
     fun owed(): Map<Currency, Money> = transactions()

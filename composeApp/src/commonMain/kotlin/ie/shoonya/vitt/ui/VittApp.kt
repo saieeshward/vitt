@@ -31,10 +31,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ie.shoonya.vitt.model.LedgerRepository
 import ie.shoonya.vitt.money.Currency
+import ie.shoonya.vitt.time.Civil
 import ie.shoonya.vitt.time.YearMonth
 import ie.shoonya.vitt.model.SettlementSummary
 import ie.shoonya.vitt.ui.screens.AccountSheet
+import ie.shoonya.vitt.ui.screens.ActivityFilter
 import ie.shoonya.vitt.ui.screens.ActivityScreen
+import ie.shoonya.vitt.ui.screens.monthLabel
 import ie.shoonya.vitt.ui.screens.AddScreen
 import ie.shoonya.vitt.ui.screens.BudgetSheet
 import ie.shoonya.vitt.ui.screens.CategorySheet
@@ -89,7 +92,23 @@ fun VittApp(
     // `ledgers()` totals all of history while the card says "out this month".
     val thisMonth = remember(today) { YearMonth.of(today) }
     val ledgers = remember(revision, thisMonth) { repository.ledgers(thisMonth) }
-    val days = remember(revision) { repository.byDay() }
+    val months = remember(revision) { repository.monthsWithActivity() }
+    // Opens on the newest month with anything in it, rather than on every
+    // transaction ever recorded. Computed before this, so it needs no effect —
+    // and an empty install simply starts on "All time", which is honest.
+    var activityFilter by remember {
+        mutableStateOf(ActivityFilter(month = months.firstOrNull(), currency = null))
+    }
+    val days = remember(revision, activityFilter) {
+        repository.byDay(
+            month = activityFilter.month,
+            currency = activityFilter.currency,
+            needingCategory = activityFilter.needingCategory,
+        )
+    }
+    val needingCategory = remember(revision, activityFilter.month) {
+        repository.needingCategoryCount(activityFilter.month)
+    }
     val owed = remember(revision) { repository.owed() }
     val habitOn = remember(revision) { repository.gamificationEnabled() }
     // Zero when the layer is off, so nothing downstream can key off it — rather
@@ -136,6 +155,12 @@ fun VittApp(
                     days = days,
                     currencyIndex = indexOf,
                     onEdit = { sheet = Sheet.EditCategory(it.id) },
+                    filter = activityFilter,
+                    months = months,
+                    currencies = ledgers.map { it.currency },
+                    needingCategory = needingCategory,
+                    onFilterChange = { activityFilter = it },
+                    monthName = { monthLabel(it, Civil.fromDays(today).first) },
                 )
                 Tab.People -> PeopleScreen(
                     participants = participants,
