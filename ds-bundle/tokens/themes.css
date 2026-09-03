@@ -1,0 +1,84 @@
+/*
+ * The four palettes the user can choose, and the three accents that go in them.
+ *
+ * Curated, not a colour picker. Free colour input would break two things: the
+ * six currency hues are fixed so two currencies never collide, and the accent
+ * marks what is LIVE against them — an accent matching a currency dot makes two
+ * meanings look like one. Green, amber and blue are therefore never accents:
+ * they are the first three currency hues.
+ *
+ * Default is Cream. The theme is the user's choice and is never read from the
+ * system setting: a personal tool should not inherit an OS-wide preference set
+ * for reading in bed.
+ */
+:root,
+[data-vitt-theme="cream"] {
+  --vitt-ground: #FFFDF7;
+  --vitt-surface: #F2EFE7;
+  --vitt-card: #FFFFFF;
+  --vitt-shadow: rgba(36, 31, 51, 0.06);
+  --vitt-ink: #241F33;
+  --vitt-ink-muted: #6A6480;
+  --vitt-ink-faint: #8A85A0;
+  --vitt-hairline: rgba(36, 31, 51, 0.10);
+  --vitt-accent: #6B5BFF;
+  --vitt-accent-soft: #35B98A;
+  --vitt-pip: #EE6E9C;
+}
+
+/* Higher contrast. Plain white. Here for legibility rather than taste. */
+[data-vitt-theme="paper"] {
+  --vitt-ground: #FFFFFF;
+  --vitt-surface: #F4F4F6;
+  --vitt-card: #FFFFFF;
+  --vitt-shadow: rgba(16, 16, 20, 0.08);
+  --vitt-ink: #101014;
+  --vitt-ink-muted: #4A4A55;
+  --vitt-ink-faint: #6E6E7A;
+  --vitt-hairline: rgba(16, 16, 20, 0.14);
+  --vitt-accent: #6B5BFF;
+  --vitt-accent-soft: #35B98A;
+  --vitt-pip: #EE6E9C;
+}
+
+/* Dark, cool, low glare. On a dark ground elevation comes from a lifted
+   surface rather than from light, so card and surface are the same value. */
+[data-vitt-theme="slate"] {
+  --vitt-ground: #17141F;
+  --vitt-surface: #241F33;
+  --vitt-card: #241F33;
+  --vitt-shadow: rgba(0, 0, 0, 0.40);
+  --vitt-ink: #DAD5E6;
+  --vitt-ink-muted: #A7A1BC;
+  --vitt-ink-faint: #6A6480;
+  --vitt-hairline: rgba(218, 213, 230, 0.09);
+  --vitt-accent: #9C8DFF;
+  --vitt-accent-soft: #5EE0AC;
+  --vitt-pip: #D95C88;
+}
+
+/* Dark and warm, for anyone who finds a cool dark clinical. */
+[data-vitt-theme="dusk"] {
+  --vitt-ground: #1B1517;
+  --vitt-surface: #2A2124;
+  --vitt-card: #2A2124;
+  --vitt-shadow: rgba(0, 0, 0, 0.40);
+  --vitt-ink: #E8DCDA;
+  --vitt-ink-muted: #B4A3A2;
+  --vitt-ink-faint: #7C6C6C;
+  --vitt-hairline: rgba(232, 220, 218, 0.09);
+  --vitt-accent: #9C8DFF;
+  --vitt-accent-soft: #5EE0AC;
+  --vitt-pip: #D95C88;
+}
+
+/* Accents. Set alongside the theme; the lifted variant is for dark grounds. */
+[data-vitt-accent="violet"] { --vitt-accent: #6B5BFF; }
+[data-vitt-accent="clay"]   { --vitt-accent: #B8543A; }
+[data-vitt-accent="plum"]   { --vitt-accent: #97417F; }
+[data-vitt-theme="slate"][data-vitt-accent="violet"],
+[data-vitt-theme="dusk"][data-vitt-accent="violet"] { --vitt-accent: #9C8DFF; }
+[data-vitt-theme="slate"][data-vitt-accent="clay"],
+[data-vitt-theme="dusk"][data-vitt-accent="clay"]   { --vitt-accent: #E0876A; }
+[data-vitt-theme="slate"][data-vitt-accent="plum"],
+[data-vitt-theme="dusk"][data-vitt-accent="plum"]   { --vitt-accent: #CB7EB3; }
