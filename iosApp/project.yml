@@ -49,7 +49,7 @@ targets:
         # The Kotlin framework is produced by Gradle into composeApp/build.
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
-          - $(SRCROOT)/../composeApp/build/bin/$(KOTLIN_TARGET)/debugFramework
+          - $(SRCROOT)/../composeApp/build/bin/$(KOTLIN_TARGET)/$(KOTLIN_FRAMEWORK)Framework
         OTHER_LDFLAGS:
           - $(inherited)
           - -framework
@@ -60,6 +60,21 @@ targets:
         # Selects the right Kotlin output directory for device vs simulator.
         KOTLIN_TARGET[sdk=iphonesimulator*]: iosSimulatorArm64
         KOTLIN_TARGET[sdk=iphoneos*]: iosArm64
+        # The Kotlin framework only builds for arm64 simulators: there is no
+        # iosX64 target in composeApp. Saying so explicitly makes a stray
+        # x86_64 build fail with that sentence instead of several hundred
+        # "ignoring file ... required architecture x86_64" linker warnings
+        # followed by an unexplained link failure, which is how this was found.
+        ARCHS[sdk=iphonesimulator*]: arm64
+      configs:
+        # Which Kotlin framework each app configuration links. Release used to
+        # inherit the hardcoded debug path, so a Release build of the app linked
+        # the DEBUG Kotlin framework: unoptimised, much larger, and what a store
+        # submission would have shipped. Debug builds never revealed it.
+        Debug:
+          KOTLIN_FRAMEWORK: debug
+        Release:
+          KOTLIN_FRAMEWORK: release
     preBuildScripts:
       - name: Build Kotlin framework
         basedOnDependencyAnalysis: false
@@ -70,4 +85,11 @@ targets:
           else
             TARGET=IosArm64
           fi
-          ./gradlew :composeApp:linkDebugFramework$TARGET
+          # Must match FRAMEWORK_SEARCH_PATHS above, or the app links a
+          # framework this script never built.
+          if [ "$CONFIGURATION" = "Release" ]; then
+            KOTLIN_CONF=Release
+          else
+            KOTLIN_CONF=Debug
+          fi
+          ./gradlew :composeApp:link${KOTLIN_CONF}Framework$TARGET
