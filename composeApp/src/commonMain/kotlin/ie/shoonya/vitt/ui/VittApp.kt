@@ -25,15 +25,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ie.shoonya.vitt.export.exportTransactionsCsv
+import ie.shoonya.vitt.export.exportTransfersCsv
+import ie.shoonya.vitt.model.Choice
+import ie.shoonya.vitt.model.Insights
 import ie.shoonya.vitt.model.LedgerRepository
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.time.Civil
 import ie.shoonya.vitt.time.YearMonth
 import ie.shoonya.vitt.model.SettlementSummary
+import ie.shoonya.vitt.ui.Mood
 import ie.shoonya.vitt.ui.screens.AccountSheet
 import ie.shoonya.vitt.ui.screens.ActivityFilter
 import ie.shoonya.vitt.ui.screens.ActivityScreen
@@ -44,10 +51,15 @@ import ie.shoonya.vitt.ui.screens.CategorySheet
 import ie.shoonya.vitt.ui.screens.HabitScreen
 import ie.shoonya.vitt.ui.screens.GrainSheet
 import ie.shoonya.vitt.ui.screens.LedgersScreen
+import ie.shoonya.vitt.ui.screens.ReportsSheet
 import ie.shoonya.vitt.ui.screens.SettingsSheet
 import ie.shoonya.vitt.ui.screens.PeopleScreen
 import ie.shoonya.vitt.ui.screens.SplitSheet
 import ie.shoonya.vitt.ui.screens.TransferSheet
+import ie.shoonya.vitt.ui.platform.ExportFile
+import ie.shoonya.vitt.ui.platform.rememberFileExporter
+import ie.shoonya.vitt.ui.theme.AccentChoice
+import ie.shoonya.vitt.ui.theme.ThemeChoice
 import ie.shoonya.vitt.ui.theme.Vitt
 
 private enum class Tab(val label: String, val icon: VittIcon) {
@@ -67,6 +79,7 @@ private sealed interface Sheet {
     data class SetBudget(val currency: Currency) : Sheet
     data class EditCategory(val id: String) : Sheet
     data object Settings : Sheet
+    data object Reports : Sheet
     data object PickGrain : Sheet
 }
 
@@ -83,6 +96,14 @@ fun VittApp(
     repository: LedgerRepository,
     today: Int,
     newId: () -> String,
+    /**
+     * Applies a theme or accent the user just picked.
+     *
+     * The palette is owned above this composable, because [VittTheme] wraps it:
+     * a theme change has to re-enter composition from outside, not from inside
+     * the tree being repainted.
+     */
+    onAppearanceChange: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var tab by remember { mutableStateOf(Tab.Ledgers) }
@@ -112,10 +133,26 @@ fun VittApp(
     }
     val owed = remember(revision) { repository.owed() }
     val habitOn = remember(revision) { repository.gamificationEnabled() }
+    val companion = remember(revision) {
+        CompanionAnimal.ofCode(repository.choice(Choice.COMPANION))
+    }
+    val theme = remember(revision) { ThemeChoice.ofCode(repository.choice(Choice.THEME)) }
+    val accent = remember(revision) { AccentChoice.ofCode(repository.choice(Choice.ACCENT)) }
     // Zero when the layer is off, so nothing downstream can key off it — rather
     // than computing it and trusting every screen to ignore it.
     val recorded = remember(revision, habitOn) {
         if (habitOn) repository.daysRecorded(today) else 0
+    }
+    val exporter = rememberFileExporter()
+    // Which currency Reports is showing. Null means "the first one there is",
+    // resolved at open time — pinning a currency before any exists would leave
+    // the screen showing EUR to someone whose ledger is entirely rupees.
+    var reportCurrency by remember { mutableStateOf<Currency?>(null) }
+    // Mood from the count of budgets on track, which §5.4 permits because it is
+    // an outcome rather than an action: it moves over days and cannot be farmed.
+    val mood = remember(ledgers) {
+        val budgeted = ledgers.filter { it.budget != null }
+        Mood.of(onTrack = budgeted.count { (it.remaining()?.minor ?: 0L) >= 0L }, total = budgeted.size)
     }
     val accounts = remember(revision) { repository.accounts() }
     val balances = remember(revision) { repository.accountBalances() }
@@ -136,7 +173,25 @@ fun VittApp(
         }
     }
 
-    Column(modifier = modifier.fillMaxSize().background(Vitt.colors.ground)) {
+    // Bumped by any touch anywhere. The companion's strip watches this and
+    // halts mid-step, which is the design's "any touch stops her and she looks
+    // up" rule. Observed on the Initial pass so it never consumes the gesture:
+    // a pet that ate a tap would be a bug, not a character.
+    var interactions by remember { mutableStateOf(0) }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Vitt.colors.ground)
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        if (event.changes.any { it.pressed }) interactions++
+                    }
+                }
+            },
+    ) {
         Box(Modifier.fillMaxWidth().weight(1f)) {
             when (tab) {
                 Tab.Ledgers -> LedgersScreen(
@@ -145,6 +200,7 @@ fun VittApp(
                     daysRecorded = recorded,
                     onSetBudget = { sheet = Sheet.SetBudget(it) },
                     onOpenSettings = { sheet = Sheet.Settings },
+                    onOpenReports = { sheet = Sheet.Reports },
                     period = period,
                     dataRange = dataRange,
                     today = today,
@@ -191,8 +247,28 @@ fun VittApp(
                     daysRecorded = recorded,
                     windowDays = 30,
                     currencyCount = ledgers.size,
+                    animal = companion,
                 )
             }
+        }
+
+        // Her strip: a fixed band that is never over a number or a control, and
+        // has nothing interactive behind it. Hidden with the habit layer, since
+        // a wandering pet is the loudest thing the layer does.
+        // Her strip is on the home screen only, which is where the design's
+        // artboard puts her ("Today, with Penny on her strip"). It was on every
+        // tab, and a pet wandering under a dense transaction list competes with
+        // the scanning that list exists for — and costs a row of real data to
+        // do it. No strip when the user picked no pet, and none when the layer
+        // is off; either reason is enough on its own.
+        if (habitOn && companion != null && tab == Tab.Ledgers) {
+            CompanionStrip(
+                daysRecorded = recorded,
+                currencyCount = ledgers.size,
+                animal = companion,
+                mood = mood,
+                interactionTick = interactions,
+            )
         }
 
         TabBar(
@@ -320,7 +396,93 @@ fun VittApp(
                     },
                 )
 
+                Sheet.Reports -> {
+                    val currency = reportCurrency
+                        ?: ledgers.firstOrNull()?.currency
+                        ?: Currency.EUR
+                    val ledger = ledgers.firstOrNull { it.currency == currency }
+                    // One fold of the log for all three charts, rather than one
+                    // each — `Insights` takes a transaction list precisely so a
+                    // screen with three sections is not three passes.
+                    val all = remember(revision) { repository.transactions() }
+                    ReportsSheet(
+                        currency = currency,
+                        currencies = ledgers.map { it.currency },
+                        currencyIndex = indexOf,
+                        onCurrencyChange = { reportCurrency = it },
+                        period = period,
+                        today = today,
+                        spent = ledger?.spent ?: ie.shoonya.vitt.money.Money(0, currency),
+                        budget = ledger?.budget,
+                        // All-time has no grain to step along, so it gets no
+                        // trend rather than a single bar labelled "All time".
+                        trend = remember(revision, currency, period) {
+                            period?.let { Insights.trend(all, currency, it, count = 6) }
+                                ?: emptyList()
+                        },
+                        categories = remember(revision, currency, period) {
+                            Insights.byCategory(all, currency, period)
+                        },
+                        merchants = remember(revision, currency, period) {
+                            Insights.topMerchants(all, currency, period, limit = 5)
+                        },
+                        onExport = {
+                            // Two files, because a transfer has two amounts and
+                            // two accounts and would leave half of every
+                            // transaction row blank. Offered in one call: two
+                            // calls lose the second file silently on iOS.
+                            exporter.offer(
+                                buildList {
+                                    add(
+                                        ExportFile(
+                                            "vitt-transactions.csv",
+                                            repository.exportTransactionsCsv(),
+                                        ),
+                                    )
+                                    // Omitted rather than exported empty, so a
+                                    // user who has never moved money between
+                                    // accounts is not handed a header row to
+                                    // wonder about.
+                                    if (transfers.isNotEmpty()) {
+                                        add(
+                                            ExportFile(
+                                                "vitt-transfers.csv",
+                                                repository.exportTransfersCsv(),
+                                            ),
+                                        )
+                                    }
+                                },
+                            )
+                        },
+                        onDone = { sheet = null },
+                    )
+                }
+
                 Sheet.Settings -> SettingsSheet(
+                    companion = companion,
+                    onCompanionChange = {
+                        // "None" is stored as a value, not by clearing the
+                        // choice: cleared means unset, which means the default,
+                        // which would put the pig back.
+                        repository.setChoice(
+                            Choice.COMPANION,
+                            it?.code ?: CompanionAnimal.NONE,
+                        )
+                        revision++
+                    },
+                    theme = theme,
+                    onThemeChange = {
+                        repository.setChoice(Choice.THEME, it.code)
+                        revision++
+                        onAppearanceChange()
+                    },
+                    accent = accent,
+                    onAccentChange = {
+                        repository.setChoice(Choice.ACCENT, it.code)
+                        revision++
+                        onAppearanceChange()
+                    },
+                    currencyCount = ledgers.size,
                     gamificationEnabled = habitOn,
                     onGamificationChange = {
                         repository.setGamificationEnabled(it)
@@ -385,9 +547,9 @@ private fun SummarySheet(subject: String, body: String, onDone: () -> Unit) {
         Text(subject, style = Vitt.type.body, color = Vitt.colors.ink)
         Text(body, style = Vitt.type.label, color = Vitt.colors.inkMuted)
         Text(
-            "Amounts are written plainly on purpose: the reader's locale is " +
-                "unknowable, and 1.234 means two different numbers depending on where " +
-                "they are.",
+            // Kept, because the plain form looks like a mistake otherwise. Cut
+            // to one line: the reasoning belongs here, not on the screen.
+            "Written plainly, since 1.234 means different numbers in different places.",
             style = Vitt.type.label,
             color = Vitt.colors.inkFaint,
         )

@@ -73,7 +73,7 @@ fun VerifyScreen(services: VittServices, autoRun: Boolean = false) {
         modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("VITT — live verification", style = MaterialTheme.typography.titleMedium)
+        Text("VITT live verification", style = MaterialTheme.typography.titleMedium)
         Text(message, style = MaterialTheme.typography.bodyMedium)
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -112,7 +112,7 @@ fun VerifyScreen(services: VittServices, autoRun: Boolean = false) {
                 scope.launch {
                     val token = auth.accessToken()
                     if (token == null) {
-                        message = "No valid token — sign in again."
+                        message = "No valid token. Sign in again."
                         running = false
                         return@launch
                     }

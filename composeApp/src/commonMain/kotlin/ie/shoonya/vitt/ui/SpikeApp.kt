@@ -34,7 +34,7 @@ fun SpikeApp() {
                 modifier = Modifier.fillMaxSize().padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text("Spike 2 — amount entry", style = MaterialTheme.typography.titleMedium)
+                Text("Spike 2: amount entry", style = MaterialTheme.typography.titleMedium)
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf(Currency.EUR, Currency.INR, Currency.JPY).forEach { c ->

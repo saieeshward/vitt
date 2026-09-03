@@ -54,8 +54,7 @@ fun PeopleScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
                     Text("Nobody owes you anything.", style = Vitt.type.title, color = Vitt.colors.ink)
                     Text(
-                        "Split an expense when you log it, then add who was in on it. " +
-                            "Anything outstanding shows up here.",
+                        "Split an expense when you log it. Anything outstanding shows up here.",
                         style = Vitt.type.label,
                         color = Vitt.colors.inkMuted,
                     )
@@ -74,8 +73,7 @@ fun PeopleScreen(
             }
             item {
                 Text(
-                    "Kept in the currency each expense was incurred in. VITT will not " +
-                        "net two currencies off against each other.",
+                    "Kept in the currency each expense was in, never netted across them.",
                     style = Vitt.type.label,
                     color = Vitt.colors.inkMuted,
                 )

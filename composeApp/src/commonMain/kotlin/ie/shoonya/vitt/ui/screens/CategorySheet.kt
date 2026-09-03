@@ -129,8 +129,7 @@ fun CategorySheet(
             )
             Text(
                 if (remember) {
-                    "Every future entry from this merchant will use what you pick, " +
-                        "so it only needs doing once."
+                    "Future entries from this merchant will use what you pick."
                 } else {
                     "This entry only. The merchant keeps whatever it had."
                 },
@@ -158,8 +157,7 @@ fun CategorySheet(
             }
         } else {
             Text(
-                "There is no merchant on this entry, so there is nothing to " +
-                    "remember it against — the category applies to this one only.",
+                "No merchant on this entry, so the category applies to this one only.",
                 style = Vitt.type.label,
                 color = Vitt.colors.inkMuted,
             )

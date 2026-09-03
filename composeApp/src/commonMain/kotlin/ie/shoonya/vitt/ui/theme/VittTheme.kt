@@ -1,6 +1,5 @@
 package ie.shoonya.vitt.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -133,17 +132,21 @@ object Vitt {
 @Composable
 fun VittTheme(
     /**
-     * Light by default, regardless of the system setting.
+     * The palette, which the user chooses and the system never overrides.
      *
-     * The identity's primary palette is the cream one — warm and quiet is the
-     * intended feel, and a personal tool should not inherit an OS-wide
-     * preference set for reading in bed. A phone in dark mode was otherwise
-     * showing the app's secondary palette as if it were the design.
+     * Not read from `isSystemInDarkTheme()`. The identity's primary palette is
+     * the cream one, warm and quiet is the intended feel, and a personal tool
+     * should not inherit an OS-wide preference set for reading in bed. A phone
+     * in dark mode was otherwise showing the app's secondary palette as if it
+     * were the design. Now that the user can pick, following the system as well
+     * would mean two things deciding one question.
      */
-    dark: Boolean = false,
+    theme: ThemeChoice = ThemeChoice.DEFAULT,
+    accent: AccentChoice = AccentChoice.DEFAULT,
     content: @Composable () -> Unit,
 ) {
-    val colors = if (dark) VittColors.dark() else VittColors.light()
+    val colors = theme.colours(accent)
+    val dark = theme.dark
     val material = if (dark) {
         darkColorScheme(
             primary = colors.accent,

@@ -50,3 +50,7 @@ Thumbs.db
 iosApp/Local.xcconfig
 iosApp/VITT.xcodeproj/
 iosApp/build/
+
+# Design handoff exports. Large binaries, re-exportable from Claude Design at
+# any time, and the extracted content is what matters rather than the archive.
+*-handoff.zip

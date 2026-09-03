@@ -16,7 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import ie.shoonya.vitt.ui.Pip
+import ie.shoonya.vitt.ui.CompanionAnimal
+import ie.shoonya.vitt.ui.CompanionPet
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -31,6 +32,7 @@ fun HabitScreen(
     daysRecorded: Int,
     windowDays: Int,
     currencyCount: Int,
+    animal: CompanionAnimal?,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -40,11 +42,21 @@ fun HabitScreen(
     ) {
         Text("Habit", style = Vitt.type.title, color = Vitt.colors.ink, modifier = Modifier.fillMaxWidth())
 
-        Pip(
-            daysRecorded = daysRecorded,
-            currencyCount = currencyCount,
-            modifier = Modifier.fillMaxWidth().height(180.dp),
-        )
+        // Drawn largest here, because `design-identity.md` calls Habit "the one
+        // place gamification is loud" while the daily screens stay quiet. Still,
+        // not wandering: the strip is where she walks.
+        //
+        // Absent entirely when the user picked no pet. The tab still works: the
+        // count and the dots are the habit, and the animal was never the data.
+        animal?.let {
+            CompanionPet(
+                daysRecorded = daysRecorded,
+                currencyCount = currencyCount,
+                animal = it,
+                mood = null,
+                pixelSize = 5.dp,
+            )
+        }
 
         Text(
             "$daysRecorded of the last $windowDays days recorded",
@@ -61,9 +73,8 @@ fun HabitScreen(
             when {
                 daysRecorded == 0 -> "Pip is asleep. Log something and they'll wake up."
                 currencyCount > 1 ->
-                    "One slot per currency. Coins go in through their own slot and " +
-                        "never move between them."
-                else -> "Pip deepens as you keep recording. Nothing here reacts to what you spend."
+                    "One slot per currency. Coins never move between them."
+                else -> "Pip deepens as you keep recording, never with what you spend."
             },
             style = Vitt.type.label,
             color = Vitt.colors.inkMuted,

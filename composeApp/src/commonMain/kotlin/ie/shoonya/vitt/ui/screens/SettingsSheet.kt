@@ -13,6 +13,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import ie.shoonya.vitt.ui.CompanionAnimal
+import ie.shoonya.vitt.ui.theme.AccentChoice
+import ie.shoonya.vitt.ui.theme.ThemeChoice
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -26,6 +29,13 @@ import ie.shoonya.vitt.ui.theme.Vitt
 fun SettingsSheet(
     gamificationEnabled: Boolean,
     onGamificationChange: (Boolean) -> Unit,
+    companion: CompanionAnimal?,
+    onCompanionChange: (CompanionAnimal?) -> Unit,
+    theme: ThemeChoice,
+    onThemeChange: (ThemeChoice) -> Unit,
+    accent: AccentChoice,
+    onAccentChange: (AccentChoice) -> Unit,
+    currencyCount: Int,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -44,6 +54,18 @@ fun SettingsSheet(
             Text("Settings", style = Vitt.type.title, color = Vitt.colors.ink)
             TextButton(onClick = onDone) { Text("Done") }
         }
+
+        // Appearance first. It is the only thing here most people will ever
+        // change, and the habit switch is a decision made once.
+        AppearanceSection(
+            companion = companion,
+            onCompanionChange = onCompanionChange,
+            theme = theme,
+            onThemeChange = onThemeChange,
+            accent = accent,
+            onAccentChange = onAccentChange,
+            currencyCount = currencyCount,
+        )
 
         Text("Habit", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
 
@@ -66,23 +88,16 @@ fun SettingsSheet(
         // than left as a gap the user has to infer.
         Text(
             if (gamificationEnabled) {
-                "The Habit tab shows how many of the last 30 days you recorded " +
-                    "something on. It counts recording, never how much you spent — " +
-                    "there is nothing here that can be lost, and nothing that " +
-                    "rewards spending more."
+                "Counts days you recorded on, never how much you spent."
             } else {
-                "Off. The Habit tab is hidden and nothing counts your days. Pip " +
-                    "stays, because the coin slots are how the app explains that " +
-                    "currencies are never converted — but Pip no longer changes " +
-                    "with anything you do."
+                "Off. The Habit tab is hidden. Pip stays, but no longer changes."
             },
             style = Vitt.type.label,
             color = Vitt.colors.inkMuted,
         )
 
         Text(
-            "Turning this off changes nothing about your transactions, budgets or " +
-                "sheet.",
+            "Your transactions, budgets and sheet are untouched either way.",
             style = Vitt.type.label,
             color = Vitt.colors.inkFaint,
         )

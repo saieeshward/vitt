@@ -111,8 +111,7 @@ fun AddScreen(
 
         if (onPaidStep) {
             Text(
-                "The whole bill, not your share. Your share stays " +
-                    "${entry.display()}, and the difference is what someone owes you.",
+                "The whole bill, not your share. Yours stays ${entry.display()}.",
                 style = Vitt.type.label,
                 color = Vitt.colors.inkMuted,
             )

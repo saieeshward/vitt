@@ -38,5 +38,11 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.ui)
         }
+
+        androidMain.dependencies {
+            // For the create-document picker: `rememberLauncherForActivityResult`
+            // lives in activity-compose, not in Compose Multiplatform.
+            implementation(libs.androidx.activity.compose)
+        }
     }
 }

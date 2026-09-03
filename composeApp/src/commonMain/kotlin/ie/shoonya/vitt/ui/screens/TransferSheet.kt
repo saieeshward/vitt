@@ -114,7 +114,7 @@ fun TransferSheet(
 
         if (accounts.size < 2) {
             Text(
-                "Two accounts are needed before money can move between them.",
+                "Two accounts are needed before money can move.",
                 style = Vitt.type.label,
                 color = Vitt.colors.inkMuted,
             )
@@ -150,8 +150,7 @@ fun TransferSheet(
                 color = Vitt.colors.inkMuted,
             )
             Text(
-                "The amount that actually landed, not a conversion. Whatever the " +
-                    "bank took is already inside the difference.",
+                "What actually landed, not a conversion.",
                 style = Vitt.type.label,
                 color = Vitt.colors.inkMuted,
             )
@@ -208,8 +207,7 @@ private fun RateNote(rate: Rate) {
             color = Vitt.colors.ink,
         )
         Text(
-            "Locked to this transfer. VITT never looks a rate up, so this figure " +
-                "will not change when the market does.",
+            "Locked to this transfer. It will not change when the market does.",
             style = Vitt.type.label,
             color = Vitt.colors.inkMuted,
         )

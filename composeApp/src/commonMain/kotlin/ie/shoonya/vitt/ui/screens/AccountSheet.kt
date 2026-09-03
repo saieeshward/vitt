@@ -87,12 +87,9 @@ fun AccountSheet(
         if (settingOpening) {
             Text(
                 if (kind == AccountKind.CREDIT) {
-                    "What is already owed on this card. Tracking has to start " +
-                        "somewhere, and starting at zero makes every balance wrong " +
-                        "by the same amount."
+                    "What you already owe on this card."
                 } else {
-                    "What is in the account today. Tracking has to start somewhere, " +
-                        "and starting at zero makes every balance wrong by the same amount."
+                    "What is in the account today."
                 },
                 style = Vitt.type.label,
                 color = Vitt.colors.inkMuted,
@@ -122,9 +119,7 @@ fun AccountSheet(
                 }
             }
             Text(
-                "Fixed once the account is open. Transactions recorded against it " +
-                    "are in this currency, and re-denominating them would need a rate " +
-                    "VITT will not invent.",
+                "Fixed once the account is open.",
                 style = Vitt.type.label,
                 color = Vitt.colors.inkMuted,
             )

@@ -108,8 +108,7 @@ fun SplitSheet(
         Text("Split with", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
         if (split.splitWith.isEmpty()) {
             Text(
-                "Nobody named yet. These are labels for your own records — nothing " +
-                    "is sent, and their app never learns about it.",
+                "Nobody named yet. These are labels for your own records. Nothing is sent.",
                 style = Vitt.type.label,
                 color = Vitt.colors.inkMuted,
             )

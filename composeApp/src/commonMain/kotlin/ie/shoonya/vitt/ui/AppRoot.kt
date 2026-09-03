@@ -6,6 +6,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import ie.shoonya.vitt.VittServices
 import ie.shoonya.vitt.auth.Crypto
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import ie.shoonya.vitt.model.Choice
+import ie.shoonya.vitt.ui.theme.AccentChoice
+import ie.shoonya.vitt.ui.theme.ThemeChoice
 import ie.shoonya.vitt.ui.theme.Vitt
 import ie.shoonya.vitt.ui.theme.VittTheme
 
@@ -16,7 +23,18 @@ fun AppRoot(
     verify: Boolean = false,
     autoRun: Boolean = false,
 ) {
-    VittTheme {
+    // The palette is read here rather than inside the app, because VittTheme
+    // wraps everything below it: a theme the user picks two levels down has to
+    // re-enter composition from above to take effect at all.
+    var appearance by remember { mutableStateOf(0) }
+    val theme = remember(appearance) {
+        ThemeChoice.ofCode(services.ledger.choice(Choice.THEME))
+    }
+    val accent = remember(appearance) {
+        AccentChoice.ofCode(services.ledger.choice(Choice.ACCENT))
+    }
+
+    VittTheme(theme = theme, accent = accent) {
         Surface(modifier = Modifier.fillMaxSize(), color = Vitt.colors.ground) {
             if (verify || autoRun) {
                 VerifyScreen(services, autoRun = autoRun)
@@ -25,6 +43,7 @@ fun AppRoot(
                     repository = services.ledger,
                     today = services.today(),
                     newId = { newTransactionId(services.today()) },
+                    onAppearanceChange = { appearance++ },
                 )
             }
         }

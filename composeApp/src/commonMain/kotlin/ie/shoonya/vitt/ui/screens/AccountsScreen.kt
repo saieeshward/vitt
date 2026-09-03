@@ -57,8 +57,7 @@ fun LazyListScope.accountsSection(
             Column(verticalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
                 Text("No accounts yet.", style = Vitt.type.title, color = Vitt.colors.ink)
                 Text(
-                    "Add one per currency. A bank account holding two currencies " +
-                        "is two accounts here, because one balance can never span both.",
+                    "One per currency. An account holding two is two accounts here.",
                     style = Vitt.type.label,
                     color = Vitt.colors.inkMuted,
                 )
@@ -80,8 +79,7 @@ fun LazyListScope.accountsSection(
         }
         item {
             Text(
-                "Grouped by currency, never added up. There is no single figure " +
-                    "for what you have, because there is no honest one.",
+                "Grouped by currency, never added up.",
                 style = Vitt.type.label,
                 color = Vitt.colors.inkMuted,
             )
@@ -106,11 +104,9 @@ fun LazyListScope.accountsSection(
         item {
             Text(
                 if (balances.size >= 2) {
-                    "Moving money between your own accounts is not spending, so " +
-                        "it never touches a budget. Across currencies, VITT records " +
-                        "the rate the money actually moved at."
+                    "Moving your own money is not spending, so no budget counts it."
                 } else {
-                    "Two accounts are needed before money can move between them."
+                    "Two accounts are needed before money can move."
                 },
                 style = Vitt.type.label,
                 color = Vitt.colors.inkMuted,

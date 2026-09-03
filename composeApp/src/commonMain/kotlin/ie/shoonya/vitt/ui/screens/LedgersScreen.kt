@@ -43,6 +43,7 @@ fun LedgersScreen(
     daysRecorded: Int,
     onSetBudget: (Currency) -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenReports: () -> Unit,
     period: ie.shoonya.vitt.time.Period?,
     dataRange: IntRange?,
     today: Int,
@@ -68,19 +69,12 @@ fun LedgersScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text("Ledgers", style = Vitt.type.display, color = Vitt.colors.ink)
-                // In the header rather than a tab: the design is explicit that a
-                // monthly visit must not slow the daily path.
-                Box(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .clickable(onClick = onOpenSettings)
-                        .padding(Vitt.space.tight),
-                ) {
-                    ie.shoonya.vitt.ui.VittGlyph(
-                        ie.shoonya.vitt.ui.VittIcon.Gear,
-                        Vitt.colors.inkMuted,
-                        Modifier.size(23.dp),
-                    )
+                // Both in the header rather than as tabs: `design-identity.md`
+                // puts reports and settings behind Ledgers' header icons because
+                // a monthly visit must not slow the daily path.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    HeaderIcon(ie.shoonya.vitt.ui.VittIcon.Chart, onOpenReports)
+                    HeaderIcon(ie.shoonya.vitt.ui.VittIcon.Gear, onOpenSettings)
                 }
             }
         }
@@ -95,16 +89,10 @@ fun LedgersScreen(
             )
         }
 
-        // Pip leads the home screen rather than hiding in a tab: the character
-        // is how the no-conversion rule is explained without words — one coin
-        // slot per currency, and coins never move between them.
-        item {
-            ie.shoonya.vitt.ui.Pip(
-                daysRecorded = daysRecorded,
-                currencyCount = ledgers.size,
-                modifier = Modifier.fillMaxWidth().height(140.dp),
-            )
-        }
+        // The companion is no longer an item here. It owns a fixed strip above
+        // the tab bar instead, which is what the design's wander artboard
+        // specifies and what makes wandering safe: a band outside the scrolling
+        // list cannot remeasure the cards below it however far she walks.
 
         if (ledgers.isEmpty()) {
             item { EmptyLedgers() }
@@ -134,6 +122,23 @@ fun LedgersScreen(
             accountName = accountName,
             formatDay = formatDay,
         )
+    }
+}
+
+@Composable
+private fun HeaderIcon(icon: ie.shoonya.vitt.ui.VittIcon, onClick: () -> Unit) {
+    // A 44dp target around a 23dp glyph. The glyph alone with 6dp of padding
+    // came to 35dp, under Apple's 44pt minimum and Android's 48dp guidance —
+    // small enough to miss with a thumb on the move, which is when a header
+    // icon actually gets used.
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        ie.shoonya.vitt.ui.VittGlyph(icon, Vitt.colors.inkMuted, Modifier.size(23.dp))
     }
 }
 
@@ -276,8 +281,8 @@ private fun Figure(label: String, amount: Money) {
 @Composable
 private fun NoTotalNote() {
     Text(
-        "Ledgers are kept separate on purpose. VITT never converts, so no figure " +
-            "here moves because a rate moved.",
+        "Kept separate on purpose. VITT never converts, so no figure here moves " +
+            "because a rate did.",
         style = Vitt.type.label,
         color = Vitt.colors.inkMuted,
         modifier = Modifier.padding(top = Vitt.space.tight),
@@ -314,8 +319,7 @@ private fun EmptyLedgers() {
     Column(verticalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
         Text("Nothing recorded yet.", style = Vitt.type.title, color = Vitt.colors.ink)
         Text(
-            "Tap the middle button to log something. Every currency gets its own " +
-                "ledger, and they are never added together.",
+            "Tap the middle button to log something. Each currency gets its own ledger.",
             style = Vitt.type.label,
             color = Vitt.colors.inkMuted,
         )
