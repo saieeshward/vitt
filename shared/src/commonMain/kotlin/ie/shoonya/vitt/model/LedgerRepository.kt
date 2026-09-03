@@ -399,6 +399,30 @@ class LedgerRepository(
         )
     }
 
+    /** Every preference the user has explicitly set. */
+    fun preferences(): Map<String, Boolean> = store.fold()
+        .mapNotNull { (key, entity) -> Preference.from(key, entity) }
+        .filterNot { it.deleted }
+        .associate { it.key to it.enabled }
+
+    /**
+     * Whether the gamification layer runs.
+     *
+     * Unset means the default, not off — an untouched install should behave as
+     * designed, and the switch is about being able to decline rather than about
+     * having to opt in.
+     */
+    fun gamificationEnabled(): Boolean =
+        preferences()[Preference.GAMIFICATION] ?: Preference.GAMIFICATION_DEFAULT
+
+    fun setGamificationEnabled(enabled: Boolean) =
+        setPreference(Preference.GAMIFICATION, enabled)
+
+    fun setPreference(key: String, enabled: Boolean) {
+        val at = now()
+        Preference.events(key, enabled, store::issue).forEach { store.append(it, at) }
+    }
+
     /** Every live transaction, newest first. */
     fun transactions(): List<Transaction> = store.fold()
         .mapNotNull { (key, entity) -> Transaction.from(key, entity) }

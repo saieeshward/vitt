@@ -40,6 +40,7 @@ import ie.shoonya.vitt.ui.screens.BudgetSheet
 import ie.shoonya.vitt.ui.screens.CategorySheet
 import ie.shoonya.vitt.ui.screens.HabitScreen
 import ie.shoonya.vitt.ui.screens.LedgersScreen
+import ie.shoonya.vitt.ui.screens.SettingsSheet
 import ie.shoonya.vitt.ui.screens.PeopleScreen
 import ie.shoonya.vitt.ui.screens.SplitSheet
 import ie.shoonya.vitt.ui.screens.TransferSheet
@@ -61,6 +62,7 @@ private sealed interface Sheet {
     data class Summary(val subject: String, val body: String) : Sheet
     data class SetBudget(val currency: Currency) : Sheet
     data class EditCategory(val id: String) : Sheet
+    data object Settings : Sheet
 }
 
 /**
@@ -89,7 +91,12 @@ fun VittApp(
     val ledgers = remember(revision, thisMonth) { repository.ledgers(thisMonth) }
     val days = remember(revision) { repository.byDay() }
     val owed = remember(revision) { repository.owed() }
-    val recorded = remember(revision) { repository.daysRecorded(today) }
+    val habitOn = remember(revision) { repository.gamificationEnabled() }
+    // Zero when the layer is off, so nothing downstream can key off it — rather
+    // than computing it and trusting every screen to ignore it.
+    val recorded = remember(revision, habitOn) {
+        if (habitOn) repository.daysRecorded(today) else 0
+    }
     val accounts = remember(revision) { repository.accounts() }
     val balances = remember(revision) { repository.accountBalances() }
     val transfers = remember(revision) { repository.transfers() }
@@ -117,6 +124,7 @@ fun VittApp(
                     owed = owed,
                     daysRecorded = recorded,
                     onSetBudget = { sheet = Sheet.SetBudget(it) },
+                    onOpenSettings = { sheet = Sheet.Settings },
                     balances = balances,
                     transfers = transfers,
                     onAddAccount = { sheet = Sheet.NewAccount },
@@ -157,6 +165,7 @@ fun VittApp(
             current = tab,
             onSelect = { tab = it },
             onAdd = { sheet = Sheet.Add },
+            rightTabs = if (habitOn) listOf(Tab.People, Tab.Habit) else listOf(Tab.People),
         )
     }
 
@@ -268,6 +277,18 @@ fun VittApp(
                     }
                 }
 
+                Sheet.Settings -> SettingsSheet(
+                    gamificationEnabled = habitOn,
+                    onGamificationChange = {
+                        repository.setGamificationEnabled(it)
+                        revision++
+                        // Dropping the Habit tab under the user while they are on
+                        // it would leave a blank screen, so step back to Ledgers.
+                        if (!it && tab == Tab.Habit) tab = Tab.Ledgers
+                    },
+                    onDone = { sheet = null },
+                )
+
                 is Sheet.SetBudget -> BudgetSheet(
                     currency = open.currency,
                     existing = remember(revision, open.currency) {
@@ -331,7 +352,12 @@ private fun SummarySheet(subject: String, body: String, onDone: () -> Unit) {
 }
 
 @Composable
-private fun TabBar(current: Tab, onSelect: (Tab) -> Unit, onAdd: () -> Unit) {
+private fun TabBar(
+    current: Tab,
+    onSelect: (Tab) -> Unit,
+    onAdd: () -> Unit,
+    rightTabs: List<Tab>,
+) {
     val colors = Vitt.colors
     // No fill behind the tab bar. The design's light tab row (`.ltab`) sits
     // directly on the ground with generous bottom padding; a filled bar reads as
@@ -365,9 +391,12 @@ private fun TabBar(current: Tab, onSelect: (Tab) -> Unit, onAdd: () -> Unit) {
             }
         }
 
-        listOf(Tab.People, Tab.Habit).forEach {
+        rightTabs.forEach {
             TabItem(it, current, onSelect, Modifier.weight(1f))
         }
+        // Keeps the bar symmetrical when Habit is gone: without a filler the
+        // centre button slides off centre, which reads as a layout bug.
+        if (rightTabs.size == 1) Spacer(Modifier.weight(1f))
     }
 }
 

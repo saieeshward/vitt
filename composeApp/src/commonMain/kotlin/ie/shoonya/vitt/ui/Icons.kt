@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
  * A tab bar of bare words reads unfinished no matter how the type is set, which
  * is most of what made the previous version look rough.
  */
-enum class VittIcon { Wallet, List, People, Spark }
+enum class VittIcon { Wallet, List, People, Spark, Gear }
 
 @Composable
 fun VittGlyph(icon: VittIcon, tint: Color, modifier: Modifier = Modifier) {
@@ -34,7 +34,36 @@ fun VittGlyph(icon: VittIcon, tint: Color, modifier: Modifier = Modifier) {
             VittIcon.List -> drawList(tint, s, w)
             VittIcon.People -> drawPeople(tint, s, stroke)
             VittIcon.Spark -> drawSpark(tint, s, stroke)
+            VittIcon.Gear -> drawGear(tint, s, stroke)
         }
+    }
+}
+
+/**
+ * A wide ring with short teeth and a hole.
+ *
+ * The first attempt put six long spokes outside a small ring and read as a sun:
+ * gear teeth are *short* relative to the body, and the inner hole is what makes
+ * the shape unmistakable at 23dp. Drawn in line weight to match the rest of the
+ * set.
+ */
+private fun DrawScope.drawGear(tint: Color, s: Float, stroke: Stroke) {
+    val c = Offset(s * 0.5f, s * 0.5f)
+    // The body: wide, so the teeth are stubs against it rather than rays.
+    drawCircle(color = tint, radius = s * 0.30f, center = c, style = stroke)
+    // The hole. Without it a toothed ring is just a cog-ish blob.
+    drawCircle(color = tint, radius = s * 0.11f, center = c, style = stroke)
+    repeat(8) { i ->
+        val angle = i * 45f * 3.14159265f / 180f
+        val dx = kotlin.math.cos(angle)
+        val dy = kotlin.math.sin(angle)
+        drawLine(
+            color = tint,
+            start = Offset(c.x + dx * s * 0.30f, c.y + dy * s * 0.30f),
+            end = Offset(c.x + dx * s * 0.41f, c.y + dy * s * 0.41f),
+            strokeWidth = stroke.width,
+            cap = stroke.cap,
+        )
     }
 }
 

@@ -43,7 +43,14 @@ import ie.shoonya.vitt.ui.theme.Vitt
  */
 @Composable
 fun Pip(
-    /** Days recorded in the window. Deepens Pip's colour; nothing else. */
+    /**
+     * Days recorded in the window. Deepens Pip's colour; nothing else.
+     *
+     * Pass zero when the habit layer is off. Pip stays on the screen either way,
+     * because the coin slots are how the app explains that currencies never
+     * convert — but with the layer off nothing about Pip may respond to what the
+     * user did.
+     */
     daysRecorded: Int,
     /** One slot per currency, in assignment order. */
     currencyCount: Int,

@@ -41,6 +41,7 @@ fun LedgersScreen(
     owed: Map<Currency, Money>,
     daysRecorded: Int,
     onSetBudget: (Currency) -> Unit,
+    onOpenSettings: () -> Unit,
     balances: List<ie.shoonya.vitt.model.AccountBalance>,
     transfers: List<ie.shoonya.vitt.model.Transfer>,
     onAddAccount: () -> Unit,
@@ -55,7 +56,27 @@ fun LedgersScreen(
         verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
     ) {
         item {
-            Text("Ledgers", style = Vitt.type.display, color = Vitt.colors.ink)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Ledgers", style = Vitt.type.display, color = Vitt.colors.ink)
+                // In the header rather than a tab: the design is explicit that a
+                // monthly visit must not slow the daily path.
+                Box(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable(onClick = onOpenSettings)
+                        .padding(Vitt.space.tight),
+                ) {
+                    ie.shoonya.vitt.ui.VittGlyph(
+                        ie.shoonya.vitt.ui.VittIcon.Gear,
+                        Vitt.colors.inkMuted,
+                        Modifier.size(23.dp),
+                    )
+                }
+            }
         }
 
         // Pip leads the home screen rather than hiding in a tab: the character
