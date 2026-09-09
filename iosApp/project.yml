@@ -16,6 +16,9 @@ settings:
     # than committing a team id.
     CODE_SIGN_STYLE: Automatic
     ENABLE_USER_SCRIPT_SANDBOXING: NO
+    # Without this the asset catalogue ships but nothing points at it, and the
+    # build has no icon while looking as though it does.
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
 targets:
   VITT:
