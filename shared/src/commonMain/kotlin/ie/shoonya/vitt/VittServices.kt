@@ -339,4 +339,18 @@ class VittServices(
     )
 
     fun liveVerification(): LiveVerification = LiveVerification(sheets())
+
+    /**
+     * The sync cycle, built fresh per call.
+     *
+     * Fresh rather than held, because [sheets] fetches a token per request: a
+     * long-lived syncer would be a long-lived client, and a sync that started
+     * before an expiry would fail partway through on a credential that was fine
+     * when it began.
+     */
+    fun syncer(): ie.shoonya.vitt.sync.Syncer = ie.shoonya.vitt.sync.Syncer(
+        store = store,
+        transport = ie.shoonya.vitt.sheets.SheetsTransport(sheets()),
+        now = now,
+    )
 }
