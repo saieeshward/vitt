@@ -54,3 +54,7 @@ iosApp/build/
 # Design handoff exports. Large binaries, re-exportable from Claude Design at
 # any time, and the extracted content is what matters rather than the archive.
 *-handoff.zip
+
+# Xcode derived data from the simulator build loop.
+iosApp/build-rel/
+tools/__pycache__/

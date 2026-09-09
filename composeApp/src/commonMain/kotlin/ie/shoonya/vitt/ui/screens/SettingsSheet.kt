@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -13,6 +14,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import ie.shoonya.vitt.ui.CompanionAnimal
 import ie.shoonya.vitt.ui.theme.AccentChoice
 import ie.shoonya.vitt.ui.theme.ThemeChoice
@@ -70,7 +73,19 @@ fun SettingsSheet(
         Text("Habit", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            // The whole row toggles, which is both how every settings list on
+            // the platform behaves and the only way this control has a name:
+            // a bare `Switch` beside a sibling `Text` announces itself as an
+            // unnamed switch with no state, and the off switch is the one
+            // setting PLAN.md §5 insists must be easy to find.
+            modifier = Modifier
+                .fillMaxWidth()
+                .toggleable(
+                    value = gamificationEnabled,
+                    role = Role.Switch,
+                    onValueChange = onGamificationChange,
+                )
+                .semantics(mergeDescendants = true) {},
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -80,7 +95,9 @@ fun SettingsSheet(
                 color = Vitt.colors.ink,
                 modifier = Modifier.fillMaxWidth(0.7f),
             )
-            Switch(checked = gamificationEnabled, onCheckedChange = onGamificationChange)
+            // The row owns the gesture and the state now, so the switch is the
+            // picture of it. `null` is what stops it taking a second focus stop.
+            Switch(checked = gamificationEnabled, onCheckedChange = null)
         }
 
         // Says what it does and what it does not, in the tone §5.6 sets: no

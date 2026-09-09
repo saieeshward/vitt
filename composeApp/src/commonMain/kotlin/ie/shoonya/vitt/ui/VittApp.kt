@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -25,10 +26,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,28 +43,28 @@ import ie.shoonya.vitt.export.exportTransfersCsv
 import ie.shoonya.vitt.model.Choice
 import ie.shoonya.vitt.model.Insights
 import ie.shoonya.vitt.model.LedgerRepository
+import ie.shoonya.vitt.model.SettlementSummary
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.time.Civil
+import ie.shoonya.vitt.time.Period
 import ie.shoonya.vitt.time.YearMonth
-import ie.shoonya.vitt.model.SettlementSummary
 import ie.shoonya.vitt.ui.Mood
+import ie.shoonya.vitt.ui.platform.ExportFile
+import ie.shoonya.vitt.ui.platform.rememberFileExporter
 import ie.shoonya.vitt.ui.screens.AccountSheet
 import ie.shoonya.vitt.ui.screens.ActivityFilter
 import ie.shoonya.vitt.ui.screens.ActivityScreen
-import ie.shoonya.vitt.time.Period
 import ie.shoonya.vitt.ui.screens.AddScreen
 import ie.shoonya.vitt.ui.screens.BudgetSheet
 import ie.shoonya.vitt.ui.screens.CategorySheet
-import ie.shoonya.vitt.ui.screens.HabitScreen
 import ie.shoonya.vitt.ui.screens.GrainSheet
+import ie.shoonya.vitt.ui.screens.HabitScreen
 import ie.shoonya.vitt.ui.screens.LedgersScreen
+import ie.shoonya.vitt.ui.screens.PeopleScreen
 import ie.shoonya.vitt.ui.screens.ReportsSheet
 import ie.shoonya.vitt.ui.screens.SettingsSheet
-import ie.shoonya.vitt.ui.screens.PeopleScreen
 import ie.shoonya.vitt.ui.screens.SplitSheet
 import ie.shoonya.vitt.ui.screens.TransferSheet
-import ie.shoonya.vitt.ui.platform.ExportFile
-import ie.shoonya.vitt.ui.platform.rememberFileExporter
 import ie.shoonya.vitt.ui.theme.AccentChoice
 import ie.shoonya.vitt.ui.theme.ThemeChoice
 import ie.shoonya.vitt.ui.theme.Vitt
@@ -607,10 +613,23 @@ private fun TabBar(
                     .size(44.dp)
                     .clip(CircleShape)
                     .background(colors.accent)
-                    .clickable(onClick = onAdd),
+                    .clickable(onClick = onAdd)
+                    // Without this the primary action of the whole app announces
+                    // itself as "plus".
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = "Add transaction"
+                        role = Role.Button
+                    },
                 contentAlignment = Alignment.Center,
             ) {
-                Text("+", style = Vitt.type.title, color = colors.ground)
+                Text(
+                    "+",
+                    style = Vitt.type.title,
+                    color = colors.ground,
+                    // The name is on the Box; without clearing this the button
+                    // announces itself as "Add transaction, plus".
+                    modifier = Modifier.clearAndSetSemantics {},
+                )
             }
         }
 
@@ -628,7 +647,17 @@ private fun TabItem(tab: Tab, current: Tab, onSelect: (Tab) -> Unit, modifier: M
     val selected = tab == current
     val tint = if (selected) Vitt.colors.accent else Vitt.colors.inkMuted
     Column(
-        modifier = modifier.clickable { onSelect(tab) }.padding(vertical = Vitt.space.hair),
+        // `selectable` rather than `clickable`: it is what carries "tab" and
+        // "selected" to VoiceOver and TalkBack. A clickable tab announces its
+        // label and nothing else, so the current tab is indistinguishable from
+        // the other four with the screen reader on.
+        modifier = modifier
+            .selectable(
+                selected = selected,
+                role = Role.Tab,
+                onClick = { onSelect(tab) },
+            )
+            .padding(vertical = Vitt.space.hair),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {

@@ -9,9 +9,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -21,6 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import ie.shoonya.vitt.money.Currency
@@ -28,8 +33,8 @@ import ie.shoonya.vitt.ui.CompanionAnimal
 import ie.shoonya.vitt.ui.CompanionPet
 import ie.shoonya.vitt.ui.theme.AccentChoice
 import ie.shoonya.vitt.ui.theme.ThemeChoice
-import ie.shoonya.vitt.ui.theme.colours
 import ie.shoonya.vitt.ui.theme.Vitt
+import ie.shoonya.vitt.ui.theme.colours
 
 /**
  * Choosing the animal, the palette and the accent.
@@ -149,7 +154,7 @@ private fun NoPetTile(
         modifier = modifier
             .clip(RoundedCornerShape(Vitt.radius.tile))
             .background(if (selected) colors.accent.copy(alpha = 0.10f) else colors.card)
-            .clickable(onClick = onClick)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
             .padding(vertical = Vitt.space.tight),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Vitt.space.hair),
@@ -191,7 +196,10 @@ private fun CompanionTile(
         modifier = modifier
             .clip(RoundedCornerShape(Vitt.radius.tile))
             .background(if (selected) colors.accent.copy(alpha = 0.10f) else colors.card)
-            .clickable(onClick = onClick)
+            // The animal is a `Canvas`, so the tile's name comes from its caption
+            // alone. That is enough; what was missing is that it is one of a set
+            // and which one is on.
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
             .padding(vertical = Vitt.space.tight),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Vitt.space.hair),
@@ -240,7 +248,7 @@ private fun ThemeTile(
             // Selection marked exactly as it is on the companion tiles above,
             // so one glance reads both rows.
             .background(if (selected) current.accent.copy(alpha = 0.10f) else current.ground)
-            .clickable(onClick = onClick)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
             .padding(Vitt.space.tight),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Vitt.space.hair),
@@ -299,7 +307,9 @@ private fun AccentDot(
             .size(38.dp)
             .clip(CircleShape)
             .background(if (selected) colour.copy(alpha = 0.18f) else Vitt.colors.card)
-            .clickable(onClick = onClick),
+            // Two nested circles and no text anywhere: named here or not at all.
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .semantics { contentDescription = accent.label },
         contentAlignment = Alignment.Center,
     ) {
         Box(

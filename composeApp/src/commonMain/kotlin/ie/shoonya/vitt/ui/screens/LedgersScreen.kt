@@ -20,6 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -73,8 +77,8 @@ fun LedgersScreen(
                 // puts reports and settings behind Ledgers' header icons because
                 // a monthly visit must not slow the daily path.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    HeaderIcon(ie.shoonya.vitt.ui.VittIcon.Chart, onOpenReports)
-                    HeaderIcon(ie.shoonya.vitt.ui.VittIcon.Gear, onOpenSettings)
+                    HeaderIcon(ie.shoonya.vitt.ui.VittIcon.Chart, "Reports", onOpenReports)
+                    HeaderIcon(ie.shoonya.vitt.ui.VittIcon.Gear, "Settings", onOpenSettings)
                 }
             }
         }
@@ -126,7 +130,15 @@ fun LedgersScreen(
 }
 
 @Composable
-private fun HeaderIcon(icon: ie.shoonya.vitt.ui.VittIcon, onClick: () -> Unit) {
+private fun HeaderIcon(
+    icon: ie.shoonya.vitt.ui.VittIcon,
+    /**
+     * Required, not optional. The glyphs are drawn to a `Canvas`, which carries
+     * no text of any kind, so a header icon without this is an unnamed button.
+     */
+    label: String,
+    onClick: () -> Unit,
+) {
     // A 44dp target around a 23dp glyph. The glyph alone with 6dp of padding
     // came to 35dp, under Apple's 44pt minimum and Android's 48dp guidance —
     // small enough to miss with a thumb on the move, which is when a header
@@ -135,7 +147,8 @@ private fun HeaderIcon(icon: ie.shoonya.vitt.ui.VittIcon, onClick: () -> Unit) {
         modifier = Modifier
             .size(44.dp)
             .clip(CircleShape)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            .semantics { contentDescription = label; role = Role.Button },
         contentAlignment = Alignment.Center,
     ) {
         ie.shoonya.vitt.ui.VittGlyph(icon, Vitt.colors.inkMuted, Modifier.size(23.dp))
@@ -171,7 +184,13 @@ private fun LedgerCard(
             // The whole card opens the budget for its currency. Tapping the thing
             // the limit applies to needs no separate affordance, and the card has
             // no other action competing for the gesture.
-            .clickable(enabled = canSetBudget) { onSetBudget(ledger.currency) }
+            // `onClickLabel` names the action on the merged card. The card's own
+            // figures already read out as its name, so it needs no
+            // contentDescription — only a statement of what tapping does.
+            .clickable(
+                enabled = canSetBudget,
+                onClickLabel = "Set a budget",
+            ) { onSetBudget(ledger.currency) }
             .padding(Vitt.space.loose),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.hair),
     ) {
@@ -246,6 +265,8 @@ private fun LedgerCard(
 @Composable
 private fun HealthBar(pressure: Float) {
     val colors = Vitt.colors
+    // Deliberately unlabelled. The line above it already says "left of EUR 1,800"
+    // or "past EUR 1,800", so a reading of the bar would be the same fact twice.
     Box(
         Modifier.fillMaxWidth().height(3.dp).clip(CircleShape)
             .background(colors.inkFaint.copy(alpha = 0.25f)),

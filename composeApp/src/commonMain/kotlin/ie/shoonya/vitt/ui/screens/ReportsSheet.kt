@@ -21,6 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import ie.shoonya.vitt.model.CategorySlice
@@ -202,7 +206,15 @@ private fun TrendChart(trend: List<PeriodSlice>, hue: Int, today: Int) {
     val tint = colors.currency(hue)
 
     Column(verticalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
-        Canvas(modifier = Modifier.fillMaxWidth().height(72.dp)) {
+        // Every other number in this app is text somewhere. These bars are not,
+        // so the chart states itself: without this the whole trend is silence.
+        val spoken = trend.joinToString(", ") { slice ->
+            "${periodLabel(slice.period, today)} ${slice.spent.displayUnsigned()}"
+        }
+        Canvas(
+            modifier = Modifier.fillMaxWidth().height(72.dp)
+                .semantics { contentDescription = "Spending by period: $spoken" },
+        ) {
             val slotWidth = size.width / trend.size
             // A fixed fraction of the slot, so the bars do not fatten into
             // blocks when the trend is short.
