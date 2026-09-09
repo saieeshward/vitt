@@ -61,8 +61,39 @@ data class AmountEntry(
         val padded = digits.padStart(exp + 1, '0')
         val whole = padded.dropLast(exp).ifEmpty { "0" }
         val frac = if (exp == 0) "" else "." + padded.takeLast(exp)
-        return currency.symbol + group(whole, currency) + frac
+        return isolate(currency.symbol) + group(whole, currency) + frac
     }
+
+    /**
+     * Fences an right-to-left currency symbol off from the text around it.
+     *
+     * AED's symbol is Arabic, and Unicode decides a line's direction from its
+     * first strong character — so an amount starting with it turned the whole
+     * *line* right-to-left. A cross-currency transfer rendered backwards: the
+     * string was "AED 100.00 -> JPY 709,420" and the screen showed the JPY
+     * amount first, so the user read the transfer as having gone the other way,
+     * on the one screen that records an exchange rate.
+     *
+     * Wrapping the symbol in FIRST STRONG ISOLATE / POP DIRECTIONAL ISOLATE
+     * lets it render right-to-left inside its own island while counting as
+     * neutral outside it, which leaves the surrounding line to the digits and
+     * therefore left-to-right.
+     *
+     * Applied only to a symbol that actually contains a strong right-to-left
+     * character, so every other currency's string is unchanged to the byte.
+     * `TextStyle.textDirection` was the first attempt and did not move the
+     * rendering; this works because it fixes the text rather than asking the
+     * layout to override it.
+     *
+     * Display only. The CSV export and the sheet write `toPlainString()`, which
+     * carries no symbol at all, so no invisible character can reach a file.
+     */
+    private fun isolate(symbol: String): String =
+        if (symbol.any { it.isStrongRtl() }) "\u2068" + symbol + "\u2069" else symbol
+
+    /** Arabic, Hebrew, Syriac, Thaana and the Arabic presentation forms. */
+    private fun Char.isStrongRtl(): Boolean = code in 0x0590..0x08FF ||
+        code in 0xFB1D..0xFDFF || code in 0xFE70..0xFEFF
 
     private fun group(whole: String, currency: Currency): String {
         if (whole.length <= 3) return whole

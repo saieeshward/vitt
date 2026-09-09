@@ -230,6 +230,20 @@ fun VittApp(
                     onTransfer = { sheet = Sheet.Transfer },
                     accountName = nameOf,
                     formatDay = formatDay,
+                    // Keep the list clear of her band while she is standing
+                    // where the app put her. `Pip.kt` is explicit that the
+                    // "never over your numbers" rule exists to stop *the app*
+                    // putting a pet in the user's way, and at six currencies
+                    // the cards run the full height of the screen — so the
+                    // default home landed her squarely on a budget line and its
+                    // health bar, with the user having done nothing. Once she
+                    // has been dragged somewhere the reservation goes away and
+                    // the 60dp comes back: a pet the user placed on their own
+                    // numbers is their business.
+                    companionInset = if (
+                        habitOn && companion != null &&
+                        companionHome == DEFAULT_COMPANION_HOME
+                    ) 64.dp else 0.dp,
                 )
                 Tab.Activity -> ActivityScreen(
                     days = days,

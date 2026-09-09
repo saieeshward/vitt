@@ -59,11 +59,18 @@ fun LedgersScreen(
     onTransfer: () -> Unit,
     accountName: (String) -> String,
     formatDay: (Int) -> String,
+    /** Room kept at the foot of the list for the companion's default band. */
+    companionInset: androidx.compose.ui.unit.Dp = 0.dp,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(Vitt.space.loose),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+            start = Vitt.space.loose,
+            end = Vitt.space.loose,
+            top = Vitt.space.loose,
+            bottom = Vitt.space.loose + companionInset,
+        ),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
     ) {
         item {
