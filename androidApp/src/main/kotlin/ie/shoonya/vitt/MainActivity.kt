@@ -47,6 +47,24 @@ class MainActivity : ComponentActivity() {
         ie.shoonya.vitt.sync.initInstallMarker(applicationContext)
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        // The launch switches iOS reads from the environment. Android processes
+        // do not get one, so they arrive as intent extras:
+        //
+        //   adb shell am start -n ie.shoonya.vitt/.MainActivity --ez seed true
+        //
+        // Development only, and the same two seeders the iOS side calls, so a
+        // screen can be compared across platforms against identical data
+        // instead of against whatever was typed into each by hand.
+        val services = VittServices(
+            tokenStore = ie.shoonya.vitt.auth.platformTokenStore(),
+            browser = BrowserAuth(applicationContext),
+            now = { System.currentTimeMillis() },
+            driver = ie.shoonya.vitt.sync.androidDriver(applicationContext),
+        )
+        if (intent?.getBooleanExtra("seed", false) == true) services.seedSampleData()
+        if (intent?.getBooleanExtra("stress", false) == true) services.seedStressData()
+
         setContent {
             // `enableEdgeToEdge` means this window draws behind the status and
             // navigation bars, and nothing in the shared UI applies an inset:
@@ -64,14 +82,7 @@ class MainActivity : ComponentActivity() {
                     WindowInsets.statusBars,
                 ),
             ) {
-                AppRoot(
-                    VittServices(
-                        tokenStore = ie.shoonya.vitt.auth.platformTokenStore(),
-                        browser = BrowserAuth(applicationContext),
-                        now = { System.currentTimeMillis() },
-                        driver = ie.shoonya.vitt.sync.androidDriver(applicationContext),
-                    )
-                )
+                AppRoot(services)
             }
         }
     }

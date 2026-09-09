@@ -64,13 +64,12 @@ fun LedgersScreen(
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            start = Vitt.space.loose,
-            end = Vitt.space.loose,
-            top = Vitt.space.loose,
-            bottom = Vitt.space.loose + companionInset,
-        ),
+        // The inset shortens the *viewport*, not the content. As bottom
+        // `contentPadding` it only cleared her at the very foot of the list —
+        // which is the one scroll position it was checked at — and anywhere
+        // else the list simply scrolled cards under her band regardless.
+        modifier = modifier.fillMaxWidth().padding(bottom = companionInset),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(Vitt.space.loose),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
     ) {
         item {
