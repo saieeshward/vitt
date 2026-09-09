@@ -1,6 +1,7 @@
 package ie.shoonya.vitt.ui.screens
 
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import ie.shoonya.vitt.capture.Category
 import ie.shoonya.vitt.model.Account
 import ie.shoonya.vitt.money.AmountEntry
@@ -60,14 +63,26 @@ fun AddScreen(
     var paidEntry by remember { mutableStateOf(AmountEntry(currency = entry.currency)) }
     var onPaidStep by remember { mutableStateOf(false) }
 
+    // The scrolling body's viewport, derived from the window rather than a
+    // guessed constant so it holds on a small phone and an iPad alike.
+    val bodyMaxHeight = with(LocalDensity.current) {
+        (LocalWindowInfo.current.containerSize.height * 0.72f).toDp()
+    }
+
+    // The header is pinned and only the body scrolls.
+    //
+    // This is a fix for losing an entry, not a tidiness change. The keypad plus
+    // the category chips is taller than the sheet, so reaching a category means
+    // scrolling down — and with the header inside the scroll, Save went with it.
+    // Getting back to Save then meant dragging downward, which a
+    // `ModalBottomSheet` reads as dismiss, so the sheet closed and the amount
+    // was discarded with no warning. Found by logging a €3.60 coffee in the
+    // simulator and then finding no such row in the database.
+    //
+    // Pinning the header breaks the chain at its first link: Save is always on
+    // screen, so there is never a reason to scroll back up.
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            // The keypad plus the category chips is taller than the sheet, and a
-            // plain Column clips the overflow — the last row of categories was
-            // simply unreachable. Scrolling keeps all of it available.
-            .verticalScroll(rememberScrollState())
-            .padding(Vitt.space.loose),
+        modifier = modifier.fillMaxWidth().padding(Vitt.space.loose),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
     ) {
         Row(
@@ -108,6 +123,31 @@ fun AddScreen(
                 ) { Text("Save") }
             }
         }
+
+        // Only the body scrolls. Everything below here can exceed the sheet;
+        // the header above it must not move.
+        //
+        // The explicit height cap is load-bearing, not tidiness.
+        //
+        // A `verticalScroll` needs a bounded viewport or it simply grows to fit
+        // its content and never scrolls, and `ModalBottomSheet` hands its
+        // content an *unbounded* height — which also rules out `weight`, since
+        // a Column cannot distribute infinite space. Both were tried here and
+        // both left the category chips clipped off the bottom with no way to
+        // reach them.
+        //
+        // So the cap comes from the window. It has to clear the whole keypad,
+        // or the last digit row sits under the fold on first open and the most
+        // common action in the app starts with a scroll — 0.56 did exactly
+        // that. At 0.72 the keypad is fully visible and the scroll exists only
+        // for the categories below it.
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = bodyMaxHeight)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
+        ) {
 
         if (onPaidStep) {
             Text(
@@ -216,6 +256,8 @@ fun AddScreen(
             style = Vitt.type.label,
             color = Vitt.colors.inkMuted,
         )
+        }
+
     }
 }
 
@@ -250,5 +292,5 @@ private fun CategoryChips(selected: Category?, income: Boolean, onSelect: (Categ
                 label = { Text(category.label, style = Vitt.type.label) },
             )
         }
-    }
+        }
 }
