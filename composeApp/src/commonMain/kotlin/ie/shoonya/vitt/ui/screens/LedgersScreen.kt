@@ -213,8 +213,16 @@ private fun LedgerCard(
         // be bad news with a minus sign in front of it — that is the shape the
         // tone rules exist to prevent. Spending is stated as a positive amount
         // out, which is the same fact without the verdict.
+        val over = remaining != null && remaining.minor < 0
         Text(
-            text = (remaining?.abs() ?: ledger.spent).displayUnsigned(),
+            // Over budget, the hero is what was *spent*, not what the overage
+            // was. "€89.64 / past €1,800.00" was the overage as the loud
+            // number, and €89.64 on a ledger card reads as a balance or as the
+            // month's spending — it is neither. Revolut states spent-of-budget
+            // and that is simply unambiguous. Under budget "left of" already
+            // names its own figure, so the remaining amount stays the hero.
+            text = (if (over) ledger.spent else remaining ?: ledger.spent).abs()
+                .displayUnsigned(),
             style = Vitt.type.moneyHero,
             color = colors.ink,
             textAlign = TextAlign.Start,
@@ -227,7 +235,10 @@ private fun LedgerCard(
                     // as "left of +€1,800.00".
                     "left of ${ledger.budget!!.displayUnsigned()}"
                 remaining != null ->
-                    "past ${ledger.budget!!.displayUnsigned()}"
+                    // Still no verdict and still no minus sign in front of the
+                    // hero: the fact, in the order a person asks for it.
+                    "of ${ledger.budget!!.displayUnsigned()} · " +
+                        "${remaining.abs().displayUnsigned()} over"
                 // Says which period, because the card no longer only ever shows
                 // a month. A budget line appears only at month grain — the
                 // repository withholds it elsewhere rather than pro-rating it.
@@ -243,14 +254,17 @@ private fun LedgerCard(
         // Only what the hero figure does not already say. Repeating the same
         // number twice on one card wastes the "one loud number" rule it is
         // there to serve.
-        val hasSecondary = ledger.received.minor != 0L || remaining != null
+        // Over budget the hero is already the spent figure, so an "Out" beside
+        // it would be the same number twice on one card.
+        val showOut = remaining != null && !over
+        val hasSecondary = ledger.received.minor != 0L || showOut
         if (hasSecondary) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = Vitt.space.snug),
                 horizontalArrangement = Arrangement.spacedBy(Vitt.space.section),
             ) {
                 if (ledger.received.minor != 0L) Figure("In", ledger.received)
-                if (remaining != null) Figure("Out", ledger.spent)
+                if (showOut) Figure("Out", ledger.spent)
             }
         }
     }

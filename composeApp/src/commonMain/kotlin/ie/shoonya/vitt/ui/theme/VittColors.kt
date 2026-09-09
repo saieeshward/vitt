@@ -52,13 +52,19 @@ data class VittColors(
      *
      * Interpolates accent → neutral, never green → red. Over budget is the
      * *absence* of accent — the ledger goes quiet rather than shouting.
+     *
+     * The neutral end is `inkFaint`, not `inkMuted`. Fading to `inkMuted` made
+     * an over-budget bar a solid dark line at full width — the single heaviest
+     * mark on the screen, which is this rule stood on its head. The line above
+     * the bar already states the overage in words, so the bar owns no fact of
+     * its own and has nothing to be loud about.
      */
     fun health(pressure: Float): Color {
         val t = pressure.coerceIn(0f, 1f)
         return Color(
-            red = accent.red + (inkMuted.red - accent.red) * t,
-            green = accent.green + (inkMuted.green - accent.green) * t,
-            blue = accent.blue + (inkMuted.blue - accent.blue) * t,
+            red = accent.red + (inkFaint.red - accent.red) * t,
+            green = accent.green + (inkFaint.green - accent.green) * t,
+            blue = accent.blue + (inkFaint.blue - accent.blue) * t,
             alpha = 1f,
         )
     }

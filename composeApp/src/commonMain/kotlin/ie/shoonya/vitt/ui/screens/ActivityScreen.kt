@@ -1,6 +1,7 @@
 package ie.shoonya.vitt.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -119,7 +120,7 @@ fun ActivityScreen(
         days.forEach { (day, transactions) ->
             item {
                 Text(
-                    formatDay(day),
+                    relativeDay(day, today),
                     style = Vitt.type.caption,
                     color = Vitt.colors.inkMuted,
                     modifier = Modifier.padding(top = Vitt.space.base),
@@ -146,27 +147,37 @@ private fun TransactionRow(
             .padding(vertical = Vitt.space.hair),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            Modifier.size(6.dp).clip(CircleShape)
-                .background(colors.currency(currencyIndex(txn.amount.currency))),
+        val name = txn.merchantLabel ?: txn.categoryOrNull?.label
+        Monogram(
+            name = name,
+            hue = colors.currency(currencyIndex(txn.amount.currency)),
         )
         Column(
             modifier = Modifier.padding(start = Vitt.space.snug).fillMaxWidth(0.62f),
         ) {
             Text(
-                txn.merchantLabel ?: txn.categoryOrNull?.label ?: "—",
+                // Never a bare dash. A row the user typed an amount into and
+                // nothing else still has to say what it is, and "—" says less
+                // than nothing: it reads as a rendering fault.
+                name ?: "No description",
                 style = Vitt.type.body,
-                color = colors.ink,
+                color = if (name == null) colors.inkMuted else colors.ink,
                 maxLines = 1,
             )
             val subtitle = buildList {
                 // The label, not the stored code — "groceries" reads as a
                 // database field.
                 txn.categoryOrNull?.let { add(it.label) } ?: txn.category?.let { add(it) }
-                // Which tier produced it. §6 calls this the single best
-                // debugging affordance in the system, and it costs one word.
-                txn.categorySource?.let { if (it != CategorySource.MANUAL) add(it.code) }
+                // Provenance, but only where it is worth a word. §6 wants this
+                // as a debugging affordance and it stays one: a wrong category
+                // with nothing here came from the shipped keyword list by
+                // elimination. Printing "seed" on nine rows in ten was jargon
+                // on almost every line of the busiest screen in the app, and
+                // the one tier a user can actually fix is the one they taught.
+                if (txn.categorySource == CategorySource.LEARNED) add("you taught me")
                 if (txn.isSplit) add("your share")
+                // The way out of an uncategorised row, on the row itself.
+                if (txn.categoryOrNull == null && txn.category == null) add("add a category")
             }.joinToString(" · ")
             if (subtitle.isNotEmpty()) {
                 Text(subtitle, style = Vitt.type.caption, color = colors.inkMuted, maxLines = 1)
@@ -197,4 +208,69 @@ internal fun formatDay(epochDay: Int): String {
         "July", "August", "September", "October", "November", "December",
     )[month - 1]
     return "$day $name $year"
+}
+
+/**
+ * A merchant's initials in a ring.
+ *
+ * Taken from how Revolut's transaction list reads: the leading circle is what
+ * makes a long list scannable, because a shape and a letter land before any of
+ * the text does. Revolut fills the circle with a brand logo; this app cannot —
+ * fetching logos would mean an image CDN, a network call per row, and telling a
+ * third party what its user buys, which is the whole thing VITT is not.
+ *
+ * So it is initials, and the ring rather than a filled disc carries the
+ * currency: `design-identity.md` puts chroma in lines and dots and never in a
+ * filled shape, and a list of filled colour discs would read as a chart.
+ */
+@Composable
+private fun Monogram(name: String?, hue: androidx.compose.ui.graphics.Color) {
+    Box(
+        modifier = Modifier
+            .size(34.dp)
+            .clip(CircleShape)
+            .border(1.5.dp, hue, CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            initialsOf(name),
+            style = Vitt.type.caption,
+            color = Vitt.colors.inkMuted,
+            maxLines = 1,
+        )
+    }
+}
+
+/**
+ * One or two letters, from the words a person would say.
+ *
+ * Two initials for "Coffee Angel" and one for "Tesco", which is what keeps the
+ * ring from looking half-empty on multi-word names without crowding short ones.
+ */
+internal fun initialsOf(name: String?): String {
+    val words = name?.split(' ', '-')?.filter { it.isNotBlank() }.orEmpty()
+    return when (words.size) {
+        0 -> ""
+        1 -> words[0].take(1).uppercase()
+        else -> words[0].take(1).uppercase() + words[1].take(1).uppercase()
+    }
+}
+
+/**
+ * A day header, named relative to today for the two days that have names.
+ *
+ * Every banking app does this because it is how people hold recent dates: "3
+ * September 2026" makes the reader work out whether that was yesterday, and the
+ * top of this list is almost always yesterday or today.
+ */
+internal fun relativeDay(epochDay: Int, today: Int): String = when (epochDay) {
+    today -> "Today"
+    today - 1 -> "Yesterday"
+    // The year only earns its place once the list has left this year behind.
+    // "3 September 2026" reading under "Today" is three words to say one.
+    else -> {
+        val full = formatDay(epochDay)
+        val year = Civil.fromDays(epochDay).first
+        if (year == Civil.fromDays(today).first) full.removeSuffix(" $year") else full
+    }
 }
