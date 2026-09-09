@@ -15,8 +15,15 @@ fun MainViewController() = ComposeUIViewController {
         now = { (NSDate().timeIntervalSince1970 * 1000).toLong() },
         driver = ie.shoonya.vitt.sync.iosDriver(),
     )
-    if (platform.Foundation.NSProcessInfo.processInfo.environment["VITT_SEED"] == "1") {
+    val launch = platform.Foundation.NSProcessInfo.processInfo.environment
+    if (launch["VITT_SEED"] == "1") {
         services.seedSampleData()
+    }
+    // The volume run, for finding what only breaks at scale. Separate variable
+    // rather than a bigger VITT_SEED, because the ordinary sample is what the
+    // screenshots and the day-to-day checks are read against.
+    if (launch["VITT_STRESS"] == "1") {
+        services.seedStressData()
     }
     AppRootWith(services)
 }

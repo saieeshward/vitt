@@ -52,6 +52,25 @@ kotlin {
 }
 
 /**
+ * The volume tests in `StressTest` build eighteen months of six-currency data
+ * through the real event store, which is more than a default test worker heap
+ * holds: the worker died with a bare `EOFException` from Gradle, which says
+ * nothing about the cause. Named here rather than raised globally, so an
+ * ordinary unit test that starts needing this much memory is a signal instead
+ * of a silent allocation.
+ */
+tasks.withType<Test>().configureEach {
+    maxHeapSize = "2g"
+    // Otherwise a crashed worker reports only `EOFException` and the actual
+    // error is lost with the process.
+    testLogging {
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStackTraces = true
+        events("failed")
+    }
+}
+
+/**
  * OAuth client ids come from `local.properties` (gitignored) so a fresh clone
  * fails loudly with instructions rather than silently building an app that
  * cannot sign in.

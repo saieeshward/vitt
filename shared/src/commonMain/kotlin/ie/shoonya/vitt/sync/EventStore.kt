@@ -178,6 +178,29 @@ class EventStore(
 
     fun fold(): Map<EventLog.EntityKey, EventLog.Entity> = EventLog.fold(allEvents())
 
+    /**
+     * Folds one entity type only.
+     *
+     * Prefer this to [fold] wherever the caller wants a single kind of thing.
+     * `fold()` materialises every event ever written, so using it to answer
+     * "which accounts exist" makes that question cost the size of the whole
+     * ledger — and recording a transaction asks it, which made bulk import
+     * quadratic. The index leads on `entity`, so this is a range scan.
+     */
+    fun foldOf(entity: String): Map<EventLog.EntityKey, EventLog.Entity> =
+        EventLog.fold(events.selectByEntity(entity).executeAsList().map { it.toEvent() })
+
+    /**
+     * Folds a single entity, by indexed lookup.
+     *
+     * For the case that only needs one row — validating that a named account
+     * takes the currency being recorded into it.
+     */
+    fun foldEntity(entity: String, entityId: String): Map<EventLog.EntityKey, EventLog.Entity> =
+        EventLog.fold(
+            events.selectForEntity(entity, entityId).executeAsList().map { it.toEvent() },
+        )
+
     // ---- outbox --------------------------------------------------------------
 
     /** Empty while a batch is in flight: one batch at a time keeps ordering simple. */

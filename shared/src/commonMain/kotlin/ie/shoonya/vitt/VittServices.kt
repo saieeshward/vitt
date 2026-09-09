@@ -185,6 +185,139 @@ class VittServices(
         )
     }
 
+    /**
+     * A deliberately punishing amount of data, for finding what only breaks at
+     * volume.
+     *
+     * Development only, like [seedSampleData], and through the same repository
+     * for the same reason. What it is built to expose:
+     *
+     * - **Every currency at once.** Six ledger cards is the case the home screen
+     *   was designed around two of, and JPY has exponent 0, so any code that
+     *   assumes two decimal places is wrong by a factor of a hundred here and
+     *   nowhere in the ordinary sample.
+     * - **Eighteen months.** Period stepping, the trend chart at every grain and
+     *   the year view all have something to walk through, and the month cards
+     *   have to be windowed correctly rather than accidentally.
+     * - **Enough rows that a linear scan shows.** The Activity list, the
+     *   categoriser and the insight aggregations all run over everything.
+     *
+     * Seeded [Random] rather than a live one: a stress run that cannot be
+     * reproduced is a bug report nobody can act on.
+     */
+    fun seedStressData(months: Int = 18, perDay: Int = 3) {
+        if (ledger.transactions().isNotEmpty()) return
+        val rng = kotlin.random.Random(20260909)
+        val today = today()
+        val start = today - months * 30
+
+        // Two accounts per currency, so the account list and the per-account
+        // balances are loaded too, and transfers have somewhere to land.
+        val currencies = ie.shoonya.vitt.money.Currency.entries
+        currencies.forEachIndexed { c, currency ->
+            ledger.openAccount(
+                "stress-acc-$c-a", "${currency.code} current", currency,
+                ie.shoonya.vitt.model.AccountKind.CURRENT,
+                ie.shoonya.vitt.money.Money(500_000L, currency),
+            )
+            ledger.openAccount(
+                "stress-acc-$c-b", "${currency.code} savings", currency,
+                ie.shoonya.vitt.model.AccountKind.SAVINGS,
+                ie.shoonya.vitt.money.Money(2_000_000L, currency),
+            )
+        }
+
+        // Real-looking merchant strings, because the categoriser and the
+        // merchant normaliser are part of what is under test: a thousand rows of
+        // "MERCHANT 41" would exercise neither.
+        val merchants = listOf(
+            "TESCO STORES 3421 DUBLIN IE", "SQ *COFFEE ANGEL", "DUNNES 118",
+            "LIDL 0417 CORK", "SPOTIFY AB", "AERLINGUS DUBLIN", "DUBLINBUS 4419",
+            "BOOTS PHARMACY 88", "SWIGGY BANGALORE", "OLA CABS", "AMAZON IN MUMBAI",
+            "UBER TRIP HELP.UBER.COM", "APPLE.COM/BILL", "NETFLIX.COM",
+            "SHELL SERVICE STATION", "THE WINDING STAIR", "PRET A MANGER 402",
+            "TFL TRAVEL CHARGE", "SAINSBURYS S/MKT", "STARBUCKS 0881",
+        )
+
+        var n = 0
+        var day = start
+        while (day <= today) {
+            repeat(perDay) {
+                val currency = currencies[rng.nextInt(currencies.size)]
+                // A spread wide enough that the trend chart has a real shape and
+                // the peak is not every bar.
+                val magnitude = when (rng.nextInt(10)) {
+                    0 -> rng.nextLong(50_000, 400_000)
+                    in 1..3 -> rng.nextLong(5_000, 50_000)
+                    else -> rng.nextLong(100, 5_000)
+                }
+                ledger.record(
+                    id = "stress-" + n.toString().padStart(5, '0'),
+                    amount = ie.shoonya.vitt.money.Money(-magnitude, currency),
+                    day = day,
+                    merchant = merchants[rng.nextInt(merchants.size)],
+                    // Null throughout: every row goes through the tiers, which is
+                    // the expensive path and therefore the one worth measuring.
+                    category = null,
+                    accountId = "stress-acc-${currencies.indexOf(currency)}-a",
+                )
+                n++
+            }
+            // One salary a month per currency, so the "In" figures and the inflow
+            // colouring are not dead code at volume.
+            if (day % 30 == 0) {
+                currencies.forEachIndexed { c, currency ->
+                    ledger.record(
+                        id = "stress-in-$n-$c",
+                        amount = ie.shoonya.vitt.money.Money(900_000L, currency),
+                        day = day,
+                        merchant = "SALARY PAYROLL",
+                        category = null,
+                        accountId = "stress-acc-$c-a",
+                    )
+                    n++
+                }
+            }
+            day++
+        }
+
+        // A budget on every currency: the health bar, the room-left copy and the
+        // over-budget path all want to be live on six cards at once.
+        currencies.forEach { currency ->
+            ledger.setBudget(currency, ie.shoonya.vitt.money.Money(1_500_000L, currency))
+        }
+
+        // Splits with a long participant list, which is where the per-member
+        // fields and the settlement summary get wide.
+        repeat(12) { i ->
+            ledger.record(
+                id = "stress-split-$i",
+                amount = ie.shoonya.vitt.money.Money(-4_000L, ie.shoonya.vitt.money.Currency.EUR),
+                day = today - i * 3,
+                merchant = "Group dinner $i",
+                category = "dining",
+                accountId = "stress-acc-0-a",
+                totalPaid = ie.shoonya.vitt.money.Money(-24_000L, ie.shoonya.vitt.money.Currency.EUR),
+                splitWith = (0..4).map { "person$it@example.com" }.toSet(),
+            )
+        }
+
+        // Cross-currency transfers, the only place a rate is ever recorded, one
+        // per currency pair so observedRates() has a real table.
+        currencies.forEachIndexed { c, currency ->
+            val next = currencies[(c + 1) % currencies.size]
+            if (currency == next) return@forEachIndexed
+            ledger.transfer(
+                id = "stress-transfer-$c",
+                fromAccountId = "stress-acc-$c-a",
+                toAccountId = "stress-acc-${currencies.indexOf(next)}-a",
+                sent = ie.shoonya.vitt.money.Money(10_000L, currency),
+                received = ie.shoonya.vitt.money.Money(rng.nextLong(1_000, 900_000), next),
+                day = today - c,
+            )
+        }
+    }
+
     private val http = SheetsClient.configure(platformHttpClient())
 
     val auth: AuthManager = AuthManager(

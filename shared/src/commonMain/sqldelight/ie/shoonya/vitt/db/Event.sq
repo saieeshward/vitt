@@ -33,6 +33,13 @@ SELECT * FROM event ORDER BY hlc;
 selectForEntity:
 SELECT * FROM event WHERE entity = ? AND entity_id = ? ORDER BY hlc;
 
+-- One entity *type*, for a fold that only wants accounts or only wants rules.
+-- Served by the same index, which leads on `entity`, so this costs a range scan
+-- rather than a table scan. Reading the whole log to answer "what accounts are
+-- there" made recording a transaction cost O(everything ever written).
+selectByEntity:
+SELECT * FROM event WHERE entity = ? ORDER BY hlc;
+
 selectSince:
 SELECT * FROM event WHERE hlc > ? ORDER BY hlc;
 
