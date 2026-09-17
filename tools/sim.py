@@ -53,14 +53,17 @@ def move(x, y):
         None, Quartz.kCGEventMouseMoved, (x, y), Quartz.kCGMouseButtonLeft))
 
 
-def drag(x1, y1, x2, y2, steps=28, hold=0.004):
+def drag(x1, y1, x2, y2, steps=28, hold=0.004, press=0.05):
     """Press, move in small increments, release. Increments matter: a single jump
-    reads as a flick with no travel and Compose ignores it."""
+    reads as a flick with no travel and Compose ignores it.
+
+    `press` is how long the finger rests before it moves. The default is a
+    swipe; 0.8s is a long-press drag, which is how the companion is picked up."""
     move(x1, y1)
     time.sleep(0.05)
     post(Quartz.CGEventCreateMouseEvent(
         None, Quartz.kCGEventLeftMouseDown, (x1, y1), Quartz.kCGMouseButtonLeft))
-    time.sleep(0.05)
+    time.sleep(press)
     for i in range(1, steps + 1):
         x = x1 + (x2 - x1) * i / steps
         y = y1 + (y2 - y1) * i / steps
@@ -106,6 +109,11 @@ if __name__ == "__main__":
         x1, y1 = to_host(px1, py1, *SHOT)
         x2, y2 = to_host(px2, py2, *SHOT)
         drag(x1, y1, x2, y2)
+    elif cmd == "longdrag":
+        px1, py1, px2, py2 = [float(v) for v in sys.argv[2:6]]
+        x1, y1 = to_host(px1, py1, *SHOT)
+        x2, y2 = to_host(px2, py2, *SHOT)
+        drag(x1, y1, x2, y2, steps=40, hold=0.02, press=0.8)
     elif cmd == "type":
         subprocess.run([
             "osascript", "-e",

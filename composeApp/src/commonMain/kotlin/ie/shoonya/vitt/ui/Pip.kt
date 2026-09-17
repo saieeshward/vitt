@@ -9,7 +9,9 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -162,18 +164,81 @@ fun CompanionLayer(
         var dragY by remember { mutableStateOf(0f) }
 
         val fullWidth = (maxX - minX).coerceAtLeast(1f)
-        suspend fun walkTo(x: Float, y: Float) {
+
+        /**
+         * One straight leg at a given pace. Eased at both ends, because an
+         * animal accelerates and slows; a constant-speed slide is what makes
+         * a sprite read as being *carried* across the screen.
+         */
+        suspend fun leg(tx: Float, ty: Float, pace: Float, easing: androidx.compose.animation.core.Easing) {
             val hereX = homeX + walkedX.value
             val hereY = homeY + walkedY.value
+            val travel = kotlin.math.sqrt((tx - hereX) * (tx - hereX) + (ty - hereY) * (ty - hereY))
+            // Climbing the screen is slower than crossing it: it reads as
+            // depth, and it keeps a long vertical trip from looking like a lift.
+            val slope = if (travel > 0f) kotlin.math.abs(ty - hereY) / travel else 0f
+            val millis = ((travel / fullWidth) * FULL_WIDTH_MILLIS * pace * (1f + 0.6f * slope))
+                .toInt().coerceAtLeast(320)
+            kotlinx.coroutines.coroutineScope {
+                launch { walkedX.animateTo(tx - homeX, tween(millis, easing = easing)) }
+                launch { walkedY.animateTo(ty - homeY, tween(millis, easing = easing)) }
+            }
+        }
+
+        /**
+         * Walks to a point the way something with legs does: turns first,
+         * takes a slightly bent path in a few legs rather than a ruler line,
+         * at a pace of its own, and now and then stops halfway to sniff at
+         * nothing before carrying on.
+         */
+        suspend fun walkTo(x: Float, y: Float) {
             val tx = x.coerceIn(minX, maxX)
             val ty = y.coerceIn(minY, maxY)
-            facingLeft = tx < hereX
+            val startX = homeX + walkedX.value
+            val startY = homeY + walkedY.value
+            val dx = tx - startX
+            val dy = ty - startY
+            val travel = kotlin.math.sqrt(dx * dx + dy * dy)
+            if (travel < 1f) return
+
+            // Turn to face the way she is going, and take a beat before the
+            // first step. A sprite that flips and moves in the same frame
+            // looks reversed rather than turned.
+            val turning = (tx < startX) != facingLeft
+            facingLeft = tx < startX
+            if (turning) delay(160L + Random.nextLong(160))
             pose = CompanionPose.WALK
-            val travel = kotlin.math.sqrt((tx - hereX) * (tx - hereX) + (ty - hereY) * (ty - hereY))
-            val millis = ((travel / fullWidth) * FULL_WIDTH_MILLIS).toInt().coerceAtLeast(400)
-            kotlinx.coroutines.coroutineScope {
-                launch { walkedX.animateTo(tx - homeX, tween(millis, easing = LinearEasing)) }
-                launch { walkedY.animateTo(ty - homeY, tween(millis, easing = LinearEasing)) }
+
+            // Amble or trot, decided per trip, not per step.
+            val pace = 0.8f + Random.nextFloat() * 0.6f
+
+            // Waypoints bowed off the straight line, more for a longer trip.
+            val legs = if (travel > petW * 3f) 2 + Random.nextInt(2) else 1
+            val nx = -dy / travel
+            val ny = dx / travel
+            val bow = (travel * 0.18f).coerceAtMost(petH * 1.5f) * (if (Random.nextBoolean()) 1f else -1f)
+            for (i in 1..legs) {
+                val t = i.toFloat() / legs
+                // sin(pi t) is zero at both ends, so the path leaves the start
+                // and arrives at the target exactly, and bows in between.
+                val arc = sin(t * 3.14159265f) * bow
+                val px = if (i == legs) tx else (startX + dx * t + nx * arc).coerceIn(minX, maxX)
+                val py = if (i == legs) ty else (startY + dy * t + ny * arc).coerceIn(minY, maxY)
+                val easing = when {
+                    legs == 1 -> androidx.compose.animation.core.FastOutSlowInEasing
+                    i == 1 -> androidx.compose.animation.core.FastOutLinearInEasing
+                    i == legs -> androidx.compose.animation.core.LinearOutSlowInEasing
+                    else -> LinearEasing
+                }
+                leg(px, py, pace, easing)
+                // A pause mid-trip, sometimes: she noticed something.
+                if (i < legs && Random.nextInt(4) == 0) {
+                    pose = CompanionPose.STAND
+                    act = IdleAct.SNIFF
+                    delay(500L + Random.nextLong(700))
+                    act = IdleAct.NONE
+                    pose = CompanionPose.WALK
+                }
             }
         }
 
@@ -214,7 +279,18 @@ fun CompanionLayer(
         }
         val pointing = nudge != null && nudgeSpot != null
 
+        // Her offsets are measured from home, so when home moves under her
+        // (she was dropped somewhere) they must go back to zero or she is
+        // drawn at the new home plus the old walk — off in a corner nobody
+        // put her. A touch or a nudge re-entering this effect keeps them.
+        var placedAt by remember { mutableStateOf(Offset(homeX, homeY)) }
+
         LaunchedEffect(still, interactionTick, dragging, homeX, homeY, nudge, nudgeSpot) {
+            if (placedAt != Offset(homeX, homeY)) {
+                placedAt = Offset(homeX, homeY)
+                walkedX.snapTo(0f)
+                walkedY.snapTo(0f)
+            }
             if (still || dragging) {
                 pose = CompanionPose.STAND
                 return@LaunchedEffect
@@ -249,12 +325,25 @@ fun CompanionLayer(
                 repeat(2 + Random.nextInt(3)) {
                     val hereX = homeX + walkedX.value
                     val hereY = homeY + walkedY.value
+                    // Somewhere a pet would wander: mostly a modest distance
+                    // in roughly the direction she is already facing, with the
+                    // occasional long trip across the screen. Never a shuffle
+                    // on the spot, never a full-screen dash every time.
                     var tx: Float
                     var ty: Float
                     var tries = 0
                     do {
-                        tx = minX + Random.nextFloat() * (maxX - minX)
-                        ty = minY + Random.nextFloat() * (maxY - minY)
+                        val far = Random.nextInt(4) == 0
+                        val reach = if (far) fullWidth else petW * (2f + Random.nextFloat() * 4f)
+                        val ahead = if (facingLeft) -1f else 1f
+                        // Two thirds of trips carry on the way she faces.
+                        val dir = if (Random.nextInt(3) == 0) -ahead else ahead
+                        tx = hereX + dir * reach * (0.4f + Random.nextFloat() * 0.6f)
+                        ty = hereY + (Random.nextFloat() - 0.5f) * reach * 0.9f
+                        // Off the edge means turn around, not stand at the wall.
+                        if (tx < minX || tx > maxX) tx = hereX - dir * reach * 0.6f
+                        tx = tx.coerceIn(minX, maxX)
+                        ty = ty.coerceIn(minY, maxY)
                         tries++
                     } while (
                         tries < 8 &&
@@ -309,8 +398,21 @@ fun CompanionLayer(
                         Modifier
                     },
                 )
+                // A tap, detected by hand rather than with detectTapGestures:
+                // that helper consumes the down event, and the long-press drag
+                // below waits on an *unconsumed* down, so the two together
+                // meant she could no longer be picked up at all. This one
+                // watches without consuming and fires only on a quick,
+                // still release, which is the one case the drag never wants.
                 .pointerInput(nudge, pointing) {
-                    detectTapGestures(onTap = { if (pointing) onNudgeTap(nudge!!) })
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        val up = waitForUpOrCancellation() ?: return@awaitEachGesture
+                        val held = up.uptimeMillis - down.uptimeMillis
+                        if (pointing && held < viewConfiguration.longPressTimeoutMillis) {
+                            onNudgeTap(nudge!!)
+                        }
+                    }
                 }
                 .pointerInput(homeX, homeY, minX, maxX, minY, maxY) {
                     detectDragGesturesAfterLongPress(
