@@ -1,7 +1,7 @@
 package ie.shoonya.vitt.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,11 +45,15 @@ fun AmountKeypad(
     Column(modifier = modifier.fillMaxWidth()) {
         AmountDisplay(entry)
 
+        // The bottom row is the one every money app shares: point, zero,
+        // delete. A currency with no minor units (yen) gets a blank where the
+        // point would be, so the layout never shifts between currencies.
+        val point = if (entry.currency.exponent > 0) "." else ""
         val rows = listOf(
             listOf("1", "2", "3"),
             listOf("4", "5", "6"),
             listOf("7", "8", "9"),
-            listOf("C", "0", "⌫"),
+            listOf(point, "0", "⌫"),
         )
 
         rows.forEach { row ->
@@ -64,12 +68,16 @@ fun AmountKeypad(
                         onClick = {
                             onEntryChange(
                                 when (label) {
-                                    "C" -> entry.clear()
+                                    "" -> entry
                                     "⌫" -> entry.backspace()
                                     else -> entry.press(label.first())
                                 }
                             )
                         },
+                        // A long press on delete clears the lot, which is what
+                        // the old C key did; it earned its own key less than
+                        // the decimal point did.
+                        onLongClick = if (label == "⌫") ({ onEntryChange(entry.clear()) }) else null,
                     )
                 }
             }
@@ -97,17 +105,28 @@ private fun AmountDisplay(entry: AmountEntry) {
     }
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-private fun KeypadKey(label: String, modifier: Modifier, onClick: () -> Unit) {
+private fun KeypadKey(
+    label: String,
+    modifier: Modifier,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
+) {
+    if (label.isEmpty()) {
+        // The empty slot where the decimal point sits for other currencies.
+        Box(modifier = modifier)
+        return
+    }
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(Vitt.radius.key))
             .background(Vitt.colors.surface)
-            .clickable(onClick = onClick)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .semantics {
                 contentDescription = when (label) {
-                    "C" -> "Clear"
-                    "⌫" -> "Delete last digit"
+                    "." -> "Decimal point"
+                    "⌫" -> "Delete last digit. Hold to clear"
                     else -> label
                 }
             },

@@ -50,6 +50,13 @@ data class Choice(val key: String, val value: String, val deleted: Boolean) {
         const val COMPANION_HOME = "companion_home"
 
         /** How the currency cards sit on the home screen: `swipe` (a pager) or `stack`. */
+        /**
+         * The account the last transaction went into, pre-selected on the
+         * next add. Most people pay from one account most of the time, so the
+         * right default saves a tap on almost every entry.
+         */
+        const val LAST_ACCOUNT = "last_account"
+
         const val HOME_LAYOUT = "home_layout"
         const val HOME_SWIPE = "swipe"
         const val HOME_STACK = "stack"

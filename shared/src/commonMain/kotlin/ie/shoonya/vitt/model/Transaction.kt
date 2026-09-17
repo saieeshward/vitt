@@ -51,6 +51,12 @@ data class Transaction(
      * the same value must not sum to double.
      */
     val settled: Money,
+    /**
+     * A few words the person typed, when the amount alone would not remind
+     * them: "Birthday dinner", "Deposit back". Free text, never parsed, never a
+     * categorisation signal; that is the merchant's job.
+     */
+    val note: String?,
     val deleted: Boolean,
 ) {
     /** What the budget and the categories see: your share, not what you fronted. */
@@ -126,6 +132,7 @@ data class Transaction(
         const val FIELD_DAY = "day"
         const val FIELD_TOTAL_PAID = "total_paid"
         const val FIELD_SETTLED = "settled"
+        const val FIELD_NOTE = "note"
 
         /**
          * Split participants are one field each, not one field holding a list.
@@ -166,6 +173,7 @@ data class Transaction(
             accountId: String?,
             totalPaid: Money?,
             splitWith: Set<String> = emptySet(),
+            note: String? = null,
             issue: () -> Hlc,
         ): List<Event> = buildList {
             fun put(field: String, value: TaggedValue) =
@@ -180,6 +188,7 @@ data class Transaction(
             accountId?.let { put(FIELD_ACCOUNT, TaggedValue.Str(it)) }
             totalPaid?.let { put(FIELD_TOTAL_PAID, TaggedValue.Num(it.minor)) }
             splitWith.forEach { put(splitKey(it), TaggedValue.Bool(true)) }
+            note?.trim()?.takeIf { it.isNotEmpty() }?.let { put(FIELD_NOTE, TaggedValue.Str(it)) }
         }
 
         /**
@@ -216,6 +225,7 @@ data class Transaction(
                     (entity.fields[FIELD_SETTLED] as? TaggedValue.Num)?.value ?: 0L,
                     currency,
                 ),
+                note = (entity.fields[FIELD_NOTE] as? TaggedValue.Str)?.value?.takeIf { it.isNotBlank() },
                 deleted = entity.deleted,
             )
         }

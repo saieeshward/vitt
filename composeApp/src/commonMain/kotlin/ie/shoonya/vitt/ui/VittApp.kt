@@ -520,16 +520,31 @@ fun VittApp(
                         .ifEmpty { ledgers.map { it.currency } }
                         .ifEmpty { listOf(Currency.EUR, Currency.INR) },
                     accounts = accounts,
-                    onSave = { amount, merchant, category, accountId, totalPaid ->
+                    frequentSpending = remember(revision) {
+                        repository.frequentCategories(today, spending = true)
+                    },
+                    frequentIncome = remember(revision) {
+                        repository.frequentCategories(today, spending = false)
+                    },
+                    lastAccountId = remember(revision) { repository.choice(Choice.LAST_ACCOUNT) },
+                    onSave = { new ->
                         repository.record(
                             id = newId(),
-                            amount = amount,
+                            amount = new.amount,
                             day = today,
-                            merchant = merchant,
-                            category = category?.code,
-                            accountId = accountId,
-                            totalPaid = totalPaid,
+                            category = new.category?.code,
+                            accountId = new.accountId,
+                            totalPaid = new.totalPaid,
+                            note = new.note,
                         )
+                        // Remembered so the next add starts on the same account.
+                        // Only on a change: a choice event per entry would put a
+                        // row in the sheet for every coffee.
+                        new.accountId?.let {
+                            if (repository.choice(Choice.LAST_ACCOUNT) != it) {
+                                repository.setChoice(Choice.LAST_ACCOUNT, it)
+                            }
+                        }
                         localRevision++
                         sheet = null
                     },

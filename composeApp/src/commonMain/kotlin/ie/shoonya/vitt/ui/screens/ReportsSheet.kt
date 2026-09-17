@@ -136,15 +136,39 @@ fun ReportsSheet(
             }
         }
 
-        // The one loud number on this screen, and it states its own direction
-        // rather than carrying a minus sign.
-        Text(spent.displayUnsigned(), style = Vitt.type.moneyHero, color = Vitt.colors.ink)
-        Text(
-            "out ${periodPhrase(period, today)}" +
-                (budget?.let { " · of ${it.displayUnsigned()}" } ?: ""),
-            style = Vitt.type.label,
-            color = Vitt.colors.inkMuted,
-        )
+        // The one loud figure on this screen answers the question people
+        // actually open Reports with: am I up or down. In against out, with
+        // the direction in a word rather than a sign. Only once there is an
+        // in: with no income recorded the net is just the spend with a minus
+        // on it, and reading "Down €1,200" to someone who never logs a salary
+        // would be the app inventing a loss. Those people see spend, as before.
+        val net = received - spent
+        if (received.minor > 0) {
+            Text(
+                when {
+                    net.minor > 0 -> "Up ${net.displayUnsigned()}"
+                    net.minor < 0 -> "Down ${net.displayUnsigned()}"
+                    else -> "Level"
+                },
+                style = Vitt.type.moneyHero,
+                color = Vitt.colors.ink,
+            )
+            Text(
+                "${received.displayUnsigned()} in, ${spent.displayUnsigned()} out ${periodPhrase(period, today)}" +
+                    (budget?.let { " · budget ${it.displayUnsigned()}" } ?: ""),
+                style = Vitt.type.label,
+                color = Vitt.colors.inkMuted,
+            )
+        } else {
+            Text(spent.displayUnsigned(), style = Vitt.type.moneyHero, color = Vitt.colors.ink)
+            Text(
+                "out ${periodPhrase(period, today)}" +
+                    (budget?.let { " · of ${it.displayUnsigned()}" } ?: "") +
+                    " · no income recorded",
+                style = Vitt.type.label,
+                color = Vitt.colors.inkMuted,
+            )
+        }
 
         // A reading, not a forecast figure. The user asked for "am I burning
         // through it, fine, or well under", and that is the honest use of a
@@ -187,13 +211,26 @@ fun ReportsSheet(
 
         // In and out, only once there is an in. A section reading "In €0.00"
         // on every screen would be a reminder of what is not being recorded.
+        // The headline above already says the net; this is the working.
         if (received.minor > 0) {
             SectionHeader("In and out")
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Figure("In", received.displayUnsigned())
                 Figure("Out", spent.displayUnsigned())
-                Figure("Net", (received - spent).display())
+                Figure(
+                    if (net.minor >= 0) "Kept" else "Over",
+                    net.displayUnsigned(),
+                )
             }
+            Text(
+                if (net.minor >= 0) {
+                    "What came in covered what went out."
+                } else {
+                    "More went out than came in ${periodPhrase(period, today)}."
+                },
+                style = Vitt.type.label,
+                color = Vitt.colors.inkMuted,
+            )
         }
 
         comparison?.let { c ->

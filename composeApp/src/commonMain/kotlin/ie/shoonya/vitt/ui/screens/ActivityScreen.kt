@@ -154,7 +154,9 @@ private fun TransactionRow(
             .padding(vertical = Vitt.space.hair),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val name = txn.merchantLabel ?: txn.categoryOrNull?.label
+        // What the person wrote beats what the app guessed: a note names the
+        // entry better than its category does.
+        val name = txn.merchantLabel ?: txn.note ?: txn.categoryOrNull?.label
         Monogram(
             name = name,
             hue = colors.currency(currencyIndex(txn.amount.currency)),
@@ -182,6 +184,8 @@ private fun TransactionRow(
                 // on almost every line of the busiest screen in the app, and
                 // the one tier a user can actually fix is the one they taught.
                 if (txn.categorySource == CategorySource.LEARNED) add("you taught me")
+                // The note rides along when a merchant already holds the title.
+                if (txn.merchantLabel != null) txn.note?.let { add(it) }
                 if (txn.isSplit) add("your share")
                 // The way out of an uncategorised row, on the row itself.
                 if (txn.categoryOrNull == null && txn.category == null) add("add a category")

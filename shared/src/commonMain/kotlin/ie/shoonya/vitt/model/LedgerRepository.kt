@@ -43,6 +43,7 @@ class LedgerRepository(
         accountId: String? = null,
         totalPaid: Money? = null,
         splitWith: Set<String> = emptySet(),
+        note: String? = null,
     ) {
         require(totalPaid == null || totalPaid.currency == amount.currency) {
             "a split cannot cross currencies"
@@ -88,10 +89,40 @@ class LedgerRepository(
             accountId = accountId,
             totalPaid = totalPaid,
             splitWith = splitWith,
+            note = note,
             issue = store::issue,
         )
         val at = now()
         events.forEach { store.append(it, at) }
+    }
+
+    /**
+     * The categories this person actually uses, most used first.
+     *
+     * For the add screen's first row of chips. The locked taxonomy has fourteen
+     * entries and most people live in five of them, so the row shows those and
+     * folds the rest behind "More". Recency-weighted only by the window: a
+     * category used once last week and one used daily two months ago count the
+     * same, which keeps the row stable from one day to the next rather than
+     * reshuffling under the thumb.
+     */
+    fun frequentCategories(
+        today: Int,
+        spending: Boolean = true,
+        window: Int = 90,
+        limit: Int = 6,
+    ): List<Category> {
+        val counts = transactions()
+            .asSequence()
+            .filter { it.day > today - window && it.day <= today }
+            .mapNotNull { it.categoryOrNull }
+            .filter { it.isSpending == spending }
+            .groupingBy { it }
+            .eachCount()
+        val offered = Category.entries.filter { it.isSpending == spending }
+        // Ties and the unused tail fall back to taxonomy order, so the row is
+        // deterministic with no history at all.
+        return offered.sortedByDescending { counts[it] ?: 0 }.take(limit)
     }
 
     /**

@@ -53,6 +53,7 @@ object CsvExport {
         "total_paid",
         "split_with",
         "settled",
+        "note",
         "id",
     )
 
@@ -98,6 +99,7 @@ object CsvExport {
             // Only meaningful for a split; a zero on every ordinary row would
             // read as a column the user has to interpret.
             if (t.isSplit) t.settled.toPlainString() else null,
+            t.note,
             t.id,
         )
     }

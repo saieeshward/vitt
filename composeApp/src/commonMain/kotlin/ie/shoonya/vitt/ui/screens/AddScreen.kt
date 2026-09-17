@@ -1,24 +1,33 @@
 package ie.shoonya.vitt.ui.screens
 
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import ie.shoonya.vitt.capture.Category
@@ -32,36 +41,60 @@ import ie.shoonya.vitt.ui.theme.Vitt
 /** What the user is recording. Direction is chosen, never inferred. */
 enum class EntryKind { Expense, Income }
 
+/** Everything the add screen hands back. One object, so a new field is one edit. */
+data class NewEntry(
+    val amount: Money,
+    val category: Category?,
+    val accountId: String?,
+    val totalPaid: Money?,
+    val note: String?,
+)
+
 /**
  * Two taps to log: type the amount, then Save.
  *
  * Everything else is optional and pre-guessed. Capture is the only thing that
  * happens daily, so it owns the shortest path — every extra required field is a
  * future uninstall.
+ *
+ * The order on the screen is the order of certainty. The amount is the one
+ * thing the person knows for sure, so the keypad is first and open. Then the
+ * currency, and under it only that currency's accounts, so a currency with one
+ * account is a single tap and twelve accounts never become six rows of chips.
+ * The category row shows the few this person actually uses; the other nine sit
+ * behind "More". Split and Note are last, because they are rare.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddScreen(
     currencies: List<Currency>,
     accounts: List<Account>,
-    onSave: (
-        amount: Money,
-        merchant: String?,
-        category: Category?,
-        accountId: String?,
-        totalPaid: Money?,
-    ) -> Unit,
+    /** Most-used spending categories, for the first row of chips. */
+    frequentSpending: List<Category>,
+    /** Most-used income categories. */
+    frequentIncome: List<Category>,
+    /** The account the last entry went into, pre-selected. */
+    lastAccountId: String?,
+    onSave: (NewEntry) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var entry by remember { mutableStateOf(AmountEntry(currency = currencies.firstOrNull() ?: Currency.EUR)) }
+    val initialAccount = accounts.firstOrNull { it.id == lastAccountId } ?: accounts.firstOrNull()
+    var account by remember { mutableStateOf(initialAccount) }
+    var entry by remember {
+        mutableStateOf(
+            AmountEntry(currency = initialAccount?.currency ?: currencies.firstOrNull() ?: Currency.EUR),
+        )
+    }
     var kind by remember { mutableStateOf(EntryKind.Expense) }
     var category by remember { mutableStateOf<Category?>(null) }
-    var account by remember { mutableStateOf(accounts.firstOrNull()) }
+    var allCategories by remember { mutableStateOf(false) }
     var split by remember { mutableStateOf(false) }
+    var note by remember { mutableStateOf("") }
     // The second leg of a split: what was actually handed over, of which the
     // amount above is only the user's share.
     var paidEntry by remember { mutableStateOf(AmountEntry(currency = entry.currency)) }
-    var onPaidStep by remember { mutableStateOf(false) }
+    var step by remember { mutableStateOf(Step.Main) }
 
     // The scrolling body's viewport, derived from the window rather than a
     // guessed constant so it holds on a small phone and an iPad alike.
@@ -71,16 +104,12 @@ fun AddScreen(
 
     // The header is pinned and only the body scrolls.
     //
-    // This is a fix for losing an entry, not a tidiness change. The keypad plus
-    // the category chips is taller than the sheet, so reaching a category means
-    // scrolling down — and with the header inside the scroll, Save went with it.
-    // Getting back to Save then meant dragging downward, which a
-    // `ModalBottomSheet` reads as dismiss, so the sheet closed and the amount
-    // was discarded with no warning. Found by logging a €3.60 coffee in the
-    // simulator and then finding no such row in the database.
-    //
-    // Pinning the header breaks the chain at its first link: Save is always on
-    // screen, so there is never a reason to scroll back up.
+    // This is a fix for losing an entry, not a tidiness change. With the header
+    // inside the scroll, reaching the bottom of the body took Save with it, and
+    // dragging back up read to the `ModalBottomSheet` as dismiss: the sheet
+    // closed and the amount was discarded with no warning. Found by logging a
+    // €3.60 coffee in the simulator and then finding no such row in the
+    // database. Pinning the header breaks the chain at its first link.
     Column(
         modifier = modifier.fillMaxWidth().padding(Vitt.space.loose),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
@@ -90,18 +119,23 @@ fun AddScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextButton(onClick = if (onPaidStep) ({ onPaidStep = false }) else onCancel) {
-                Text(if (onPaidStep) "Back" else "Cancel")
+            TextButton(onClick = if (step != Step.Main) ({ step = Step.Main }) else onCancel) {
+                Text(if (step != Step.Main) "Back" else "Cancel")
             }
             Text(
-                if (onPaidStep) "Total paid" else "New",
+                when (step) {
+                    Step.Main -> "New"
+                    Step.Paid -> "Total paid"
+                    Step.Note -> "Note"
+                },
                 style = Vitt.type.title,
                 color = Vitt.colors.ink,
             )
-            if (split && !onPaidStep) {
-                Button(enabled = !entry.isEmpty, onClick = { onPaidStep = true }) { Text("Next") }
-            } else {
-                Button(
+            when {
+                step == Step.Note -> Button(onClick = { step = Step.Main }) { Text("Done") }
+                split && step == Step.Main ->
+                    Button(enabled = !entry.isEmpty, onClick = { step = Step.Paid }) { Text("Next") }
+                else -> Button(
                     enabled = !entry.isEmpty && (!split || paidEntry.money.minor >= entry.money.minor),
                     onClick = {
                         // The keypad holds a magnitude; the sign comes from the
@@ -118,7 +152,15 @@ fun AddScreen(
                         } else {
                             null
                         }
-                        onSave(signed, null, category, account?.id, paid)
+                        onSave(
+                            NewEntry(
+                                amount = signed,
+                                category = category,
+                                accountId = account?.id,
+                                totalPaid = paid,
+                                note = note.trim().ifEmpty { null },
+                            ),
+                        )
                     },
                 ) { Text("Save") }
             }
@@ -127,20 +169,11 @@ fun AddScreen(
         // Only the body scrolls. Everything below here can exceed the sheet;
         // the header above it must not move.
         //
-        // The explicit height cap is load-bearing, not tidiness.
-        //
-        // A `verticalScroll` needs a bounded viewport or it simply grows to fit
-        // its content and never scrolls, and `ModalBottomSheet` hands its
-        // content an *unbounded* height — which also rules out `weight`, since
-        // a Column cannot distribute infinite space. Both were tried here and
-        // both left the category chips clipped off the bottom with no way to
-        // reach them.
-        //
-        // So the cap comes from the window. It has to clear the whole keypad,
-        // or the last digit row sits under the fold on first open and the most
-        // common action in the app starts with a scroll — 0.56 did exactly
-        // that. At 0.72 the keypad is fully visible and the scroll exists only
-        // for the categories below it.
+        // The explicit height cap is load-bearing. A `verticalScroll` needs a
+        // bounded viewport or it grows to fit and never scrolls, and
+        // `ModalBottomSheet` hands its content an *unbounded* height, which
+        // also rules out `weight`. At 0.72 of the window the whole keypad is
+        // visible on first open and the scroll exists only for what is below.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -148,142 +181,206 @@ fun AddScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
         ) {
+            when (step) {
+                Step.Paid -> {
+                    Text(
+                        "The whole bill, not your share. Yours stays ${entry.display(full = true)}.",
+                        style = Vitt.type.label,
+                        color = Vitt.colors.inkMuted,
+                    )
+                    AmountKeypad(entry = paidEntry, onEntryChange = { paidEntry = it })
+                    if (!paidEntry.isEmpty && paidEntry.money.minor < entry.money.minor) {
+                        Text(
+                            "The total paid cannot be less than your own share.",
+                            style = Vitt.type.label,
+                            color = Vitt.colors.destructive,
+                        )
+                    }
+                }
 
-        if (onPaidStep) {
-            Text(
-                "The whole bill, not your share. Yours stays ${entry.display()}.",
-                style = Vitt.type.label,
-                color = Vitt.colors.inkMuted,
-            )
-            AmountKeypad(entry = paidEntry, onEntryChange = { paidEntry = it })
-            if (!paidEntry.isEmpty && paidEntry.money.minor < entry.money.minor) {
-                Text(
-                    "The total paid cannot be less than your own share.",
-                    style = Vitt.type.label,
-                    color = Vitt.colors.destructive,
-                )
-            }
-            return@Column
-        }
+                // The note has its own step because it needs the system
+                // keyboard, and in a bottom sheet that keyboard covers the lower
+                // half of the keypad: 7, 8, 9, 0 and delete become unreachable
+                // and the amount cannot be finished. Here there is no keypad to
+                // cover, so the two never share a screen.
+                Step.Note -> {
+                    // Focused on arrival: the step exists only to type, so a
+                    // tap on the field first would be a tap for nothing.
+                    val focus = remember { FocusRequester() }
+                    LaunchedEffect(Unit) { focus.requestFocus() }
+                    OutlinedTextField(
+                        value = note,
+                        onValueChange = { note = it.take(MAX_NOTE) },
+                        placeholder = { Text("Birthday dinner, deposit back…") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { step = Step.Main }),
+                        modifier = Modifier.fillMaxWidth().focusRequester(focus),
+                    )
+                    Text(
+                        "A few words for later. Shown on the entry, never used to guess anything.",
+                        style = Vitt.type.label,
+                        color = Vitt.colors.inkMuted,
+                    )
+                }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.snug)) {
-            EntryKind.entries.forEach { k ->
-                FilterChip(
-                    selected = kind == k,
-                    onClick = {
-                        kind = k
-                        // Income and Transfer leave the list when the direction
-                        // flips, so a selection that is no longer offered has to
-                        // go with it rather than persist invisibly.
-                        if (category?.isSpending == (k == EntryKind.Income)) {
-                            category = null
+                Step.Main -> {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.snug)) {
+                        EntryKind.entries.forEach { k ->
+                            FilterChip(
+                                selected = kind == k,
+                                onClick = {
+                                    kind = k
+                                    // A selection no longer offered has to go
+                                    // rather than persist invisibly.
+                                    if (category?.isSpending == (k == EntryKind.Income)) category = null
+                                },
+                                label = { Text(k.name) },
+                            )
                         }
-                    },
-                    label = { Text(k.name) },
-                )
-            }
-        }
+                    }
 
-        if (currencies.size > 1) {
-            Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.snug)) {
-                currencies.forEach { c ->
-                    FilterChip(
-                        selected = entry.currency == c,
-                        onClick = { entry = entry.withCurrency(c) },
-                        label = { Text(c.code) },
+                    AmountKeypad(entry = entry, onEntryChange = { entry = it })
+
+                    // Currency first, then only that currency's accounts.
+                    //
+                    // The first cut listed every account and let the account
+                    // carry the currency, which read well with three accounts
+                    // and badly with twelve: six rows of chips pushed the
+                    // category off the screen. A currency row is one line
+                    // however many accounts there are, and under it most
+                    // people have one or two. Picking a currency picks its
+                    // only account, so the common case is still one tap.
+                    val accountCurrencies = accounts.map { it.currency }.distinct()
+                    val shownCurrencies = accountCurrencies.ifEmpty { currencies }
+                    if (shownCurrencies.size > 1) {
+                        // Wraps, because six currencies do not fit one row and
+                        // a Row squeezed the sixth into a vertical column.
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+                            verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+                        ) {
+                            shownCurrencies.forEach { c ->
+                                FilterChip(
+                                    selected = entry.currency == c,
+                                    onClick = {
+                                        entry = entry.withCurrency(c)
+                                        paidEntry = paidEntry.withCurrency(c)
+                                        if (account?.currency != c) {
+                                            account = accounts.firstOrNull { it.currency == c }
+                                        }
+                                    },
+                                    label = { Text(c.code, style = Vitt.type.label) },
+                                )
+                            }
+                        }
+                    }
+                    val inCurrency = accounts.filter { it.currency == entry.currency }
+                    if (inCurrency.isNotEmpty()) {
+                        Text(
+                            if (kind == EntryKind.Income) "Into" else "From",
+                            style = Vitt.type.caption,
+                            color = Vitt.colors.inkMuted,
+                        )
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+                            verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+                        ) {
+                            inCurrency.forEach { a ->
+                                FilterChip(
+                                    selected = account == a,
+                                    // Tapping the chosen account clears it. Capture
+                                    // often cannot tell which account paid, and a
+                                    // forced guess is worse than a visible blank.
+                                    onClick = { account = if (account == a) null else a },
+                                    label = { Text(a.name, style = Vitt.type.label) },
+                                )
+                            }
+                        }
+                    }
+
+                    Text("Category", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
+                    CategoryChips(
+                        selected = category,
+                        frequent = if (kind == EntryKind.Income) frequentIncome else frequentSpending,
+                        income = kind == EntryKind.Income,
+                        showAll = allCategories,
+                        onShowAll = { allCategories = true },
+                        onSelect = { category = it },
+                    )
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.snug)) {
+                        FilterChip(
+                            selected = split,
+                            onClick = {
+                                split = !split
+                                if (split) paidEntry = paidEntry.withCurrency(entry.currency)
+                            },
+                            label = { Text("Split this", style = Vitt.type.label) },
+                        )
+                        FilterChip(
+                            selected = note.isNotBlank(),
+                            onClick = { step = Step.Note },
+                            label = {
+                                Text(
+                                    note.trim().ifEmpty { "Add a note" },
+                                    style = Vitt.type.label,
+                                    maxLines = 1,
+                                )
+                            },
+                        )
+                    }
+
+                    Text(
+                        "Type the amount, then Save. Everything else is optional.",
+                        style = Vitt.type.label,
+                        color = Vitt.colors.inkMuted,
                     )
                 }
             }
         }
-
-        if (accounts.isNotEmpty()) {
-            Text("Account", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
-            @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
-            androidx.compose.foundation.layout.FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight),
-                verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
-            ) {
-                accounts.forEach { a ->
-                    FilterChip(
-                        selected = account == a,
-                        // Tapping the chosen account clears it. Capture often
-                        // cannot tell which account paid, and forcing a guess is
-                        // worse than leaving it unassigned and visible.
-                        onClick = {
-                            account = if (account == a) null else a
-                            if (account != null) entry = entry.withCurrency(a.currency)
-                        },
-                        label = { Text(a.name, style = Vitt.type.label) },
-                    )
-                }
-            }
-        }
-
-        AmountKeypad(entry = entry, onEntryChange = { entry = it })
-
-        Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.snug)) {
-            FilterChip(
-                selected = split,
-                onClick = {
-                    split = !split
-                    if (split) paidEntry = paidEntry.withCurrency(entry.currency)
-                },
-                label = { Text("Split this", style = Vitt.type.label) },
-            )
-        }
-
-        // Deliberately no text fields on this screen.
-        //
-        // The keypad exists to avoid the system IME, which is Compose
-        // Multiplatform's weakest surface on iOS. Putting a text field beside it
-        // summons that keyboard anyway — and in a bottom sheet it covers the
-        // lower half of the keypad, so 7, 8, 9, 0, C and delete become
-        // unreachable and the amount cannot be finished.
-        //
-        // Category is chosen from a list rather than typed, which is what the
-        // design specifies: it arrives pre-filled from the learned rules, so
-        // free text was never the intended input.
-        Text("Category", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
-        CategoryChips(
-            selected = category,
-            income = kind == EntryKind.Income,
-            onSelect = { category = it },
-        )
-
-        Text(
-            "Two taps: type, then Save. The category is optional.",
-            style = Vitt.type.label,
-            color = Vitt.colors.inkMuted,
-        )
-        }
-
     }
 }
 
+private enum class Step { Main, Paid, Note }
+
+private const val MAX_NOTE = 80
+
 /**
- * The locked taxonomy, as chips.
+ * The locked taxonomy, as chips: the few this person uses, then "More".
  *
- * Fourteen, from `PLAN.md` §6 — the list used to be a hand-written twelve here,
- * missing Income and Transfer and spelling two others differently. Reading it off
- * [Category] means it cannot drift again.
- *
- * Chips rather than a text field because the design has the category arriving
- * pre-filled from the learned rules; typing it was never the intended path, and a
- * text field here would summon the keyboard over the keypad.
+ * Fourteen categories from `PLAN.md` §6, read off [Category] so the list cannot
+ * drift. Shown in full they were three rows below the keypad and the most
+ * common action in the app ended in a scroll, so the first row is the ones the
+ * person actually picks and the rest unfold on request. A category already
+ * chosen is always visible, wherever it ranks.
  */
-@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CategoryChips(selected: Category?, income: Boolean, onSelect: (Category?) -> Unit) {
+private fun CategoryChips(
+    selected: Category?,
+    frequent: List<Category>,
+    income: Boolean,
+    showAll: Boolean,
+    onShowAll: () -> Unit,
+    onSelect: (Category?) -> Unit,
+) {
     // Direction is already chosen above, so offering the categories that
     // contradict it is just a way to record something incoherent.
-    val offered = Category.entries.filter { if (income) !it.isSpending else it.isSpending }
-    androidx.compose.foundation.layout.FlowRow(
+    val all = Category.entries.filter { if (income) !it.isSpending else it.isSpending }
+    val shown = when {
+        showAll || all.size <= frequent.size + 1 -> all
+        selected != null && selected !in frequent -> frequent + selected
+        else -> frequent
+    }
+    FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
     ) {
-        offered.forEach { category ->
+        shown.forEach { category ->
             FilterChip(
                 selected = selected == category,
                 // Tapping the chosen one clears it: the field is optional, so
@@ -292,5 +389,12 @@ private fun CategoryChips(selected: Category?, income: Boolean, onSelect: (Categ
                 label = { Text(category.label, style = Vitt.type.label) },
             )
         }
+        if (shown.size < all.size) {
+            FilterChip(
+                selected = false,
+                onClick = onShowAll,
+                label = { Text("More", style = Vitt.type.label) },
+            )
         }
+    }
 }
