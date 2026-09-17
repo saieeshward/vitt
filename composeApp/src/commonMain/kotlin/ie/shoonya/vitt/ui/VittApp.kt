@@ -480,6 +480,11 @@ fun VittApp(
             // shut instead. They close from Done or the scrim. The short
             // sheets keep the pull, which is right for a one-screen form.
             sheetGesturesEnabled = open !is Sheet.Settings,
+            // No handle on a sheet that cannot be pulled: the dash is a promise
+            // of a gesture, and Settings closes from Done or the scrim.
+            dragHandle = if (open is Sheet.Settings) null else {
+                { androidx.compose.material3.BottomSheetDefaults.DragHandle() }
+            },
         ) {
             when (open) {
                 Sheet.Add -> AddScreen(

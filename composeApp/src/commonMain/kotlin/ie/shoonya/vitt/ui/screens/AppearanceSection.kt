@@ -105,9 +105,13 @@ fun AppearanceSection(
         )
 
         Text("Theme", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
-        Row(
+        // Four to a row, wrapping: eight themes is two rows of the same tiles,
+        // not a row of eight slivers.
+        androidx.compose.foundation.layout.FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+            verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+            maxItemsInEachRow = 4,
         ) {
             ThemeChoice.entries.forEach { option ->
                 ThemeTile(
@@ -122,7 +126,10 @@ fun AppearanceSection(
         Text(theme.note, style = Vitt.type.label, color = Vitt.colors.inkMuted)
 
         Text("Accent", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
-        Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.snug)) {
+        androidx.compose.foundation.layout.FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(Vitt.space.snug),
+            verticalArrangement = Arrangement.spacedBy(Vitt.space.snug),
+        ) {
             AccentChoice.entries.forEach { option ->
                 AccentDot(
                     accent = option,
@@ -135,7 +142,7 @@ fun AppearanceSection(
         Text(
             // The reason the list is short, stated once so it does not read as a
             // missing feature.
-            "Green, amber and blue are your currency colours, so they stay out of here.",
+            "Green, amber, blue, pink and teal are your currency colours, so they stay out of here.",
             style = Vitt.type.label,
             color = Vitt.colors.inkMuted,
         )
