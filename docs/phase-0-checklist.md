@@ -96,6 +96,26 @@ do it. **[code]** automatable.
 - **Google's sideloading developer verification** (2026–27) may require registering
   package names and signing keys for APKs distributed outside Play.
 
+## Added by the compliance audit — 2026-09-17
+
+Found by running the app-store-compliance playbook against the repo. Code items
+are done; the rest need the maintainer.
+
+- [x] **[code]** `PrivacyInfo.xcprivacy` in the iOS bundle (file-timestamp
+      reason C617.1 only; nothing collected, nothing tracked).
+- [x] **[code]** `ITSAppUsesNonExemptEncryption: false` in `Info.plist`, so
+      uploads do not stall on the export question.
+- [x] **[code]** Review notes drafted at [review-notes.md](review-notes.md).
+- [ ] **[you] Register the Play package name `ie.shoonya.vitt` in Play Console
+      by 30 Sep 2026** if a Play release is planned. Android developer
+      verification applies globally from that date; unregistered packages risk
+      removal.
+- [ ] **[you]** Publish the privacy policy at a URL, then **[code]** add a
+      Privacy link in Settings. Apple 5.1.1(i) wants it reachable in the app.
+- [ ] **[you]** Decide on the two 4.2 depth items still missing from PLAN §7.2's
+      list: recurring transactions and a home-screen widget. Budgets, charts and
+      CSV export are in.
+
 ## Added during Phase 1 — iOS device builds
 
 - [ ] **[you] Sign in to Xcode with your Apple ID.** Xcode → Settings → Accounts

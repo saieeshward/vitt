@@ -36,6 +36,9 @@ targets:
         # halved frame rate as a misconfiguration rather than a default.
         CADisableMinimumFrameDurationOnPhone: true
         CFBundleVersion: "1"
+        # Only HTTPS to Google's APIs, which is exempt encryption. Without this
+        # key App Store Connect stops every upload to ask the question.
+        ITSAppUsesNonExemptEncryption: false
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
