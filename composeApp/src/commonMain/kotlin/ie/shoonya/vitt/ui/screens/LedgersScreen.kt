@@ -31,6 +31,7 @@ import ie.shoonya.vitt.model.Ledger
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.Money
 import ie.shoonya.vitt.time.periodPhrase
+import ie.shoonya.vitt.ui.nudgeAnchor
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -84,7 +85,12 @@ fun LedgersScreen(
                 // a monthly visit must not slow the daily path.
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     HeaderIcon(ie.shoonya.vitt.ui.VittIcon.Chart, "Reports", onOpenReports)
-                    HeaderIcon(ie.shoonya.vitt.ui.VittIcon.Gear, "Settings", onOpenSettings)
+                    HeaderIcon(
+                ie.shoonya.vitt.ui.VittIcon.Gear,
+                "Settings",
+                onOpenSettings,
+                modifier = Modifier.nudgeAnchor(ie.shoonya.vitt.ui.Anchor.SETTINGS),
+            )
                 }
             }
         }
@@ -144,13 +150,14 @@ private fun HeaderIcon(
      */
     label: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     // A 44dp target around a 23dp glyph. The glyph alone with 6dp of padding
     // came to 35dp, under Apple's 44pt minimum and Android's 48dp guidance —
     // small enough to miss with a thumb on the move, which is when a header
     // icon actually gets used.
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(44.dp)
             .clip(CircleShape)
             .clickable(onClick = onClick)
@@ -175,6 +182,7 @@ private fun LedgerCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .nudgeAnchor(ie.shoonya.vitt.ui.Anchor.ledgerCard(ledger.currency.code))
             // A white card lifted off the cream ground, per the design's own
             // `box-shadow: 0 2px 10px rgba(36,31,51,0.06)`. A card tinted a
             // shade of the background instead reads as muddy, which is what an

@@ -9,6 +9,16 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import ie.shoonya.vitt.model.Nudge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -85,6 +95,20 @@ fun CompanionLayer(
      * rather than finishing the step or snapping home.
      */
     interactionTick: Int = 0,
+    /**
+     * The thing she should go and stand by, or null to wander.
+     *
+     * She points, and that is all. See [ie.shoonya.vitt.model.Nudges] for why
+     * this is the shape of the mechanic: position is an attention cue that
+     * carries no verdict, and a face that did would break §5.6.
+     */
+    nudge: Nudge? = null,
+    /** Where the nudge's target is on screen, in root coordinates. Null if it is not laid out. */
+    nudgeTarget: Rect? = null,
+    /** She was tapped while pointing at something. */
+    onNudgeTap: (Nudge) -> Unit = {},
+    /** She gave up waiting. The caller decides when to ask again. */
+    onNudgeExpired: (Nudge) -> Unit = {},
     /** Height of the tab bar, which she may never be dropped onto. */
     forbiddenBottom: Dp = 92.dp,
     pixelSize: Dp = 2.dp,
@@ -95,7 +119,14 @@ fun CompanionLayer(
     val step = with(density) { pixelSize.toPx() }
     val cell = floor(step).coerceAtLeast(1f)
 
-    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+    // Where this layer sits in the root, so a target's root bounds can be
+    // turned into a place to walk to inside it.
+    var layerOrigin by remember { mutableStateOf(Offset.Zero) }
+
+    BoxWithConstraints(
+        modifier = modifier.fillMaxSize()
+            .onGloballyPositioned { layerOrigin = it.boundsInRoot().topLeft },
+    ) {
         val boxW = with(density) { maxWidth.toPx() }
         val boxH = with(density) { maxHeight.toPx() }
         val petW = CompanionSprites.WIDTH * cell
@@ -128,15 +159,57 @@ fun CompanionLayer(
         var dragX by remember { mutableStateOf(0f) }
         var dragY by remember { mutableStateOf(0f) }
 
-        LaunchedEffect(still, interactionTick, dragging, homeX, roamMin, roamMax) {
+        // The x she should stand at to be beside the target: its centre, on her
+        // own row. She never leaves her row for a nudge — a pet that climbs the
+        // list would remeasure nothing but would cover the very card she is
+        // pointing at.
+        val nudgeX: Float? = nudgeTarget?.let { r ->
+            (r.center.x - layerOrigin.x - petW / 2f).coerceIn(minX, maxX)
+        }
+        val pointing = nudge != null && nudgeX != null
+
+        LaunchedEffect(still, interactionTick, dragging, homeX, roamMin, roamMax, nudge, nudgeX) {
             if (still || dragging) {
                 pose = CompanionPose.STAND
                 return@LaunchedEffect
             }
+            if (nudge != null && nudgeX != null) {
+                // Beckon. Walk to the thing, turn to face the user, and hold
+                // there with the odd glance back at it, for as long as the
+                // design's patience allows. Then let it go: she gave up, not
+                // the user, and the caller decides when she may try again.
+                val here = homeX + walked.value
+                facingLeft = nudgeX < here
+                pose = CompanionPose.WALK
+                val travel = kotlin.math.abs(nudgeX - here)
+                val fullWidth = (maxX - minX).coerceAtLeast(1f)
+                walked.animateTo(
+                    nudgeX - homeX,
+                    tween(((travel / fullWidth) * FULL_WIDTH_MILLIS).toInt().coerceAtLeast(400), easing = LinearEasing),
+                )
+                val until = BECKON_FOR_MILLIS
+                var waited = 0L
+                while (waited < until) {
+                    pose = CompanionPose.FRONT
+                    delay(2_200); waited += 2_200
+                    // A glance toward the target: she turns to it, then back.
+                    pose = CompanionPose.STAND
+                    facingLeft = (nudgeTarget?.center?.x ?: 0f) - layerOrigin.x < homeX + walked.value + petW / 2f
+                    delay(1_100); waited += 1_100
+                }
+                onNudgeExpired(nudge)
+                return@LaunchedEffect
+            }
             // Her patrol is measured from home, so a new home resets it: this
             // effect is keyed on homeX and re-entering it is what clears the
-            // distance she had walked from the old one.
-            walked.snapTo(0f)
+            // distance she had walked from the old one. Coming back from a
+            // nudge she walks home first rather than teleporting.
+            if (walked.value != 0f) {
+                facingLeft = walked.value > 0f
+                pose = CompanionPose.WALK
+                walked.animateTo(0f, tween(1_400, easing = LinearEasing))
+            }
+            pose = CompanionPose.STAND
             delay(SETTLE_BEFORE_WANDER)
             while (true) {
                 repeat(2 + Random.nextInt(3)) {
@@ -190,6 +263,23 @@ fun CompanionLayer(
                 }
                 .width(pixelSize * CompanionSprites.WIDTH)
                 .height(pixelSize * CompanionSprites.HEIGHT)
+                // Only while pointing is she a control. The rest of the time
+                // she is decoration, and a screen reader stopping on a pig
+                // with nothing to say would be noise.
+                .then(
+                    if (pointing) {
+                        Modifier.semantics {
+                            role = Role.Button
+                            contentDescription = nudge!!.label
+                            onClick { onNudgeTap(nudge); true }
+                        }
+                    } else {
+                        Modifier
+                    },
+                )
+                .pointerInput(nudge, pointing) {
+                    detectTapGestures(onTap = { if (pointing) onNudgeTap(nudge!!) })
+                }
                 .pointerInput(homeX, homeY, minX, maxX, minY, maxY) {
                     detectDragGesturesAfterLongPress(
                         onDragStart = {
@@ -241,6 +331,13 @@ val DEFAULT_COMPANION_HOME = Offset(0.06f, 1f)
 private const val FULL_WIDTH_MILLIS = 7_000f
 private const val REST_BETWEEN_TRIPS = 34_000L
 private const val SETTLE_BEFORE_WANDER = 14_000L
+
+/**
+ * How long she stands by a thing before giving up. Long enough to be seen on
+ * a normal visit, short enough that she is never *stationed* there: a pet that
+ * lives on the review queue is a badge, and §5.5 has no badges.
+ */
+private const val BECKON_FOR_MILLIS = 20_000L
 
 /**
  * The animal, drawn from its pixel grid with every part on its own clock.

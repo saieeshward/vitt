@@ -42,6 +42,11 @@ import ie.shoonya.vitt.export.exportTransactionsCsv
 import ie.shoonya.vitt.export.exportTransfersCsv
 import ie.shoonya.vitt.model.Choice
 import ie.shoonya.vitt.model.Insights
+import ie.shoonya.vitt.model.Nudge
+import ie.shoonya.vitt.model.NudgeKind
+import ie.shoonya.vitt.model.Nudges
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateMapOf
 import ie.shoonya.vitt.model.LedgerRepository
 import ie.shoonya.vitt.model.SettlementSummary
 import ie.shoonya.vitt.money.Currency
@@ -185,6 +190,35 @@ fun VittApp(
         val budgeted = ledgers.filter { it.budget != null }
         Mood.of(onTrack = budgeted.count { (it.remaining()?.minor ?: 0L) >= 0L }, total = budgeted.size)
     }
+    // What the companion may point at. Snoozed kinds are ones she already
+    // stood by this session and gave up on: asking again in the same sitting
+    // is nagging, and the list is recomputed fresh next launch anyway.
+    val snoozed = remember { mutableStateMapOf<NudgeKind, Long>() }
+    val anchors = rememberNudgeAnchors()
+    val nudge: Nudge? = remember(revision, habitOn, syncStatus is SyncStatus.Off, snoozed.size) {
+        val all = repository.transactions()
+        Nudges.pending(
+            transactions = all,
+            budgets = repository.budgets(),
+            today = today,
+            habitOn = habitOn,
+            connected = syncStatus !is SyncStatus.Off,
+            firstDay = all.minOfOrNull { it.day },
+        ).firstOrNull { it.kind !in snoozed }
+    }
+    val nudgeAnchorKey = nudge?.let {
+        when (it.kind) {
+            NudgeKind.REVIEW_CATEGORIES -> Anchor.TAB_ACTIVITY
+            NudgeKind.SETTLE_SPLIT -> Anchor.TAB_PEOPLE
+            NudgeKind.SET_BUDGET -> Anchor.ledgerCard(it.currency!!.code)
+            NudgeKind.RECORD_TODAY -> Anchor.ADD
+            NudgeKind.CONNECT_SHEET -> Anchor.SETTINGS
+        }
+    }
+    // A target that is not on screen (a card scrolled away, another tab open)
+    // is no target: she wanders instead of walking to where it would be.
+    val nudgeTarget = nudgeAnchorKey?.let { anchors[it] }?.takeIf { sheet == null }
+
     val accounts = remember(revision) { repository.accounts() }
     val balances = remember(revision) { repository.accountBalances() }
     val transfers = remember(revision) { repository.transfers() }
@@ -210,6 +244,7 @@ fun VittApp(
     // a pet that ate a tap would be a bug, not a character.
     var interactions by remember { mutableStateOf(0) }
 
+    CompositionLocalProvider(LocalNudgeAnchors provides anchors) {
     Box(modifier = modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
@@ -327,7 +362,24 @@ fun VittApp(
                 localRevision++
             },
             interactionTick = interactions,
+            nudge = nudge,
+            nudgeTarget = nudgeTarget,
+            onNudgeTap = { n ->
+                snoozed[n.kind] = 1L
+                when (n.kind) {
+                    NudgeKind.REVIEW_CATEGORIES -> {
+                        activityFilter = activityFilter.copy(needingCategory = true)
+                        tab = Tab.Activity
+                    }
+                    NudgeKind.SETTLE_SPLIT -> tab = Tab.People
+                    NudgeKind.SET_BUDGET -> sheet = Sheet.SetBudget(n.currency!!)
+                    NudgeKind.RECORD_TODAY -> sheet = Sheet.Add
+                    NudgeKind.CONNECT_SHEET -> sheet = Sheet.Settings
+                }
+            },
+            onNudgeExpired = { n -> snoozed[n.kind] = 1L },
         )
+    }
     }
     }
 
@@ -641,7 +693,7 @@ private fun TabBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         listOf(Tab.Ledgers, Tab.Activity).forEach {
-            TabItem(it, current, onSelect, Modifier.weight(1f))
+            TabItem(it, current, onSelect, Modifier.weight(1f).anchorFor(it))
         }
 
         // The centre action. Deliberately larger and not labelled as a tab.
@@ -654,6 +706,7 @@ private fun TabBar(
             Box(
                 modifier = Modifier
                     .size(44.dp)
+                    .nudgeAnchor(Anchor.ADD)
                     .clip(CircleShape)
                     .background(colors.accent)
                     .clickable(onClick = onAdd)
@@ -677,12 +730,19 @@ private fun TabBar(
         }
 
         rightTabs.forEach {
-            TabItem(it, current, onSelect, Modifier.weight(1f))
+            TabItem(it, current, onSelect, Modifier.weight(1f).anchorFor(it))
         }
         // Keeps the bar symmetrical when Habit is gone: without a filler the
         // centre button slides off centre, which reads as a layout bug.
         if (rightTabs.size == 1) Spacer(Modifier.weight(1f))
     }
+}
+
+@Composable
+private fun Modifier.anchorFor(tab: Tab): Modifier = when (tab) {
+    Tab.Activity -> nudgeAnchor(Anchor.TAB_ACTIVITY)
+    Tab.People -> nudgeAnchor(Anchor.TAB_PEOPLE)
+    else -> this
 }
 
 @Composable
