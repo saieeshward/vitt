@@ -47,7 +47,7 @@ fun PeopleScreen(
         contentPadding = PaddingValues(Vitt.space.loose),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
     ) {
-        item { Text("Ledger", style = Vitt.type.display, color = Vitt.colors.ink) }
+        item { Text("People", style = Vitt.type.display, color = Vitt.colors.ink) }
 
         if (participants.isEmpty()) {
             item {

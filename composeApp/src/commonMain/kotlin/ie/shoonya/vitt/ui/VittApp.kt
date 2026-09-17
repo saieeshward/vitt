@@ -81,7 +81,7 @@ import ie.shoonya.vitt.ui.theme.Vitt
 private enum class Tab(val label: String, val icon: VittIcon) {
     Ledgers("Ledgers", VittIcon.Wallet),
     Activity("Activity", VittIcon.List),
-    People("Ledger", VittIcon.People),
+    People("People", VittIcon.People),
     // Reports earned the tab and Habit moved to the header. Analytics is a
     // weekly visit in a money app and the habit view a glance, which is the
     // opposite of where `design-identity.md` first put them; the identity's

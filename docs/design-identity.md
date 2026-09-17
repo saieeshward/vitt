@@ -96,10 +96,10 @@ Five tabs; the middle one is a button, because logging is not a destination.
 | 1 | **Ledgers** | one card per currency; accounts below, grouped, unsummed |
 | 2 | **Activity** | every transaction, day-grouped; drafts on top |
 | – | **Add** | a sheet, not a tab — one thumb reach from everywhere |
-| 3 | **Ledger** | people and what is owed, per currency |
-| 4 | **Habit** | the one place gamification is loud |
+| 3 | **People** | who owes whom, per currency. Was "Ledger", which sat beside "Ledgers" in the bar and read as a typo |
+| 4 | **Reports** | the month's pace and where it went; Habit moved to a header sheet |
 
-Reports and Settings live under Ledgers' header icons: monthly visits should not
+Settings lives under Ledgers' header icons, and so does Habit: monthly visits should not
 slow the daily path.
 
 ---
