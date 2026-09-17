@@ -279,10 +279,15 @@ object Insights {
             walk = walk.previous()
         }
 
-        return if (estimates.size >= 2) {
+        // With four or more months the single strangest one at each end is
+        // dropped: a month with a holiday in it would otherwise stretch the
+        // band until it said nothing. The band is still the user's own spread,
+        // just not its two extremes.
+        val kept = if (estimates.size >= 4) estimates.sorted().drop(1).dropLast(1) else estimates
+        return if (kept.size >= 2) {
             Projection(
-                low = Money(estimates.min(), currency),
-                high = Money(estimates.max(), currency),
+                low = Money(kept.min(), currency),
+                high = Money(kept.max(), currency),
                 soFar = soFar,
                 rough = false,
             )

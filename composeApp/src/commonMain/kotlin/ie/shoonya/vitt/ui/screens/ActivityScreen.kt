@@ -48,11 +48,18 @@ fun ActivityScreen(
     onFilterChange: (ActivityFilter) -> Unit,
     onPeriodChange: (Period?) -> Unit,
     onPickGrain: () -> Unit,
+    /** Room kept at the foot for the companion's band, so the last rows never sit under her. */
+    companionInset: androidx.compose.ui.unit.Dp = 0.dp,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(Vitt.space.loose),
+        contentPadding = PaddingValues(
+            start = Vitt.space.loose,
+            top = Vitt.space.loose,
+            end = Vitt.space.loose,
+            bottom = Vitt.space.loose + companionInset,
+        ),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.hair),
     ) {
         item { Text("Activity", style = Vitt.type.display, color = Vitt.colors.ink) }

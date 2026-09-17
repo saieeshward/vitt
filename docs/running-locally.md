@@ -36,6 +36,18 @@ xcrun simctl install booted "$(find build/Build/Products -name VITT.app | head -
 xcrun simctl launch booted ie.shoonya.vitt
 ```
 
+Launch variables (`VITT_SEED=1` for the sample month, `VITT_STRESS=1` for
+eighteen months across six currencies) reach the app only with simctl's
+child-environment prefix; a bare `VITT_SEED=1 xcrun simctl launch …` is
+silently ignored and the app opens empty:
+
+```bash
+SIMCTL_CHILD_VITT_STRESS=1 xcrun simctl launch booted ie.shoonya.vitt
+```
+
+Both seeders are no-ops once the database has any transaction, so a different
+data set needs `xcrun simctl uninstall booted ie.shoonya.vitt` first.
+
 ## iOS device
 
 Needs an Apple ID signed in to Xcode; see the Phase 0 checklist. Then open

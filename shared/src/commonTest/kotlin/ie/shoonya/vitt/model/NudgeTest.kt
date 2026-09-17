@@ -101,3 +101,24 @@ class NudgeTest {
         assertTrue(r.pending().isEmpty())
     }
 }
+
+class HabitFiguresTest {
+    private fun repo(): LedgerRepository {
+        var t = 1_000L
+        return LedgerRepository(EventStore.open(testDriver(), "a219e7a71cc18912") { t++ }) { t }
+    }
+    private val today = Civil.toDays(2026, 9, 17)
+    private fun eur(minor: Long) = Money(minor, Currency.EUR)
+
+    @Test
+    fun `longest run survives a lapse and recorded days are the actual days`() {
+        val r = repo()
+        listOf(10, 9, 8, 7, 3, 2, 0).forEach { r.record("d$it", eur(-100), day = today - it, category = "dining") }
+        assertEquals(4, r.longestRun())
+        assertEquals(setOf(today - 10, today - 9, today - 8, today - 7, today - 3, today - 2, today), r.recordedDays(today))
+        assertEquals(7, r.daysRecorded(today))
+        // A lapse of a month leaves the longest run where it was.
+        r.record("late", eur(-100), day = today + 40, category = "dining")
+        assertEquals(4, r.longestRun())
+    }
+}

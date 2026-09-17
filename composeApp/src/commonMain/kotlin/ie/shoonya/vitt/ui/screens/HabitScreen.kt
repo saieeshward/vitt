@@ -30,6 +30,10 @@ import ie.shoonya.vitt.ui.theme.Vitt
 @Composable
 fun HabitScreen(
     daysRecorded: Int,
+    /** The actual days, so the dots can sit on the calendar rather than fill from the left. */
+    recordedDays: Set<Int>,
+    longestRun: Int,
+    today: Int,
     windowDays: Int,
     currencyCount: Int,
     animal: CompanionAnimal?,
@@ -67,7 +71,19 @@ fun HabitScreen(
 
         // A rolling count, not a streak that resets to zero. There is no loss
         // event to dread, so a missed day costs nothing to come back from.
-        DayDots(daysRecorded = daysRecorded, windowDays = windowDays)
+        DayDots(recordedDays = recordedDays, today = today, windowDays = windowDays)
+
+        // §5.4: keep "longest" prominent. It is the figure a lapse cannot take
+        // away, and stating it beside the rolling count is what makes a gap
+        // read as a gap rather than a loss.
+        if (longestRun > 1) {
+            Text(
+                "Longest run $longestRun days",
+                style = Vitt.type.label,
+                color = Vitt.colors.inkMuted,
+                textAlign = TextAlign.Center,
+            )
+        }
 
         Text(
             when {
@@ -83,15 +99,25 @@ fun HabitScreen(
     }
 }
 
+/**
+ * One dot per day of the window, oldest on the left and today on the right,
+ * filled where something was recorded.
+ *
+ * On the calendar rather than packed from the left, because a packed row
+ * shows a score and this shows a shape: a run, a gap, a return. The shape is
+ * the honest thing and it is also the thing that is not a streak counter.
+ */
 @Composable
-private fun DayDots(daysRecorded: Int, windowDays: Int) {
+private fun DayDots(recordedDays: Set<Int>, today: Int, windowDays: Int) {
     val colors = Vitt.colors
+    val span = minOf(windowDays, 30)
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
     ) {
-        repeat(minOf(windowDays, 30)) { i ->
-            val filled = i < daysRecorded
+        repeat(span) { i ->
+            val day = today - (span - 1 - i)
+            val filled = day in recordedDays
             Box(
                 Modifier.size(if (filled) 7.dp else 5.dp)
                     .clip(CircleShape)

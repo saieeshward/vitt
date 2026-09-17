@@ -176,9 +176,11 @@ fun VittApp(
     }
     // Zero when the layer is off, so nothing downstream can key off it — rather
     // than computing it and trusting every screen to ignore it.
-    val recorded = remember(revision, habitOn) {
-        if (habitOn) repository.daysRecorded(today) else 0
+    val recordedDays = remember(revision, habitOn) {
+        if (habitOn) repository.recordedDays(today) else emptySet()
     }
+    val recorded = recordedDays.size
+    val longestRun = remember(revision, habitOn) { if (habitOn) repository.longestRun() else 0 }
     val exporter = rememberFileExporter()
     // Which currency Reports is showing. Null means "the first one there is",
     // resolved at open time — pinning a currency before any exists would leave
@@ -295,6 +297,7 @@ fun VittApp(
                     ) 64.dp else 0.dp,
                 )
                 Tab.Activity -> ActivityScreen(
+                    companionInset = if (habitOn && companion != null) 64.dp else 0.dp,
                     days = days,
                     currencyIndex = indexOf,
                     onEdit = { sheet = Sheet.EditCategory(it.id) },
@@ -326,6 +329,9 @@ fun VittApp(
                 )
                 Tab.Habit -> HabitScreen(
                     daysRecorded = recorded,
+                    recordedDays = recordedDays,
+                    longestRun = longestRun,
+                    today = today,
                     windowDays = 30,
                     currencyCount = ledgers.size,
                     animal = companion,
@@ -389,6 +395,12 @@ fun VittApp(
             onDismissRequest = { sheet = null },
             sheetState = sheetState,
             containerColor = Vitt.colors.ground,
+            // The two tall sheets scroll inside themselves, and a scrolling
+            // list inside a draggable sheet is two gestures fighting over one
+            // finger: a pull that should scroll back up would fling the sheet
+            // shut instead. They close from Done or the scrim. The short
+            // sheets keep the pull, which is right for a one-screen form.
+            sheetGesturesEnabled = open !is Sheet.Settings && open !is Sheet.Reports,
         ) {
             when (open) {
                 Sheet.Add -> AddScreen(

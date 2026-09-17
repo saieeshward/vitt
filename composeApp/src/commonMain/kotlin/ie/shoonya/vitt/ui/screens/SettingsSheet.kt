@@ -50,7 +50,10 @@ fun SettingsSheet(
         modifier = modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
-            .padding(Vitt.space.loose),
+            .padding(Vitt.space.loose)
+            // Clear of the home indicator, so the last control is not the one
+            // the thumb is resting over.
+            .padding(bottom = Vitt.space.section * 2),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
     ) {
         Row(

@@ -699,9 +699,31 @@ class LedgerRepository(
      * only habit the app can honestly ask for, and rewarding thrift punishes the
      * month someone flew home for a funeral.
      */
-    fun daysRecorded(today: Int, window: Int = 30): Int =
+    fun daysRecorded(today: Int, window: Int = 30): Int = recordedDays(today, window).size
+
+    /** Which of the last [window] days had anything recorded, as days since the epoch. */
+    fun recordedDays(today: Int, window: Int = 30): Set<Int> =
         transactions().map { it.day }
             .filter { it > today - window && it <= today }
-            .distinct()
-            .size
+            .toSet()
+
+    /**
+     * The longest run of consecutive recorded days, ever.
+     *
+     * §5.4: on a break, keep "longest" prominent. It is the one figure a lapse
+     * cannot take away, which is why it is shown rather than a current streak
+     * that would reset to zero and make the return costlier than the lapse.
+     */
+    fun longestRun(): Int {
+        val days = transactions().map { it.day }.distinct().sorted()
+        var best = 0
+        var run = 0
+        var previous: Int? = null
+        for (d in days) {
+            run = if (previous != null && d == previous + 1) run + 1 else 1
+            if (run > best) best = run
+            previous = d
+        }
+        return best
+    }
 }
