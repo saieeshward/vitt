@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
+import ie.shoonya.vitt.sync.SyncStatus
 import ie.shoonya.vitt.ui.CompanionAnimal
 import ie.shoonya.vitt.ui.theme.AccentChoice
 import ie.shoonya.vitt.ui.theme.ThemeChoice
@@ -39,6 +40,9 @@ fun SettingsSheet(
     accent: AccentChoice,
     onAccentChange: (AccentChoice) -> Unit,
     currencyCount: Int,
+    syncStatus: SyncStatus,
+    sheetActions: SheetActions,
+    now: () -> Long,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -118,5 +122,9 @@ fun SettingsSheet(
             style = Vitt.type.label,
             color = Vitt.colors.inkFaint,
         )
+
+        // Last, because it is set up once and then forgotten about. The status
+        // line is the one part of it people come back for.
+        SheetSection(status = syncStatus, actions = sheetActions, now = now)
     }
 }

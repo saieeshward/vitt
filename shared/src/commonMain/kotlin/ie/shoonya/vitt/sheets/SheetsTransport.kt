@@ -53,6 +53,9 @@ class SheetsTransport(
         return EventPage(rows = page.rows, nextRow = page.nextRow)
     }
 
+    override suspend fun ledgerVersion(spreadsheetId: String): String? =
+        sheets.fileVersion(spreadsheetId).version
+
     companion object {
         const val EVENTS_TAB = "Events"
 

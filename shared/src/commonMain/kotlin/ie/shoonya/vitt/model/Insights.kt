@@ -5,7 +5,9 @@ import ie.shoonya.vitt.capture.Category
 import ie.shoonya.vitt.capture.MerchantName
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.Money
+import ie.shoonya.vitt.time.Civil
 import ie.shoonya.vitt.time.Period
+import ie.shoonya.vitt.time.YearMonth
 
 /**
  * The figures behind the charts.
@@ -157,6 +159,150 @@ object Insights {
      * Quadratic in the number of distinct merchants, which for one person's
      * ledger is a few hundred at most.
      */
+
+    /**
+     * This period against the one before it, category by category.
+     *
+     * The answer to "what changed?", which is the question a person actually
+     * asks of a month — a total is only alarming or reassuring relative to the
+     * last one. Movers are ordered by the size of the change, either direction,
+     * so the top row is *the* category that moved (§5.6: "here's the one
+     * category that moved"), not the biggest category.
+     *
+     * Both directions are reported in the same words. A fall is not praise and a
+     * rise is not a verdict; each is a fact about where money went.
+     *
+     * Null when the period has no grain to step back along.
+     */
+    fun compare(
+        transactions: List<Transaction>,
+        currency: Currency,
+        period: Period?,
+    ): Comparison? {
+        if (period == null) return null
+        val before = period.previous()
+        val now = byCategory(transactions, currency, period).associateBy { it.category }
+        val then = byCategory(transactions, currency, before).associateBy { it.category }
+        val zero = Money(0, currency)
+        val movers = (now.keys + then.keys).map { category ->
+            CategoryMove(
+                category = category,
+                now = now[category]?.spent ?: zero,
+                before = then[category]?.spent ?: zero,
+            )
+        }
+            .filter { it.delta.minor != 0L }
+            .sortedWith(
+                compareByDescending<CategoryMove> { it.delta.abs().minor }
+                    .thenBy { it.category?.label ?: "" },
+            )
+        return Comparison(
+            period = period,
+            before = before,
+            spent = now.values.fold(zero) { acc, s -> acc + s.spent },
+            spentBefore = then.values.fold(zero) { acc, s -> acc + s.spent },
+            movers = movers,
+        )
+    }
+
+    /**
+     * The merchants behind one category slice, for the drilldown.
+     *
+     * The same grouping as [topMerchants], filtered first, so a category's
+     * merchants add up to the category's figure — the drilldown and the row it
+     * opens from must never disagree.
+     */
+    fun merchantsIn(
+        transactions: List<Transaction>,
+        currency: Currency,
+        period: Period?,
+        category: Category?,
+        limit: Int = 8,
+    ): List<MerchantSlice> = topMerchants(
+        transactions.filter { it.categoryOrNull == category },
+        currency,
+        period,
+        limit,
+    )
+
+    /**
+     * Where this month is likely to land, as a range.
+     *
+     * `PLAN.md` §5.3 governs every line: **always a range, never a point, and
+     * never before day 7**. A projection on the 3rd is a statistically
+     * meaningless extrapolation dressed as a warning, and a point estimate
+     * invites the reader to treat noise as a verdict.
+     *
+     * The estimate is day-of-month weighted (§5.3 tier 2) when the user's own
+     * history allows it: for each earlier month with spending, the share of
+     * that month's total that had been spent by this day of the month gives
+     * one estimate of where this month lands, and the range is the spread of
+     * those estimates. That is what absorbs "rent on the 1st makes me look
+     * doomed" — if rent always lands on the 1st, then by the 8th every past
+     * month had also spent most of its total, and the ratio says so.
+     *
+     * With fewer than two usable months the naive linear rate is all there is,
+     * widened by a fixed band and flagged [Projection.rough] so the screen can
+     * say it is a rough guess rather than pretend otherwise.
+     *
+     * Baselined on the user's own months only, never on anyone else's (§5.2).
+     *
+     * @return null when the month is not the current one, it is too early, or
+     *   nothing has been spent yet.
+     */
+    fun projectMonth(
+        transactions: List<Transaction>,
+        currency: Currency,
+        month: YearMonth,
+        today: Int,
+        historyMonths: Int = 6,
+    ): Projection? {
+        if (today !in month) return null
+        val (_, _, dayOfMonth) = Civil.fromDays(today)
+        if (dayOfMonth < MIN_PROJECTION_DAY) return null
+
+        val soFar = transactions.outflows(currency, month).filter { it.day <= today }.total(currency)
+        if (soFar.minor == 0L) return null
+
+        val daysInMonth = Civil.daysInMonth(month.year, month.month)
+        val estimates = mutableListOf<Long>()
+        var walk: YearMonth = month.previous()
+        repeat(historyMonths) {
+            val rows = transactions.outflows(currency, walk)
+            val total = rows.total(currency).minor
+            if (total > 0) {
+                // The same calendar day, or that month's last day if it is shorter.
+                val cutoff = walk.firstDay + minOf(dayOfMonth, Civil.daysInMonth(walk.year, walk.month)) - 1
+                val byThen = rows.filter { it.day <= cutoff }.total(currency).minor
+                if (byThen > 0) estimates += soFar.minor * total / byThen
+            }
+            walk = walk.previous()
+        }
+
+        return if (estimates.size >= 2) {
+            Projection(
+                low = Money(estimates.min(), currency),
+                high = Money(estimates.max(), currency),
+                soFar = soFar,
+                rough = false,
+            )
+        } else {
+            val naive = soFar.minor * daysInMonth / dayOfMonth
+            Projection(
+                low = Money(naive * (100 - NAIVE_BAND_PERCENT) / 100, currency),
+                high = Money(naive * (100 + NAIVE_BAND_PERCENT) / 100, currency),
+                soFar = soFar,
+                rough = true,
+            )
+        }
+    }
+
+    /** §5.3: nothing is projected before the 7th. */
+    const val MIN_PROJECTION_DAY = 7
+
+    /** How far either side of the naive rate the fallback band reaches. */
+    const val NAIVE_BAND_PERCENT = 15L
+
     private fun brandsIn(keys: List<String>): Map<String, String> {
         val distinct = keys.distinct()
         return distinct.associateWith { key ->
@@ -193,6 +339,45 @@ data class CategorySlice(
 ) {
     val label: String get() = category?.label ?: "No category"
 }
+
+/**
+ * How one category moved between two consecutive periods.
+ *
+ * [delta] is now minus before: positive means more was spent this period.
+ */
+data class CategoryMove(
+    val category: Category?,
+    val now: Money,
+    val before: Money,
+) {
+    val delta: Money get() = now - before
+    val label: String get() = category?.label ?: "No category"
+}
+
+/** This period beside the last, with the categories that account for the change. */
+data class Comparison(
+    val period: Period,
+    val before: Period,
+    val spent: Money,
+    val spentBefore: Money,
+    /** Largest change first, either direction. */
+    val movers: List<CategoryMove>,
+) {
+    val delta: Money get() = spent - spentBefore
+}
+
+/**
+ * Where the month is likely to finish. Always a band; see [Insights.projectMonth].
+ *
+ * [rough] marks the fallback that had no history to lean on, so the screen can
+ * say so rather than present a guess with the same face as an estimate.
+ */
+data class Projection(
+    val low: Money,
+    val high: Money,
+    val soFar: Money,
+    val rough: Boolean,
+)
 
 /** One period's spending and income, for a trend chart. */
 data class PeriodSlice(

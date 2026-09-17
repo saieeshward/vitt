@@ -11,6 +11,7 @@ import ie.shoonya.vitt.time.YearMonth
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -219,5 +220,147 @@ class InsightsTest {
     @Test
     fun `a share of nothing is zero rather than a divide by zero`() {
         assertEquals(0f, CategorySlice(Category.DINING, eur(0), 0).shareOf(eur(0)))
+    }
+}
+
+class InsightsAnalyticsTest {
+
+    private val node = "a219e7a71cc18912"
+
+    private fun repo(): LedgerRepository {
+        var t = 1_000L
+        return LedgerRepository(EventStore.open(testDriver(), node) { t++ }) { t }
+    }
+
+    private val september = YearMonth(2026, 9)
+    private fun sept(d: Int) = Civil.toDays(2026, 9, d)
+    private fun aug(d: Int) = Civil.toDays(2026, 8, d)
+    private fun jul(d: Int) = Civil.toDays(2026, 7, d)
+    private fun eur(minor: Long) = Money(minor, Currency.EUR)
+
+    // --- compare ---
+
+    @Test
+    fun `movers are ranked by the size of the change and not the size of the category`() {
+        val r = repo()
+        // Groceries is the biggest category but barely moved; dining moved most.
+        r.record("a", eur(-30_000), day = aug(5), merchant = "TESCO", category = "groceries")
+        r.record("b", eur(-31_000), day = sept(5), merchant = "TESCO", category = "groceries")
+        r.record("c", eur(-2_000), day = aug(6), merchant = "CAFE", category = "dining")
+        r.record("d", eur(-12_000), day = sept(6), merchant = "CAFE", category = "dining")
+        r.record("e", eur(-5_000), day = aug(7), merchant = "IKEA", category = "shopping")
+
+        val c = Insights.compare(r.transactions(), Currency.EUR, september)!!
+
+        assertEquals(eur(43_000), c.spent)
+        assertEquals(eur(37_000), c.spentBefore)
+        assertEquals(eur(6_000), c.delta)
+        assertEquals(
+            listOf(Category.DINING, Category.SHOPPING, Category.GROCERIES),
+            c.movers.map { it.category },
+        )
+        assertEquals(eur(10_000), c.movers[0].delta)
+        // Shopping vanished this month: a fall reported the same way as a rise.
+        assertEquals(eur(-5_000), c.movers[1].delta)
+        assertEquals(eur(0), c.movers[1].now)
+    }
+
+    @Test
+    fun `an unchanged category is not a mover and all-time has no comparison`() {
+        val r = repo()
+        r.record("a", eur(-1_000), day = aug(5), category = "groceries")
+        r.record("b", eur(-1_000), day = sept(5), category = "groceries")
+        val c = Insights.compare(r.transactions(), Currency.EUR, september)!!
+        assertTrue(c.movers.isEmpty())
+        assertNull(Insights.compare(r.transactions(), Currency.EUR, null))
+    }
+
+    // --- merchantsIn ---
+
+    @Test
+    fun `a category's merchants add up to the category's figure`() {
+        val r = repo()
+        r.record("a", eur(-1_000), day = sept(2), merchant = "TESCO DUBLIN", category = "groceries")
+        r.record("b", eur(-2_500), day = sept(3), merchant = "TESCO NAAS 4471", category = "groceries")
+        r.record("c", eur(-700), day = sept(3), merchant = "LIDL", category = "groceries")
+        r.record("d", eur(-4_000), day = sept(4), merchant = "AER LINGUS", category = "travel")
+
+        val all = r.transactions()
+        val groceries = Insights.byCategory(all, Currency.EUR, september).first { it.category == Category.GROCERIES }
+        val merchants = Insights.merchantsIn(all, Currency.EUR, september, Category.GROCERIES)
+
+        assertEquals(listOf("Tesco", "Lidl"), merchants.map { it.label })
+        assertEquals(groceries.spent, merchants.fold(eur(0)) { acc, m -> acc + m.spent })
+        assertTrue(merchants.none { it.label == "Aer Lingus" })
+    }
+
+    // --- projectMonth ---
+
+    @Test
+    fun `nothing is projected before the seventh`() {
+        val r = repo()
+        r.record("a", eur(-10_000), day = sept(1), category = "housing")
+        assertNull(Insights.projectMonth(r.transactions(), Currency.EUR, september, today = sept(6)))
+        assertTrue(Insights.projectMonth(r.transactions(), Currency.EUR, september, today = sept(7)) != null)
+    }
+
+    @Test
+    fun `a past or future month is never projected`() {
+        val r = repo()
+        r.record("a", eur(-10_000), day = aug(1), category = "housing")
+        assertNull(Insights.projectMonth(r.transactions(), Currency.EUR, YearMonth(2026, 8), today = sept(15)))
+    }
+
+    @Test
+    fun `with no history the projection is a rough band around the linear rate`() {
+        val r = repo()
+        // €300 by the 10th of a 30-day month: linear says €900.
+        r.record("a", eur(-30_000), day = sept(10), category = "groceries")
+        val p = Insights.projectMonth(r.transactions(), Currency.EUR, september, today = sept(10))!!
+        assertTrue(p.rough)
+        assertEquals(eur(76_500), p.low)
+        assertEquals(eur(103_500), p.high)
+        assertTrue(p.low.minor < p.high.minor)
+    }
+
+    @Test
+    fun `rent on the first does not make the month look doomed once there is history`() {
+        val r = repo()
+        // Two past months: rent €1,000 on the 1st, then €500 of everything else.
+        for ((m, day) in listOf(7 to ::jul, 8 to ::aug)) {
+            r.record("rent$m", eur(-100_000), day = day(1), category = "housing")
+            r.record("rest$m", eur(-50_000), day = day(20), category = "groceries")
+        }
+        // This month, on the 8th: rent paid, nothing else yet.
+        r.record("rent9", eur(-100_000), day = sept(1), category = "housing")
+
+        val p = Insights.projectMonth(r.transactions(), Currency.EUR, september, today = sept(8))!!
+
+        assertFalse(p.rough)
+        // Linear would say 1,000 / 8 × 30 = €3,750. The user's own curve says
+        // that by the 8th two thirds of the month is usually spent, so ~€1,500.
+        assertEquals(eur(150_000), p.low)
+        assertEquals(eur(150_000), p.high)
+    }
+
+    @Test
+    fun `the band is the spread of the user's own months`() {
+        val r = repo()
+        // July: front-loaded. August: back-loaded. The estimates disagree, and
+        // the range is exactly that disagreement.
+        r.record("j1", eur(-80_000), day = jul(3), category = "shopping")
+        r.record("j2", eur(-20_000), day = jul(25), category = "groceries")
+        r.record("a1", eur(-20_000), day = aug(3), category = "shopping")
+        r.record("a2", eur(-80_000), day = aug(25), category = "groceries")
+        r.record("s1", eur(-40_000), day = sept(5), category = "shopping")
+
+        val p = Insights.projectMonth(r.transactions(), Currency.EUR, september, today = sept(10))!!
+
+        assertFalse(p.rough)
+        // July's share by day 10 was 80%: 40,000 / 0.8 = 50,000.
+        // August's share by day 10 was 20%: 40,000 / 0.2 = 200,000.
+        assertEquals(eur(50_000), p.low)
+        assertEquals(eur(200_000), p.high)
+        assertEquals(eur(40_000), p.soFar)
     }
 }

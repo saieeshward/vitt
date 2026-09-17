@@ -63,6 +63,8 @@ import ie.shoonya.vitt.ui.screens.LedgersScreen
 import ie.shoonya.vitt.ui.screens.PeopleScreen
 import ie.shoonya.vitt.ui.screens.ReportsSheet
 import ie.shoonya.vitt.ui.screens.SettingsSheet
+import ie.shoonya.vitt.ui.screens.SheetActions
+import ie.shoonya.vitt.sync.SyncStatus
 import ie.shoonya.vitt.ui.screens.SplitSheet
 import ie.shoonya.vitt.ui.screens.TransferSheet
 import ie.shoonya.vitt.ui.theme.AccentChoice
@@ -111,12 +113,24 @@ fun VittApp(
      * the tree being repainted.
      */
     onAppearanceChange: () -> Unit = {},
+    /** Where the sheet stands, for Settings. Off when the app runs local-only. */
+    syncStatus: SyncStatus = SyncStatus.Off,
+    sheetActions: SheetActions = SheetActions({ ie.shoonya.vitt.auth.AuthResult.Cancelled }, {}, {}),
+    /**
+     * Bumped when a sync brought events in from another device, so the
+     * screens re-read without a local write having happened.
+     */
+    remoteRevision: Int = 0,
+    now: () -> Long = { 0L },
     modifier: Modifier = Modifier,
 ) {
     var tab by remember { mutableStateOf(Tab.Ledgers) }
     var sheet by remember { mutableStateOf<Sheet?>(null) }
     // Bumped after a write so the screens re-read the log.
-    var revision by remember { mutableStateOf(0) }
+    var localRevision by remember { mutableStateOf(0) }
+    // A remote pull is a write this device did not make; it has to repaint
+    // the same way. The pair is what every read below keys on.
+    val revision = Pair(localRevision, remoteRevision)
 
     // One period for the whole app. Pull up August on Ledgers, switch to
     // Activity, and it is still August — otherwise it reads as two apps that
@@ -310,7 +324,7 @@ fun VittApp(
                     Choice.COMPANION_HOME,
                     "${(it.x * 1000).toInt()},${(it.y * 1000).toInt()}",
                 )
-                revision++
+                localRevision++
             },
             interactionTick = interactions,
         )
@@ -340,7 +354,7 @@ fun VittApp(
                             accountId = accountId,
                             totalPaid = totalPaid,
                         )
-                        revision++
+                        localRevision++
                         sheet = null
                     },
                     onCancel = { sheet = null },
@@ -349,7 +363,7 @@ fun VittApp(
                 Sheet.NewAccount -> AccountSheet(
                     onCreate = { name, currency, kind, opening ->
                         repository.openAccount(newId(), name, currency, kind, opening)
-                        revision++
+                        localRevision++
                         sheet = null
                     },
                     onCancel = { sheet = null },
@@ -366,7 +380,7 @@ fun VittApp(
                             received = received,
                             day = today,
                         )
-                        revision++
+                        localRevision++
                         sheet = null
                     },
                     onCancel = { sheet = null },
@@ -384,14 +398,14 @@ fun VittApp(
                         SplitSheet(
                             split = split,
                             onAddParticipant = {
-                                repository.addSplitParticipant(open.id, it); revision++
+                                repository.addSplitParticipant(open.id, it); localRevision++
                             },
                             onRemoveParticipant = {
-                                repository.removeSplitParticipant(open.id, it); revision++
+                                repository.removeSplitParticipant(open.id, it); localRevision++
                             },
-                            onSettle = { repository.settle(open.id, it); revision++ },
+                            onSettle = { repository.settle(open.id, it); localRevision++ },
                             onSettleInFull = {
-                                repository.settleInFull(open.id); revision++; sheet = null
+                                repository.settleInFull(open.id); localRevision++; sheet = null
                             },
                             onDone = { sheet = null },
                         )
@@ -417,7 +431,7 @@ fun VittApp(
                                     teach = teach,
                                     applyToPast = applyToPast,
                                 )
-                                revision++
+                                localRevision++
                                 sheet = null
                             },
                             onDone = { sheet = null },
@@ -451,7 +465,19 @@ fun VittApp(
                         period = period,
                         today = today,
                         spent = ledger?.spent ?: ie.shoonya.vitt.money.Money(0, currency),
+                        received = ledger?.received ?: ie.shoonya.vitt.money.Money(0, currency),
                         budget = ledger?.budget,
+                        comparison = remember(revision, currency, period) {
+                            Insights.compare(all, currency, period)
+                        },
+                        projection = remember(revision, currency, period, today) {
+                            (period as? YearMonth)?.let {
+                                Insights.projectMonth(all, currency, it, today)
+                            }
+                        },
+                        merchantsIn = { category ->
+                            Insights.merchantsIn(all, currency, period, category)
+                        },
                         // All-time has no grain to step along, so it gets no
                         // trend rather than a single bar labelled "All time".
                         trend = remember(revision, currency, period) {
@@ -506,25 +532,28 @@ fun VittApp(
                             Choice.COMPANION,
                             it?.code ?: CompanionAnimal.NONE,
                         )
-                        revision++
+                        localRevision++
                     },
                     theme = theme,
                     onThemeChange = {
                         repository.setChoice(Choice.THEME, it.code)
-                        revision++
+                        localRevision++
                         onAppearanceChange()
                     },
                     accent = accent,
                     onAccentChange = {
                         repository.setChoice(Choice.ACCENT, it.code)
-                        revision++
+                        localRevision++
                         onAppearanceChange()
                     },
                     currencyCount = ledgers.size,
+                    syncStatus = syncStatus,
+                    sheetActions = sheetActions,
+                    now = now,
                     gamificationEnabled = habitOn,
                     onGamificationChange = {
                         repository.setGamificationEnabled(it)
-                        revision++
+                        localRevision++
                         // Dropping the Habit tab under the user while they are on
                         // it would leave a blank screen, so step back to Ledgers.
                         if (!it && tab == Tab.Habit) tab = Tab.Ledgers
@@ -539,12 +568,12 @@ fun VittApp(
                     },
                     onSet = {
                         repository.setBudget(open.currency, it)
-                        revision++
+                        localRevision++
                         sheet = null
                     },
                     onClear = {
                         repository.clearBudget(open.currency)
-                        revision++
+                        localRevision++
                         sheet = null
                     },
                     onCancel = { sheet = null },

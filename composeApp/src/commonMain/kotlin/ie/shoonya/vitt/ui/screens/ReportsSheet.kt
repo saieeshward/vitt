@@ -15,7 +15,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.stateDescription
+import ie.shoonya.vitt.capture.Category
+import ie.shoonya.vitt.model.CategoryMove
+import ie.shoonya.vitt.model.Comparison
+import ie.shoonya.vitt.model.Projection
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,10 +76,17 @@ fun ReportsSheet(
     period: Period?,
     today: Int,
     spent: Money,
+    received: Money,
     budget: Money?,
     trend: List<PeriodSlice>,
     categories: List<CategorySlice>,
     merchants: List<MerchantSlice>,
+    /** This period beside the last. Null for all-time, which has no "last". */
+    comparison: Comparison?,
+    /** Where the current month is heading. Null outside it, or before the 7th. */
+    projection: Projection?,
+    /** The merchants inside one category, for the drilldown. */
+    merchantsIn: (Category?) -> List<MerchantSlice>,
     onExport: () -> Unit,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
@@ -114,6 +131,41 @@ fun ReportsSheet(
             color = Vitt.colors.inkMuted,
         )
 
+        // §5.3, word for word in spirit: a range, never a point, and it says so
+        // when it is guessing. The budget sits beside it as a fact to compare
+        // against, not as a line the pace is measured as crossing.
+        projection?.let { p ->
+            Text(
+                "On this pace you'd finish around ${p.low.displayUnsigned()} to ${p.high.displayUnsigned()}" +
+                    (budget?.let { ". Budget ${it.displayUnsigned()}" } ?: ""),
+                style = Vitt.type.body,
+                color = Vitt.colors.ink,
+            )
+            if (p.rough) {
+                Text(
+                    "A rough guess until there is more history to go on.",
+                    style = Vitt.type.label,
+                    color = Vitt.colors.inkMuted,
+                )
+            }
+        }
+
+        // In and out, only once there is an in. A section reading "In €0.00"
+        // on every screen would be a reminder of what is not being recorded.
+        if (received.minor > 0) {
+            SectionHeader("In and out")
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Figure("In", received.displayUnsigned())
+                Figure("Out", spent.displayUnsigned())
+                Figure("Net", (received - spent).display())
+            }
+        }
+
+        comparison?.let { c ->
+            SectionHeader("Against ${periodLabel(c.before, today)}")
+            ComparisonSection(c, today)
+        }
+
         if (trend.isNotEmpty()) {
             SectionHeader("Trend")
             TrendChart(trend = trend, hue = currencyIndex(currency), today = today)
@@ -136,7 +188,38 @@ fun ReportsSheet(
                 color = Vitt.colors.inkMuted,
             )
         } else {
-            categories.forEach { CategoryRow(it, spent, currencyIndex(currency)) }
+            // One open at a time: the drilldown is a glance at what is behind
+            // a row, not a second list to scroll.
+            var open by remember(currency, period) { mutableStateOf<Category?>(null) }
+            var openNone by remember(currency, period) { mutableStateOf(false) }
+            categories.forEach { slice ->
+                val isOpen = if (slice.category == null) openNone else open == slice.category
+                CategoryRow(
+                    slice = slice,
+                    total = spent,
+                    hue = currencyIndex(currency),
+                    open = isOpen,
+                    onToggle = {
+                        if (slice.category == null) { openNone = !openNone; open = null }
+                        else { open = if (isOpen) null else slice.category; openNone = false }
+                    },
+                )
+                if (isOpen) {
+                    val inside = merchantsIn(slice.category)
+                    if (inside.isEmpty()) {
+                        Text(
+                            "No merchant named on these.",
+                            style = Vitt.type.label,
+                            color = Vitt.colors.inkMuted,
+                            modifier = Modifier.padding(start = Vitt.space.loose),
+                        )
+                    } else {
+                        Column(modifier = Modifier.padding(start = Vitt.space.loose)) {
+                            inside.forEach { MerchantRow(it) }
+                        }
+                    }
+                }
+            }
             Text(
                 // Worth stating, because it is the reason the "No category" row
                 // is on the chart at all rather than quietly dropped.
@@ -268,10 +351,95 @@ private fun TrendChart(trend: List<PeriodSlice>, hue: Int, today: Int) {
 }
 
 @Composable
-private fun CategoryRow(slice: CategorySlice, total: Money, hue: Int) {
+private fun Figure(label: String, value: String) {
+    Column {
+        Text(label, style = Vitt.type.caption, color = Vitt.colors.inkMuted)
+        Text(value, style = Vitt.type.money, color = Vitt.colors.ink)
+    }
+}
+
+/**
+ * What changed since last period, in the words §5.6 allows.
+ *
+ * "More" and "less" are directions, not grades. The figures are drawn in ink,
+ * never in a status colour: a month that ran higher is described, not marked.
+ * Three movers is the ceiling, because the point is *the* category that moved.
+ */
+@Composable
+private fun ComparisonSection(c: Comparison, today: Int) {
+    val before = periodLabel(c.before, today)
+    // An empty last period is missing data, not a baseline of zero (§5.6:
+    // missing is described as missing). Comparing against it would call
+    // every first month a rise, and list every category as a mover.
+    if (c.spentBefore.minor == 0L) {
+        Text(
+            "Nothing recorded in $before to compare with.",
+            style = Vitt.type.label,
+            color = Vitt.colors.inkMuted,
+        )
+        return
+    }
+    val headline = when {
+        c.delta.minor == 0L -> "The same as $before."
+        c.delta.minor > 0 -> "${c.delta.displayUnsigned()} more than $before."
+        else -> "${c.delta.displayUnsigned()} less than $before."
+    }
+    Text(headline, style = Vitt.type.body, color = Vitt.colors.ink)
+    c.movers.take(3).forEach { MoverRow(it) }
+    if (c.movers.size == 1) {
+        Text(
+            "The one category that moved.",
+            style = Vitt.type.label,
+            color = Vitt.colors.inkFaint,
+        )
+    }
+}
+
+@Composable
+private fun MoverRow(move: CategoryMove) {
+    val colors = Vitt.colors
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = Vitt.space.hair)
+            .semantics(mergeDescendants = true) {},
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.fillMaxWidth(0.6f)) {
+            Text(move.label, style = Vitt.type.body, color = colors.ink, maxLines = 1)
+            Text(
+                "${move.before.displayUnsigned()} to ${move.now.displayUnsigned()}",
+                style = Vitt.type.caption,
+                color = colors.inkMuted,
+            )
+        }
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+            Text(
+                // A real minus sign and a plus, in the same ink. The sign is the
+                // information; a colour would be a verdict.
+                (if (move.delta.minor > 0) "+" else "\u2212") + move.delta.displayUnsigned(),
+                style = Vitt.type.money,
+                color = colors.ink,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CategoryRow(
+    slice: CategorySlice,
+    total: Money,
+    hue: Int,
+    open: Boolean,
+    onToggle: () -> Unit,
+) {
     val colors = Vitt.colors
     Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = Vitt.space.hair),
+        modifier = Modifier.fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                stateDescription = if (open) "Expanded" else "Collapsed"
+            }
+            .padding(vertical = Vitt.space.hair),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.hair),
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {

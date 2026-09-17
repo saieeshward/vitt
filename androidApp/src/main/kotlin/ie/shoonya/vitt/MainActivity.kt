@@ -36,11 +36,17 @@ class MainActivity : ComponentActivity() {
      */
     override fun onResume() {
         super.onResume()
-        if (resumedOnce) BrowserAuth.onCancelled()
+        if (resumedOnce) {
+            BrowserAuth.onCancelled()
+            // Back from elsewhere: the moment another device's entries are
+            // most likely waiting. The launch itself syncs from AppRoot.
+            services?.sync?.onForeground()
+        }
         resumedOnce = true
     }
 
     private var resumedOnce = false
+    private var services: VittServices? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ie.shoonya.vitt.auth.initTokenStore(applicationContext)
@@ -62,6 +68,7 @@ class MainActivity : ComponentActivity() {
             now = { System.currentTimeMillis() },
             driver = ie.shoonya.vitt.sync.androidDriver(applicationContext),
         )
+        this.services = services
         if (intent?.getBooleanExtra("seed", false) == true) services.seedSampleData()
         if (intent?.getBooleanExtra("stress", false) == true) services.seedStressData()
 

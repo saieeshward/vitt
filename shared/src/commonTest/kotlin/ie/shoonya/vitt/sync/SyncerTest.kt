@@ -65,11 +65,21 @@ class SyncerTest {
             }
         }
 
+        var reads = 0
+        var versionChecks = 0
+
         override suspend fun readEvents(spreadsheetId: String, fromRow: Int): EventPage {
+            reads++
             // fromRow is a spreadsheet row number and row 1 is the header.
             val start = (fromRow - 2).coerceAtLeast(0)
             val slice = rows.drop(start)
             return EventPage(slice, nextRow = 2 + rows.size)
+        }
+
+        /** Drive's counter: every append moves it, as the real one does. */
+        override suspend fun ledgerVersion(spreadsheetId: String): String? {
+            versionChecks++
+            return "v${appends}"
         }
 
         fun hlcs(): List<String> = rows.map { it[0] }
@@ -267,5 +277,65 @@ class SyncerTest {
         // Row 2, because row 1 of a spreadsheet is the header.
         assertEquals(2, outcome.unreadable.first().rowNumber)
         assertNull(outcome.error)
+    }
+
+    @Test
+    fun `an idle cycle costs one version check and no read`() = runTest {
+        val sheet = Sheet()
+        val store = store()
+        val syncer = Syncer(store, sheet, now = { 1L })
+        store.write("t1")
+        syncer.sync()
+        val readsAfterFirst = sheet.reads
+
+        // Nothing local, nothing remote. This is the cycle that runs on every
+        // foreground, and it must not spend a values.get to learn nothing.
+        val idle = syncer.sync()
+
+        assertTrue(idle.ok)
+        assertTrue(idle.skippedPull)
+        assertEquals(readsAfterFirst, sheet.reads)
+        assertEquals(2, sheet.versionChecks)
+    }
+
+    @Test
+    fun `a push is followed by exactly one read and then settles`() = runTest {
+        val sheet = Sheet()
+        val store = store()
+        val syncer = Syncer(store, sheet, now = { 1L })
+
+        store.write("t1")
+        val pushed = syncer.sync()
+        assertFalse(pushed.skippedPull)
+        assertEquals(1, sheet.reads)
+
+        // The version moved because of our own append. The stamp recorded
+        // after that read covers it, so the next cycle does not read again.
+        assertTrue(syncer.sync().skippedPull)
+        assertEquals(1, sheet.reads)
+    }
+
+    @Test
+    fun `a change from another device is read on the next cycle`() = runTest {
+        val sheet = Sheet()
+        val a = store("a219e7a71cc18912")
+        val b = store("b31f0d5c9e7a2210")
+        val syncA = Syncer(a, sheet, now = { 1L })
+        val syncB = Syncer(b, sheet, now = { 1L })
+        b.put(EventStore.KEY_SPREADSHEET_ID, "sheet-1")
+
+        a.write("t1")
+        syncA.sync()
+        assertTrue(syncA.sync().skippedPull)
+
+        b.write("t2")
+        syncB.sync()
+
+        val caught = syncA.sync()
+        assertFalse(caught.skippedPull)
+        assertEquals(1, caught.pulled)
+        // b pulled a's row as part of its own cycle, so pick b's by node.
+        val fromB = b.allEvents().single { it.hlc.nodeId == "b31f0d5c9e7a2210" }
+        assertTrue(a.hasEvent(fromB.hlc.encode()))
     }
 }

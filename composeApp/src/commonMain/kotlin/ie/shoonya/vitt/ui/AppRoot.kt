@@ -3,6 +3,9 @@ package ie.shoonya.vitt.ui
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import ie.shoonya.vitt.ui.screens.SheetActions
 import androidx.compose.ui.Modifier
 import ie.shoonya.vitt.VittServices
 import ie.shoonya.vitt.auth.Crypto
@@ -39,11 +42,28 @@ fun AppRoot(
             if (verify || autoRun) {
                 VerifyScreen(services, autoRun = autoRun)
             } else {
+                val syncStatus by services.sync.status.collectAsState()
+                val remoteRevision by services.sync.remoteChanges.collectAsState()
+                // A pull can change the theme too: it is a synced choice.
+                LaunchedEffect(remoteRevision) { appearance++ }
+                // The launch sync. Foreground returns come through the
+                // platform hosts, which are the only things that see them.
+                LaunchedEffect(Unit) { services.sync.onForeground() }
                 VittApp(
                     repository = services.ledger,
                     today = services.today(),
                     newId = { newTransactionId(services.today()) },
                     onAppearanceChange = { appearance++ },
+                    syncStatus = syncStatus,
+                    sheetActions = remember(services) {
+                        SheetActions(
+                            connect = { services.connectGoogle() },
+                            disconnect = { services.disconnectGoogle() },
+                            syncNow = { services.sync.syncNow() },
+                        )
+                    },
+                    remoteRevision = remoteRevision,
+                    now = services::now,
                 )
             }
         }

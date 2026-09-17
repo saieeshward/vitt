@@ -25,6 +25,13 @@ fun MainViewController() = ComposeUIViewController {
     if (launch["VITT_STRESS"] == "1") {
         services.seedStressData()
     }
+    // Returning from the background is the moment another device's entries
+    // are most likely waiting. The launch itself syncs from AppRoot.
+    platform.Foundation.NSNotificationCenter.defaultCenter.addObserverForName(
+        name = platform.UIKit.UIApplicationDidBecomeActiveNotification,
+        `object` = null,
+        queue = null,
+    ) { services.sync.onForeground() }
     AppRootWith(services)
 }
 

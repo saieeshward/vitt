@@ -30,6 +30,17 @@ class EventStore(
     private val state = db.syncStateQueries
 
     /**
+     * Called after a local change has been committed and queued.
+     *
+     * The sync scheduler hangs off this rather than off the repository, because
+     * every local write — a transaction, a budget, a theme choice — ends here,
+     * and a trigger placed any higher would miss whichever entry point was
+     * added last. Fired outside the transaction, so a listener that syncs
+     * cannot lengthen the write lock.
+     */
+    var onLocalWrite: (() -> Unit)? = null
+
+    /**
      * Records a locally-made change and queues it for the sheet.
      *
      * Returns false if this HLC was already present, which makes replay safe:
@@ -52,7 +63,7 @@ class EventStore(
         // never leave a clock that has forgotten a timestamp it already issued.
         rememberClock(event.hlc)
         inserted
-    }
+    }.also { if (it) onLocalWrite?.invoke() }
 
     /**
      * Records events that arrived from the sheet.
@@ -132,7 +143,7 @@ class EventStore(
             outbox.enqueue(hlc = event.hlc.encode(), created_at = nowMillis)
         }
         victims.size
-    }
+    }.also { onLocalWrite?.invoke() }
 
     /**
      * Mints a timestamp for a local change.

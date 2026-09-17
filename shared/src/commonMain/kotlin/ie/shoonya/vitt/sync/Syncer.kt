@@ -28,6 +28,14 @@ interface SheetTransport {
 
     /** Reads the Events tab from [fromRow] onward. */
     suspend fun readEvents(spreadsheetId: String, fromRow: Int): EventPage
+
+    /**
+     * An opaque token that changes whenever anyone modifies the file.
+     *
+     * Null when the transport cannot say, in which case the caller must assume
+     * a change. Drive's `version` counter is the real one.
+     */
+    suspend fun ledgerVersion(spreadsheetId: String): String?
 }
 
 /** What one sync cycle did. */
@@ -37,6 +45,8 @@ data class SyncOutcome(
     val acked: Int = 0,
     val requeued: Int = 0,
     val poisoned: Int = 0,
+    /** True when the cheap version check let the cycle skip reading the sheet. */
+    val skippedPull: Boolean = false,
     /** Rows in the sheet that could not be parsed. Reported, never discarded. */
     val unreadable: List<EventLog.UnreadableRow> = emptyList(),
     /** Null when the cycle completed. Set when it stopped early. */
@@ -66,6 +76,14 @@ data class SyncOutcome(
  * Push before pull so that a device which has been offline contributes its work
  * before it takes on anyone else's, which keeps the common case — one device,
  * nothing to pull — to a single write.
+ *
+ * The pull is gated on Drive's `version` counter. A sync that ran on every
+ * foreground and every edit would otherwise spend a `values.get` each time to
+ * learn that nothing changed, against a ceiling of sixty reads a minute per
+ * user; the version is one small Drive GET and never reports a false "same".
+ * It does count our own appends, so the version is only recorded after a pull
+ * has caught up with everything it covers; the rows a push wrote come back in
+ * that read and deduplicate on their HLC.
  *
  * `PLAN.md` §0.5 governs the whole file: the sheet is an append-only log and
  * never a computation the app trusts, the local database is the sole source of
@@ -129,11 +147,12 @@ class Syncer(
 
         return SyncOutcome(
             pushed = pushed.pushed,
-            pulled = pulled.first,
+            pulled = pulled.added,
             acked = recovered.acked,
             requeued = recovered.requeued,
             poisoned = pushed.poisoned,
-            unreadable = pulled.second,
+            unreadable = pulled.unreadable,
+            skippedPull = pulled.skipped,
         )
     }
 
@@ -222,14 +241,34 @@ class Syncer(
         return offenders.size
     }
 
-    private suspend fun pull(spreadsheetId: String): Pair<Int, List<EventLog.UnreadableRow>> {
+    private class Pulled(
+        val added: Int,
+        val unreadable: List<EventLog.UnreadableRow>,
+        val skipped: Boolean,
+    )
+
+    /**
+     * The version is fetched even when this cycle just pushed and so already
+     * knows the sheet moved. It costs one small GET and it is what lets the
+     * *next* cycle skip: recorded after the read below, it stamps the sheet as
+     * caught-up, so a push is followed by exactly one read rather than two.
+     */
+    private suspend fun pull(spreadsheetId: String): Pulled {
+        val version = transport.ledgerVersion(spreadsheetId)
+        if (version != null && version == store.get(EventStore.KEY_DRIVE_VERSION)) {
+            return Pulled(0, emptyList(), skipped = true)
+        }
+
         val from = store.lastReadRow().coerceAtLeast(2)
         val page = transport.readEvents(spreadsheetId, fromRow = from)
-        if (page.rows.isEmpty()) return 0 to emptyList()
-
         val read = EventLog.readRows(page.rows, firstRowNumber = from)
         val added = store.appendRemote(read.events)
         store.rememberReadRow(page.nextRow)
-        return added to read.unreadable
+
+        // Recorded only now that the read has covered it. Taken *before* the read,
+        // so a write that lands between the two is caught next time rather than
+        // hidden behind a version stamped after it.
+        if (version != null) store.put(EventStore.KEY_DRIVE_VERSION, version)
+        return Pulled(added, read.unreadable, skipped = false)
     }
 }

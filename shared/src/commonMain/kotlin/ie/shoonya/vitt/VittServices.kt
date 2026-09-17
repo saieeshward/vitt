@@ -25,6 +25,10 @@ class VittServices(
     browser: BrowserAuth,
     private val now: () -> Long,
     driver: app.cash.sqldelight.db.SqlDriver,
+    /** Where sync cycles run. Outlives any screen, because a sync must too. */
+    private val scope: kotlinx.coroutines.CoroutineScope = kotlinx.coroutines.CoroutineScope(
+        kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default,
+    ),
 ) {
     /**
      * The local database, keyed to this device.
@@ -39,6 +43,9 @@ class VittServices(
     }
 
     val ledger: LedgerRepository = LedgerRepository(store, now)
+
+    /** Wall-clock millis, for wording like "just now". */
+    fun now(): Long = now.invoke()
 
     /** Days since the Unix epoch, in UTC. A date, with no time and no zone. */
     fun today(): Int = (now() / 86_400_000L).toInt()
@@ -353,4 +360,33 @@ class VittServices(
         transport = ie.shoonya.vitt.sheets.SheetsTransport(sheets()),
         now = now,
     )
+
+    /**
+     * The one scheduler, wired to the store's write hook so every local change
+     * — from any screen, present or future — queues a sync without the screen
+     * knowing sync exists.
+     */
+    val sync: ie.shoonya.vitt.sync.SyncController = ie.shoonya.vitt.sync.SyncController(
+        scope = scope,
+        isConnected = { auth.isSignedIn },
+        syncer = ::syncer,
+        store = store,
+        now = now,
+    ).also { controller -> store.onLocalWrite = { controller.onLocalWrite() } }
+
+    /**
+     * Runs the consent flow and, on success, the first sync — which creates the
+     * spreadsheet and drains everything recorded before the user connected.
+     */
+    suspend fun connectGoogle(): ie.shoonya.vitt.auth.AuthResult {
+        val result = auth.signIn()
+        if (result is ie.shoonya.vitt.auth.AuthResult.Code) sync.onForeground()
+        return result
+    }
+
+    /** Revokes the grant. Local data and the user's spreadsheet are both left alone. */
+    suspend fun disconnectGoogle() {
+        auth.signOut()
+        sync.onDisconnected()
+    }
 }

@@ -58,3 +58,4 @@ iosApp/build/
 # Xcode derived data from the simulator build loop.
 iosApp/build-rel/
 tools/__pycache__/
+iosApp/build-device/
