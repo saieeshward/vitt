@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -87,8 +88,14 @@ fun ReportsSheet(
     projection: Projection?,
     /** The merchants inside one category, for the drilldown. */
     merchantsIn: (Category?) -> List<MerchantSlice>,
+    /** Running total per day of the current month, empty outside a month. */
+    cumulative: List<Long>,
+    daysInMonth: Int,
+    /** Spend by weekday, Monday first. */
+    weekday: List<Money>,
     onExport: () -> Unit,
-    onDone: () -> Unit,
+    /** Null when this is a tab rather than a sheet: there is nothing to be done with. */
+    onDone: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -106,8 +113,12 @@ fun ReportsSheet(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Reports", style = Vitt.type.title, color = Vitt.colors.ink)
-            TextButton(onClick = onDone) { Text("Done") }
+            Text(
+                "Reports",
+                style = if (onDone == null) Vitt.type.display else Vitt.type.title,
+                color = Vitt.colors.ink,
+            )
+            onDone?.let { TextButton(onClick = it) { Text("Done") } }
         }
 
         // Only worth the space once there is more than one currency — and unlike
@@ -151,6 +162,20 @@ fun ReportsSheet(
                     color = Vitt.colors.inkMuted,
                 )
             }
+        }
+
+        // The month so far as a line, against the even pace a budget implies.
+        // A line rather than a figure because the *shape* is the information:
+        // rent on the 1st is a step, a trip is a jump, groceries are a slope.
+        if (cumulative.isNotEmpty() && daysInMonth > 0) {
+            SectionHeader("This month, day by day")
+            CumulativeChart(
+                cumulative = cumulative,
+                daysInMonth = daysInMonth,
+                budget = budget,
+                hue = currencyIndex(currency),
+                currency = currency,
+            )
         }
 
         // In and out, only once there is an in. A section reading "In €0.00"
@@ -230,6 +255,11 @@ fun ReportsSheet(
                 style = Vitt.type.label,
                 color = Vitt.colors.inkFaint,
             )
+        }
+
+        if (weekday.any { it.minor > 0 }) {
+            SectionHeader("By weekday")
+            WeekdayDots(weekday = weekday, hue = currencyIndex(currency))
         }
 
         if (merchants.isNotEmpty()) {
@@ -507,6 +537,114 @@ private fun MerchantRow(slice: MerchantSlice) {
         }
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
             Text(slice.spent.displayUnsigned(), style = Vitt.type.money, color = colors.ink)
+        }
+    }
+}
+
+/**
+ * The running total, with a dotted guide from zero to the budget across the
+ * month, so where the line sits against the guide is readable without a
+ * number: above it is faster than even pace, below it slower. One hue, the
+ * currency's, and the guide in neutral ink. Not a verdict either way — the
+ * pace line is what the budget *implies*, and many sane months front-load.
+ */
+@Composable
+private fun CumulativeChart(
+    cumulative: List<Long>,
+    daysInMonth: Int,
+    budget: Money?,
+    hue: Int,
+    currency: Currency,
+) {
+    val colors = Vitt.colors
+    val tint = colors.currency(hue)
+    val soFar = cumulative.last()
+    val top = maxOf(soFar, budget?.minor ?: 0L, 1L)
+    val spoken = "Spent so far ${Money(soFar, currency).displayUnsigned()} by day ${cumulative.size} of $daysInMonth" +
+        (budget?.let { ", budget ${it.displayUnsigned()}" } ?: "")
+    Column(verticalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
+        Canvas(
+            modifier = Modifier.fillMaxWidth().height(96.dp)
+                .semantics { contentDescription = spoken },
+        ) {
+            val w = size.width
+            val h = size.height
+            val stroke = 2.dp.toPx()
+            fun x(day: Int) = w * (day.toFloat() / daysInMonth.toFloat())
+            fun y(minor: Long) = h - stroke - (h - 2 * stroke) * (minor.toFloat() / top.toFloat())
+
+            // Baseline.
+            drawLine(colors.inkFaint.copy(alpha = 0.35f), Offset(0f, h - stroke / 2), Offset(w, h - stroke / 2), strokeWidth = 1.dp.toPx())
+
+            // The even-pace guide, from zero on day 0 to the budget on the last day.
+            budget?.let { b ->
+                val dash = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(6f, 6f))
+                drawLine(
+                    colors.inkFaint,
+                    Offset(0f, y(0)),
+                    Offset(w, y(b.minor)),
+                    strokeWidth = 1.dp.toPx(),
+                    pathEffect = dash,
+                )
+            }
+
+            // The month so far.
+            val path = androidx.compose.ui.graphics.Path()
+            path.moveTo(0f, y(0))
+            cumulative.forEachIndexed { i, v -> path.lineTo(x(i + 1), y(v)) }
+            drawPath(path, tint, style = androidx.compose.ui.graphics.drawscope.Stroke(width = stroke, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+            // Today, marked, with a surface ring so it sits on the line rather than in it.
+            val end = Offset(x(cumulative.size), y(soFar))
+            drawCircle(colors.ground, radius = 5.dp.toPx(), center = end)
+            drawCircle(tint, radius = 3.5f.dp.toPx(), center = end)
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("1", style = Vitt.type.caption, color = colors.inkFaint)
+            Text(
+                "day ${cumulative.size}" + (budget?.let { " · dotted line is even pace to ${it.displayUnsigned()}" } ?: ""),
+                style = Vitt.type.caption,
+                color = colors.inkMuted,
+            )
+            Text("$daysInMonth", style = Vitt.type.caption, color = colors.inkFaint)
+        }
+    }
+}
+
+/**
+ * Seven dots, sized by how much went out on that weekday. Magnitude as area,
+ * one hue; the heaviest day carries its figure and the rest do not, so the
+ * row says one thing rather than seven.
+ */
+@Composable
+private fun WeekdayDots(weekday: List<Money>, hue: Int) {
+    val colors = Vitt.colors
+    val tint = colors.currency(hue)
+    val peak = weekday.maxOf { it.minor }.coerceAtLeast(1L)
+    val heaviest = weekday.indices.maxByOrNull { weekday[it].minor } ?: 0
+    val names = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    val spoken = weekday.mapIndexed { i, m -> "${names[i]} ${m.displayUnsigned()}" }.joinToString(", ")
+    Row(
+        modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Spending by weekday: $spoken" },
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        weekday.forEachIndexed { i, m ->
+            val share = kotlin.math.sqrt(m.minor.toFloat() / peak.toFloat())
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
+                Text(
+                    if (i == heaviest && m.minor > 0) m.displayUnsigned() else "",
+                    style = Vitt.type.caption,
+                    color = colors.inkMuted,
+                    maxLines = 1,
+                )
+                Box(modifier = Modifier.size(28.dp), contentAlignment = Alignment.Center) {
+                    Box(
+                        Modifier.size((6f + 22f * share).dp).clip(CircleShape)
+                            .background(if (m.minor > 0) tint.copy(alpha = 0.35f + 0.65f * share) else colors.inkFaint.copy(alpha = 0.25f)),
+                    )
+                }
+                Text(names[i], style = Vitt.type.caption, color = if (i == heaviest) colors.ink else colors.inkFaint)
+            }
         }
     }
 }

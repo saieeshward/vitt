@@ -121,4 +121,53 @@ class HabitFiguresTest {
         r.record("late", eur(-100), day = today + 40, category = "dining")
         assertEquals(4, r.longestRun())
     }
+
+    @Test
+    fun `per currency days and monthly coverage never sum across currencies`() {
+        val r = repo()
+        r.record("e1", eur(-100), day = today, category = "dining")
+        r.record("e2", eur(-100), day = today - 1, category = "dining")
+        r.record("i1", Money(-100, Currency.INR), day = today, category = "dining")
+        assertEquals(mapOf(Currency.EUR to 2, Currency.INR to 1), r.recordedDaysByCurrency(today))
+
+        val months = r.recordedDaysPerMonth(today, months = 2)
+        assertEquals(2, months.size)
+        assertEquals(Civil.fromDays(today).let { (y, m, _) -> ie.shoonya.vitt.time.YearMonth(y, m) }, months.last().month)
+        assertEquals(2, months.last().recorded)
+        // Elapsed is days so far, not the whole month.
+        assertEquals(17, months.last().elapsed)
+        assertEquals(0, months.first().recorded)
+    }
+}
+
+class InsightsShapeTest {
+    private fun repo(): LedgerRepository {
+        var t = 1_000L
+        return LedgerRepository(EventStore.open(testDriver(), "a219e7a71cc18912") { t++ }) { t }
+    }
+    private fun eur(minor: Long) = Money(minor, Currency.EUR)
+    private val sept = ie.shoonya.vitt.time.YearMonth(2026, 9)
+    private fun d(day: Int) = Civil.toDays(2026, 9, day)
+
+    @Test
+    fun `the cumulative line runs to today and only today`() {
+        val r = repo()
+        r.record("a", eur(-1_000), day = d(1), category = "housing")
+        r.record("b", eur(-200), day = d(3), category = "dining")
+        r.record("c", eur(-999), day = d(20), category = "dining")
+        val line = Insights.dailyCumulative(r.transactions(), Currency.EUR, sept, today = d(5))
+        assertEquals(listOf(1_000L, 1_000L, 1_200L, 1_200L, 1_200L), line)
+    }
+
+    @Test
+    fun `weekday totals start on Monday`() {
+        val r = repo()
+        // 2026-09-14 is a Monday.
+        r.record("mon", eur(-500), day = Civil.toDays(2026, 9, 14), category = "dining")
+        r.record("sun", eur(-700), day = Civil.toDays(2026, 9, 13), category = "dining")
+        val week = Insights.byWeekday(r.transactions(), Currency.EUR, sept)
+        assertEquals(7, week.size)
+        assertEquals(500L, week[0].minor)
+        assertEquals(700L, week[6].minor)
+    }
 }

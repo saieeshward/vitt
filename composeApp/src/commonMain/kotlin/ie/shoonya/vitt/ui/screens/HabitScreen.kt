@@ -16,6 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import ie.shoonya.vitt.ui.CompanionAnimal
 import ie.shoonya.vitt.ui.CompanionPet
 import ie.shoonya.vitt.ui.theme.Vitt
@@ -37,14 +42,30 @@ fun HabitScreen(
     windowDays: Int,
     currencyCount: Int,
     animal: CompanionAnimal?,
+    /** Days recorded per currency in the window. Never summed. */
+    perCurrency: Map<ie.shoonya.vitt.money.Currency, Int>,
+    /** The last few months, oldest first. */
+    months: List<ie.shoonya.vitt.model.MonthCoverage>,
+    currencyIndex: (ie.shoonya.vitt.money.Currency) -> Int,
+    onDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.fillMaxWidth().padding(Vitt.space.loose),
+        modifier = modifier.fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(Vitt.space.loose)
+            .padding(bottom = Vitt.space.section * 2),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("Habit", style = Vitt.type.title, color = Vitt.colors.ink, modifier = Modifier.fillMaxWidth())
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Habit", style = Vitt.type.title, color = Vitt.colors.ink)
+            androidx.compose.material3.TextButton(onClick = onDone) { Text("Done") }
+        }
 
         // Drawn largest here, because `design-identity.md` calls Habit "the one
         // place gamification is loud" while the daily screens stay quiet. Still,
@@ -83,6 +104,64 @@ fun HabitScreen(
                 color = Vitt.colors.inkMuted,
                 textAlign = TextAlign.Center,
             )
+        }
+
+        // Per currency, because that is how everything else in the app is
+        // counted, and because it shows which ledger is the neglected one
+        // without saying so.
+        if (perCurrency.size > 1) {
+            Text("By currency", style = Vitt.type.caption, color = Vitt.colors.inkMuted, modifier = Modifier.fillMaxWidth().padding(top = Vitt.space.snug))
+            perCurrency.entries.sortedByDescending { it.value }.forEach { (currency, days) ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = Vitt.space.hair),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(Modifier.size(8.dp).clip(CircleShape).background(Vitt.colors.currency(currencyIndex(currency))))
+                    Text("  ${currency.code}", style = Vitt.type.body, color = Vitt.colors.ink, modifier = Modifier.weight(1f))
+                    Text(
+                        if (days == 1) "1 day" else "$days days",
+                        style = Vitt.type.money,
+                        color = Vitt.colors.ink,
+                    )
+                }
+            }
+        }
+
+        // Six months of coverage as hairlines, one per month. The current
+        // month is measured against the days it has had, so it never reads as
+        // the emptiest for being the youngest (§5.2).
+        if (months.any { it.recorded > 0 }) {
+            Text("Months", style = Vitt.type.caption, color = Vitt.colors.inkMuted, modifier = Modifier.fillMaxWidth().padding(top = Vitt.space.snug))
+            months.forEach { m ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = Vitt.space.hair),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        ie.shoonya.vitt.time.monthLabel(m.month, ie.shoonya.vitt.time.Civil.fromDays(today).first),
+                        style = Vitt.type.label,
+                        color = Vitt.colors.inkMuted,
+                        modifier = Modifier.width(64.dp),
+                    )
+                    androidx.compose.foundation.layout.Box(
+                        Modifier.weight(1f).height(3.dp).clip(CircleShape)
+                            .background(Vitt.colors.inkFaint.copy(alpha = 0.18f)),
+                    ) {
+                        val share = if (m.elapsed == 0) 0f else m.recorded.toFloat() / m.elapsed
+                        if (share > 0f) {
+                            androidx.compose.foundation.layout.Box(
+                                Modifier.fillMaxWidth(share.coerceIn(0.02f, 1f)).height(3.dp)
+                                    .clip(CircleShape).background(Vitt.colors.accent),
+                            )
+                        }
+                    }
+                    Text(
+                        "  ${m.recorded} of ${m.elapsed}",
+                        style = Vitt.type.caption,
+                        color = Vitt.colors.inkMuted,
+                    )
+                }
+            }
         }
 
         Text(

@@ -302,6 +302,48 @@ object Insights {
         }
     }
 
+    /**
+     * Spending so far this month, day by day, as a running total.
+     *
+     * One entry per day from the 1st to [today] inclusive (or to the month's
+     * end for a past month), in minor units. The shape of the month rather
+     * than its total: a line that climbs early and flattens is rent; one that
+     * climbs steadily is groceries; one that jumps at the end is a trip.
+     */
+    fun dailyCumulative(
+        transactions: List<Transaction>,
+        currency: Currency,
+        month: YearMonth,
+        today: Int,
+    ): List<Long> {
+        val last = minOf(today, month.lastDay)
+        if (last < month.firstDay) return emptyList()
+        val perDay = LongArray(last - month.firstDay + 1)
+        transactions.outflows(currency, month).forEach { t ->
+            if (t.day <= last) perDay[t.day - month.firstDay] += t.amount.abs().minor
+        }
+        var running = 0L
+        return perDay.map { running += it; running }
+    }
+
+    /**
+     * Spending by day of the week, Monday first.
+     *
+     * Totals, not averages, over [period]: the question this answers is "which
+     * days does the money go on", and a total answers it directly.
+     */
+    fun byWeekday(
+        transactions: List<Transaction>,
+        currency: Currency,
+        period: Period?,
+    ): List<Money> {
+        val totals = LongArray(7)
+        transactions.outflows(currency, period).forEach { t ->
+            totals[Civil.dayOfWeek(t.day)] += t.amount.abs().minor
+        }
+        return totals.map { Money(it, currency) }
+    }
+
     /** §5.3: nothing is projected before the 7th. */
     const val MIN_PROJECTION_DAY = 7
 

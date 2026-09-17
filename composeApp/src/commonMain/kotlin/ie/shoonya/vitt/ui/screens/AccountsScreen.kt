@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import ie.shoonya.vitt.model.AccountBalance
 import ie.shoonya.vitt.model.Transfer
@@ -117,51 +118,43 @@ fun LazyListScope.accountsSection(
     }
 }
 
+/**
+ * One account, one line.
+ *
+ * These were cards, three lines each, and at twelve accounts they were most of
+ * the home screen. The name and the figure are what a person scans for; the
+ * kind and the direction of the balance are the small print beside them.
+ */
 @Composable
 private fun AccountCard(balance: AccountBalance) {
     val colors = Vitt.colors
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(
-                elevation = 6.dp,
-                shape = RoundedCornerShape(Vitt.radius.card),
-                ambientColor = colors.shadow,
-                spotColor = colors.shadow,
-            )
-            .clip(RoundedCornerShape(Vitt.radius.card))
-            .background(colors.card)
-            .padding(Vitt.space.loose),
-        verticalArrangement = Arrangement.spacedBy(Vitt.space.hair),
+            .padding(vertical = Vitt.space.snug)
+            .semantics(mergeDescendants = true) {},
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(balance.account.name, style = Vitt.type.body, color = colors.ink)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(balance.account.name, style = Vitt.type.body, color = colors.ink, maxLines = 1)
             Text(
-                balance.account.kind.label(),
+                balance.account.kind.label() + when {
+                    balance.owed -> " · owed on this card"
+                    balance.balance.minor < 0 -> " · overdrawn"
+                    else -> ""
+                },
                 style = Vitt.type.caption,
                 color = colors.inkFaint,
             )
         }
         // The magnitude, with the wording carrying the direction. A credit card
         // in debt reads "owed" rather than as a minus sign, because a negative
-        // hero figure is a verdict and this is just a fact.
+        // figure is a verdict and this is just a fact.
         Text(
             balance.display.displayUnsigned(),
             style = Vitt.type.money,
             color = colors.ink,
-        )
-        Text(
-            when {
-                balance.owed -> "owed on this card"
-                balance.balance.minor < 0 -> "overdrawn"
-                else -> "available"
-            },
-            style = Vitt.type.label,
-            color = colors.inkMuted,
         )
     }
 }

@@ -40,6 +40,8 @@ fun SettingsSheet(
     accent: AccentChoice,
     onAccentChange: (AccentChoice) -> Unit,
     currencyCount: Int,
+    swipeCards: Boolean,
+    onSwipeCardsChange: (Boolean) -> Unit,
     syncStatus: SyncStatus,
     sheetActions: SheetActions,
     now: () -> Long,
@@ -75,6 +77,30 @@ fun SettingsSheet(
             accent = accent,
             onAccentChange = onAccentChange,
             currencyCount = currencyCount,
+        )
+
+        Text("Home", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .toggleable(value = swipeCards, role = Role.Switch, onValueChange = onSwipeCardsChange)
+                .semantics(mergeDescendants = true) {},
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "Swipe between currency cards",
+                style = Vitt.type.body,
+                color = Vitt.colors.ink,
+                modifier = Modifier.fillMaxWidth(0.7f),
+            )
+            Switch(checked = swipeCards, onCheckedChange = null)
+        }
+        Text(
+            if (swipeCards) "One card at a time, with the next peeking in. Accounts stay in reach."
+            else "Every card stacked. Longer with several currencies.",
+            style = Vitt.type.label,
+            color = Vitt.colors.inkMuted,
         )
 
         Text("Habit", style = Vitt.type.caption, color = Vitt.colors.inkMuted)

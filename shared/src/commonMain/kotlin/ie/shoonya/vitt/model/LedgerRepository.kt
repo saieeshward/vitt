@@ -707,6 +707,34 @@ class LedgerRepository(
             .filter { it > today - window && it <= today }
             .toSet()
 
+    /** Days recorded in the window, per currency. Never summed across them. */
+    fun recordedDaysByCurrency(today: Int, window: Int = 30): Map<Currency, Int> =
+        transactions()
+            .filter { it.day > today - window && it.day <= today }
+            .groupBy { it.amount.currency }
+            .mapValues { (_, rows) -> rows.map { it.day }.distinct().size }
+
+    /**
+     * Days recorded in each of the last [months] calendar months, oldest first.
+     *
+     * A month is scored by how many of its days had an entry, out of the days
+     * it has had so far: the current month is not marked down for the days
+     * that have not happened yet (§5.2, non-logging never lowers a score).
+     */
+    fun recordedDaysPerMonth(today: Int, months: Int = 6): List<MonthCoverage> {
+        val days = transactions().map { it.day }.toSet()
+        var month = YearMonth.of(today)
+        val out = ArrayDeque<MonthCoverage>()
+        repeat(months) {
+            val last = minOf(month.lastDay, today)
+            val elapsed = (last - month.firstDay + 1).coerceAtLeast(0)
+            val recorded = (month.firstDay..last).count { it in days }
+            out.addFirst(MonthCoverage(month, recorded, elapsed))
+            month = month.previous()
+        }
+        return out.toList()
+    }
+
     /**
      * The longest run of consecutive recorded days, ever.
      *
@@ -727,3 +755,6 @@ class LedgerRepository(
         return best
     }
 }
+
+/** How much of one month was recorded on: [recorded] of [elapsed] days. */
+data class MonthCoverage(val month: YearMonth, val recorded: Int, val elapsed: Int)

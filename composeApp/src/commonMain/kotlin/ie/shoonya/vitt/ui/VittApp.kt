@@ -80,7 +80,11 @@ private enum class Tab(val label: String, val icon: VittIcon) {
     Ledgers("Ledgers", VittIcon.Wallet),
     Activity("Activity", VittIcon.List),
     People("Ledger", VittIcon.People),
-    Habit("Habit", VittIcon.Spark),
+    // Reports earned the tab and Habit moved to the header. Analytics is a
+    // weekly visit in a money app and the habit view a glance, which is the
+    // opposite of where `design-identity.md` first put them; the identity's
+    // rule — the daily path stays short — is unchanged.
+    Reports("Reports", VittIcon.Chart),
 }
 
 /** Which bottom sheet is open. Only one can be, so this is a state, not four flags. */
@@ -93,7 +97,7 @@ private sealed interface Sheet {
     data class SetBudget(val currency: Currency) : Sheet
     data class EditCategory(val id: String) : Sheet
     data object Settings : Sheet
-    data object Reports : Sheet
+    data object Habit : Sheet
     data object PickGrain : Sheet
 }
 
@@ -164,6 +168,7 @@ fun VittApp(
     }
     val theme = remember(revision) { ThemeChoice.ofCode(repository.choice(Choice.THEME)) }
     val accent = remember(revision) { AccentChoice.ofCode(repository.choice(Choice.ACCENT)) }
+    val swipeCards = remember(revision) { repository.choice(Choice.HOME_LAYOUT) != Choice.HOME_STACK }
     // Stored as thousandths of the screen in each axis, so the same value means
     // the same place on a phone and a tablet.
     val companionHome = remember(revision) {
@@ -269,7 +274,8 @@ fun VittApp(
                     daysRecorded = recorded,
                     onSetBudget = { sheet = Sheet.SetBudget(it) },
                     onOpenSettings = { sheet = Sheet.Settings },
-                    onOpenReports = { sheet = Sheet.Reports },
+                    onOpenHabit = if (habitOn) ({ sheet = Sheet.Habit }) else null,
+                    swipeCards = swipeCards,
                     period = period,
                     dataRange = dataRange,
                     today = today,
@@ -327,15 +333,87 @@ fun VittApp(
                     onOpenSplit = { sheet = Sheet.Split(it.id) },
                     formatDay = formatDay,
                 )
-                Tab.Habit -> HabitScreen(
-                    daysRecorded = recorded,
-                    recordedDays = recordedDays,
-                    longestRun = longestRun,
-                    today = today,
-                    windowDays = 30,
-                    currencyCount = ledgers.size,
-                    animal = companion,
-                )
+                Tab.Reports -> {
+                    val currency = reportCurrency
+                        ?: ledgers.firstOrNull()?.currency
+                        ?: Currency.EUR
+                    val ledger = ledgers.firstOrNull { it.currency == currency }
+                    // One fold of the log for all three charts, rather than one
+                    // each — `Insights` takes a transaction list precisely so a
+                    // screen with three sections is not three passes.
+                    val all = remember(revision) { repository.transactions() }
+                    val month = period as? YearMonth
+                    ReportsSheet(
+                        currency = currency,
+                        currencies = ledgers.map { it.currency },
+                        currencyIndex = indexOf,
+                        onCurrencyChange = { reportCurrency = it },
+                        period = period,
+                        today = today,
+                        spent = ledger?.spent ?: ie.shoonya.vitt.money.Money(0, currency),
+                        received = ledger?.received ?: ie.shoonya.vitt.money.Money(0, currency),
+                        budget = ledger?.budget,
+                        comparison = remember(revision, currency, period) {
+                            Insights.compare(all, currency, period)
+                        },
+                        projection = remember(revision, currency, period, today) {
+                            (period as? YearMonth)?.let {
+                                Insights.projectMonth(all, currency, it, today)
+                            }
+                        },
+                        cumulative = remember(revision, currency, period, today) {
+                            month?.let { Insights.dailyCumulative(all, currency, it, today) } ?: emptyList()
+                        },
+                        daysInMonth = month?.let { Civil.daysInMonth(it.year, it.month) } ?: 0,
+                        weekday = remember(revision, currency, period) {
+                            Insights.byWeekday(all, currency, period)
+                        },
+                        merchantsIn = { category ->
+                            Insights.merchantsIn(all, currency, period, category)
+                        },
+                        // All-time has no grain to step along, so it gets no
+                        // trend rather than a single bar labelled "All time".
+                        trend = remember(revision, currency, period) {
+                            period?.let { Insights.trend(all, currency, it, count = 6) }
+                                ?: emptyList()
+                        },
+                        categories = remember(revision, currency, period) {
+                            Insights.byCategory(all, currency, period)
+                        },
+                        merchants = remember(revision, currency, period) {
+                            Insights.topMerchants(all, currency, period, limit = 5)
+                        },
+                        onExport = {
+                            // Two files, because a transfer has two amounts and
+                            // two accounts and would leave half of every
+                            // transaction row blank. Offered in one call: two
+                            // calls lose the second file silently on iOS.
+                            exporter.offer(
+                                buildList {
+                                    add(
+                                        ExportFile(
+                                            "vitt-transactions.csv",
+                                            repository.exportTransactionsCsv(),
+                                        ),
+                                    )
+                                    // Omitted rather than exported empty, so a
+                                    // user who has never moved money between
+                                    // accounts is not handed a header row to
+                                    // wonder about.
+                                    if (transfers.isNotEmpty()) {
+                                        add(
+                                            ExportFile(
+                                                "vitt-transfers.csv",
+                                                repository.exportTransfersCsv(),
+                                            ),
+                                        )
+                                    }
+                                },
+                            )
+                        },
+                        onDone = null,
+                    )
+                }
             }
         }
 
@@ -346,7 +424,7 @@ fun VittApp(
             current = tab,
             onSelect = { tab = it },
             onAdd = { sheet = Sheet.Add },
-            rightTabs = if (habitOn) listOf(Tab.People, Tab.Habit) else listOf(Tab.People),
+            rightTabs = listOf(Tab.People, Tab.Reports),
         )
     }
 
@@ -400,7 +478,7 @@ fun VittApp(
             // finger: a pull that should scroll back up would fling the sheet
             // shut instead. They close from Done or the scrim. The short
             // sheets keep the pull, which is right for a one-screen form.
-            sheetGesturesEnabled = open !is Sheet.Settings && open !is Sheet.Reports,
+            sheetGesturesEnabled = open !is Sheet.Settings,
         ) {
             when (open) {
                 Sheet.Add -> AddScreen(
@@ -512,79 +590,19 @@ fun VittApp(
                     },
                 )
 
-                Sheet.Reports -> {
-                    val currency = reportCurrency
-                        ?: ledgers.firstOrNull()?.currency
-                        ?: Currency.EUR
-                    val ledger = ledgers.firstOrNull { it.currency == currency }
-                    // One fold of the log for all three charts, rather than one
-                    // each — `Insights` takes a transaction list precisely so a
-                    // screen with three sections is not three passes.
-                    val all = remember(revision) { repository.transactions() }
-                    ReportsSheet(
-                        currency = currency,
-                        currencies = ledgers.map { it.currency },
-                        currencyIndex = indexOf,
-                        onCurrencyChange = { reportCurrency = it },
-                        period = period,
-                        today = today,
-                        spent = ledger?.spent ?: ie.shoonya.vitt.money.Money(0, currency),
-                        received = ledger?.received ?: ie.shoonya.vitt.money.Money(0, currency),
-                        budget = ledger?.budget,
-                        comparison = remember(revision, currency, period) {
-                            Insights.compare(all, currency, period)
-                        },
-                        projection = remember(revision, currency, period, today) {
-                            (period as? YearMonth)?.let {
-                                Insights.projectMonth(all, currency, it, today)
-                            }
-                        },
-                        merchantsIn = { category ->
-                            Insights.merchantsIn(all, currency, period, category)
-                        },
-                        // All-time has no grain to step along, so it gets no
-                        // trend rather than a single bar labelled "All time".
-                        trend = remember(revision, currency, period) {
-                            period?.let { Insights.trend(all, currency, it, count = 6) }
-                                ?: emptyList()
-                        },
-                        categories = remember(revision, currency, period) {
-                            Insights.byCategory(all, currency, period)
-                        },
-                        merchants = remember(revision, currency, period) {
-                            Insights.topMerchants(all, currency, period, limit = 5)
-                        },
-                        onExport = {
-                            // Two files, because a transfer has two amounts and
-                            // two accounts and would leave half of every
-                            // transaction row blank. Offered in one call: two
-                            // calls lose the second file silently on iOS.
-                            exporter.offer(
-                                buildList {
-                                    add(
-                                        ExportFile(
-                                            "vitt-transactions.csv",
-                                            repository.exportTransactionsCsv(),
-                                        ),
-                                    )
-                                    // Omitted rather than exported empty, so a
-                                    // user who has never moved money between
-                                    // accounts is not handed a header row to
-                                    // wonder about.
-                                    if (transfers.isNotEmpty()) {
-                                        add(
-                                            ExportFile(
-                                                "vitt-transfers.csv",
-                                                repository.exportTransfersCsv(),
-                                            ),
-                                        )
-                                    }
-                                },
-                            )
-                        },
-                        onDone = { sheet = null },
-                    )
-                }
+                Sheet.Habit -> HabitScreen(
+                    daysRecorded = recorded,
+                    recordedDays = recordedDays,
+                    longestRun = longestRun,
+                    today = today,
+                    windowDays = 30,
+                    currencyCount = ledgers.size,
+                    animal = companion,
+                    perCurrency = remember(revision) { repository.recordedDaysByCurrency(today) },
+                    months = remember(revision) { repository.recordedDaysPerMonth(today) },
+                    currencyIndex = indexOf,
+                    onDone = { sheet = null },
+                )
 
                 Sheet.Settings -> SettingsSheet(
                     companion = companion,
@@ -611,6 +629,11 @@ fun VittApp(
                         onAppearanceChange()
                     },
                     currencyCount = ledgers.size,
+                    swipeCards = swipeCards,
+                    onSwipeCardsChange = {
+                        repository.setChoice(Choice.HOME_LAYOUT, if (it) Choice.HOME_SWIPE else Choice.HOME_STACK)
+                        localRevision++
+                    },
                     syncStatus = syncStatus,
                     sheetActions = sheetActions,
                     now = now,
@@ -618,9 +641,8 @@ fun VittApp(
                     onGamificationChange = {
                         repository.setGamificationEnabled(it)
                         localRevision++
-                        // Dropping the Habit tab under the user while they are on
-                        // it would leave a blank screen, so step back to Ledgers.
-                        if (!it && tab == Tab.Habit) tab = Tab.Ledgers
+                        // Turning the habit off closes its sheet's route with it.
+                        if (!it && sheet == Sheet.Habit) sheet = null
                     },
                     onDone = { sheet = null },
                 )

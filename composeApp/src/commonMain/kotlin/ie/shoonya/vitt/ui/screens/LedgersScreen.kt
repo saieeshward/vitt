@@ -11,6 +11,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,7 +55,10 @@ fun LedgersScreen(
     daysRecorded: Int,
     onSetBudget: (Currency) -> Unit,
     onOpenSettings: () -> Unit,
-    onOpenReports: () -> Unit,
+    /** Null hides the icon: the habit switch is off, so there is nothing to open. */
+    onOpenHabit: (() -> Unit)?,
+    /** One card at a time with a swipe, or all of them stacked. The user's call. */
+    swipeCards: Boolean,
     period: ie.shoonya.vitt.time.Period?,
     dataRange: IntRange?,
     today: Int,
@@ -84,7 +94,7 @@ fun LedgersScreen(
                 // puts reports and settings behind Ledgers' header icons because
                 // a monthly visit must not slow the daily path.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    HeaderIcon(ie.shoonya.vitt.ui.VittIcon.Chart, "Reports", onOpenReports)
+                    onOpenHabit?.let { HeaderIcon(ie.shoonya.vitt.ui.VittIcon.Spark, "Habit", it) }
                     HeaderIcon(
                 ie.shoonya.vitt.ui.VittIcon.Gear,
                 "Settings",
@@ -112,6 +122,19 @@ fun LedgersScreen(
 
         if (ledgers.isEmpty()) {
             item { EmptyLedgers() }
+        } else if (swipeCards && ledgers.size > 1) {
+            // One card in view, the next peeking at the edge. At six currencies
+            // the stack ran past the fold and put Accounts a screen away; a
+            // pager keeps the card whole and the rest of the home in reach.
+            item {
+                LedgerPager(
+                    ledgers = ledgers,
+                    onSetBudget = onSetBudget,
+                    periodPhrase = periodPhrase(period, today),
+                    canSetBudget = period is ie.shoonya.vitt.time.YearMonth,
+                )
+            }
+            item { NoTotalNote() }
         } else {
             items(ledgers) {
                 LedgerCard(
@@ -138,6 +161,64 @@ fun LedgersScreen(
             accountName = accountName,
             formatDay = formatDay,
         )
+    }
+}
+
+/**
+ * The currency cards as pages.
+ *
+ * The page a user left is the page they come back to, within a session: the
+ * state is remembered against the list of currencies, so adding one does not
+ * throw the pager back to the first.
+ */
+@Composable
+private fun LedgerPager(
+    ledgers: List<Ledger>,
+    onSetBudget: (Currency) -> Unit,
+    periodPhrase: String,
+    canSetBudget: Boolean,
+) {
+    val state = rememberPagerState(pageCount = { ledgers.size })
+    Column(verticalArrangement = Arrangement.spacedBy(Vitt.space.snug)) {
+        HorizontalPager(
+            state = state,
+            // The next card shows its edge, which is how a person learns there
+            // is one without being told.
+            contentPadding = PaddingValues(end = 28.dp),
+            pageSpacing = Vitt.space.base,
+            // Room for the card's shadow, which a tight clip would cut flat.
+            modifier = Modifier.fillMaxWidth().padding(vertical = Vitt.space.tight),
+        ) { page ->
+            LedgerCard(
+                ledger = ledgers[page],
+                onSetBudget = onSetBudget,
+                periodPhrase = periodPhrase,
+                canSetBudget = canSetBudget,
+            )
+        }
+        // One dot per currency, in its own hue: the dots are the palette key
+        // for the whole app, and the filled one says which card is up.
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .semantics {
+                    contentDescription = "Currency ${state.currentPage + 1} of ${ledgers.size}, " +
+                        ledgers[state.currentPage].currency.code
+                },
+            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+        ) {
+            ledgers.forEachIndexed { i, ledger ->
+                val current = i == state.currentPage
+                Box(
+                    Modifier
+                        .size(if (current) 8.dp else 6.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Vitt.colors.currency(ledger.index)
+                                .copy(alpha = if (current) 1f else 0.35f),
+                        ),
+                )
+            }
+        }
     }
 }
 

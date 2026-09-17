@@ -49,6 +49,11 @@ data class Choice(val key: String, val value: String, val deleted: Boolean) {
          */
         const val COMPANION_HOME = "companion_home"
 
+        /** How the currency cards sit on the home screen: `swipe` (a pager) or `stack`. */
+        const val HOME_LAYOUT = "home_layout"
+        const val HOME_SWIPE = "swipe"
+        const val HOME_STACK = "stack"
+
         fun events(key: String, value: String, issue: () -> Hlc): List<Event> {
             require(key.isNotBlank()) { "a choice needs a key" }
             require(value.isNotBlank()) { "a choice needs a value" }
