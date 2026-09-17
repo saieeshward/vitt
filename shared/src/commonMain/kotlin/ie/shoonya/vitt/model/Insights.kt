@@ -266,11 +266,13 @@ object Insights {
 
         val daysInMonth = Civil.daysInMonth(month.year, month.month)
         val estimates = mutableListOf<Long>()
+        val pastTotals = mutableListOf<Long>()
         var walk: YearMonth = month.previous()
         repeat(historyMonths) {
             val rows = transactions.outflows(currency, walk)
             val total = rows.total(currency).minor
             if (total > 0) {
+                pastTotals += total
                 // The same calendar day, or that month's last day if it is shorter.
                 val cutoff = walk.firstDay + minOf(dayOfMonth, Civil.daysInMonth(walk.year, walk.month)) - 1
                 val byThen = rows.filter { it.day <= cutoff }.total(currency).minor
@@ -284,12 +286,18 @@ object Insights {
         // band until it said nothing. The band is still the user's own spread,
         // just not its two extremes.
         val kept = if (estimates.size >= 4) estimates.sorted().drop(1).dropLast(1) else estimates
+        // What a month of the user's own usually comes to: the median of the
+        // past months' totals. It is the baseline when there is no budget,
+        // and it is the user's own, never anyone else's (§5.2).
+        val typical = pastTotals.sorted().let { if (it.isEmpty()) null else Money(it[it.size / 2], currency) }
+
         return if (kept.size >= 2) {
             Projection(
                 low = Money(kept.min(), currency),
                 high = Money(kept.max(), currency),
                 soFar = soFar,
                 rough = false,
+                typical = typical,
             )
         } else {
             val naive = soFar.minor * daysInMonth / dayOfMonth
@@ -298,6 +306,7 @@ object Insights {
                 high = Money(naive * (100 + NAIVE_BAND_PERCENT) / 100, currency),
                 soFar = soFar,
                 rough = true,
+                typical = typical,
             )
         }
     }
@@ -424,7 +433,35 @@ data class Projection(
     val high: Money,
     val soFar: Money,
     val rough: Boolean,
-)
+    /** The median of the user's own past months, or null with no history. */
+    val typical: Money? = null,
+) {
+    /**
+     * Where the month is heading, against the budget if there is one and
+     * otherwise against the user's own usual month. The reading a person
+     * actually wants — am I burning through it, fine, or well under — rather
+     * than a number they would have to hold against another number.
+     *
+     * Null when there is nothing to read against.
+     */
+    fun pace(budget: Money?): Pace? {
+        val against = (budget ?: typical)?.minor?.takeIf { it > 0 } ?: return null
+        return when {
+            // The whole band clears the mark: even the kindest estimate is over.
+            low.minor > against -> Pace.AHEAD
+            // The whole band sits well inside it.
+            high.minor < against * UNDER_PERCENT / 100 -> Pace.UNDER
+            else -> Pace.ON
+        }
+    }
+
+    enum class Pace { UNDER, ON, AHEAD }
+
+    companion object {
+        /** Under this share of the mark, the month is running well under. */
+        const val UNDER_PERCENT = 75L
+    }
+}
 
 /** One period's spending and income, for a trend chart. */
 data class PeriodSlice(

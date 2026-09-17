@@ -701,11 +701,41 @@ class LedgerRepository(
      */
     fun daysRecorded(today: Int, window: Int = 30): Int = recordedDays(today, window).size
 
-    /** Which of the last [window] days had anything recorded, as days since the epoch. */
+    /**
+     * Which of the last [window] days had anything recorded, as days since the
+     * epoch. A day marked "nothing spent" counts: the habit is *looking*, and
+     * saying there was nothing is looking.
+     */
     fun recordedDays(today: Int, window: Int = 30): Set<Int> =
-        transactions().map { it.day }
-            .filter { it > today - window && it <= today }
-            .toSet()
+        allRecordedDays().filter { it > today - window && it <= today }.toSet()
+
+    private fun allRecordedDays(): Set<Int> = transactions().map { it.day }.toSet() + noSpendDays()
+
+    /**
+     * Marks a day as one with nothing to record.
+     *
+     * The answer to "what about days I spend nothing?" A blank day is
+     * indistinguishable from a forgotten one, and §5.2 forbids reading the
+     * blank as bad — so the user can say which it was, in one tap, and the
+     * day counts as observed. It is a record of attention, not of money: no
+     * amount, no currency, nothing a budget sees.
+     */
+    fun markNothingSpent(day: Int) {
+        val at = now()
+        store.append(
+            Event(store.issue(), NoSpend.ENTITY, day.toString(), NoSpend.FIELD_MARKED, TaggedValue.Bool(true)),
+            at,
+        )
+    }
+
+    fun noSpendDays(): Set<Int> = store.foldOf(NoSpend.ENTITY)
+        .filter { (_, entity) -> (entity.fields[NoSpend.FIELD_MARKED] as? TaggedValue.Bool)?.value == true }
+        .keys.mapNotNull { it.entityId.toIntOrNull() }
+        .toSet()
+
+    /** The most recent day each currency was recorded in. A fact, not a score. */
+    fun lastRecordedByCurrency(): Map<Currency, Int> =
+        transactions().groupBy { it.amount.currency }.mapValues { (_, rows) -> rows.maxOf { it.day } }
 
     /** Days recorded in the window, per currency. Never summed across them. */
     fun recordedDaysByCurrency(today: Int, window: Int = 30): Map<Currency, Int> =
@@ -722,7 +752,7 @@ class LedgerRepository(
      * that have not happened yet (§5.2, non-logging never lowers a score).
      */
     fun recordedDaysPerMonth(today: Int, months: Int = 6): List<MonthCoverage> {
-        val days = transactions().map { it.day }.toSet()
+        val days = allRecordedDays()
         var month = YearMonth.of(today)
         val out = ArrayDeque<MonthCoverage>()
         repeat(months) {
@@ -743,7 +773,7 @@ class LedgerRepository(
      * that would reset to zero and make the return costlier than the lapse.
      */
     fun longestRun(): Int {
-        val days = transactions().map { it.day }.distinct().sorted()
+        val days = allRecordedDays().sorted()
         var best = 0
         var run = 0
         var previous: Int? = null
@@ -758,3 +788,9 @@ class LedgerRepository(
 
 /** How much of one month was recorded on: [recorded] of [elapsed] days. */
 data class MonthCoverage(val month: YearMonth, val recorded: Int, val elapsed: Int)
+
+/** A day the user said had nothing in it. See [LedgerRepository.markNothingSpent]. */
+object NoSpend {
+    const val ENTITY = "nospend"
+    const val FIELD_MARKED = "marked"
+}

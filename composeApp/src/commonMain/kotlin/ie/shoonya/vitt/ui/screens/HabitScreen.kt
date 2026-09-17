@@ -42,8 +42,10 @@ fun HabitScreen(
     windowDays: Int,
     currencyCount: Int,
     animal: CompanionAnimal?,
-    /** Days recorded per currency in the window. Never summed. */
-    perCurrency: Map<ie.shoonya.vitt.money.Currency, Int>,
+    /** The last day each currency was recorded in. A fact about recency, not a score. */
+    lastRecorded: Map<ie.shoonya.vitt.money.Currency, Int>,
+    /** Marks today as a day with nothing to record. Null once today is already recorded. */
+    onNothingToday: (() -> Unit)?,
     /** The last few months, oldest first. */
     months: List<ie.shoonya.vitt.model.MonthCoverage>,
     currencyIndex: (ie.shoonya.vitt.money.Currency) -> Int,
@@ -106,12 +108,28 @@ fun HabitScreen(
             )
         }
 
-        // Per currency, because that is how everything else in the app is
-        // counted, and because it shows which ledger is the neglected one
-        // without saying so.
-        if (perCurrency.size > 1) {
-            Text("By currency", style = Vitt.type.caption, color = Vitt.colors.inkMuted, modifier = Modifier.fillMaxWidth().padding(top = Vitt.space.snug))
-            perCurrency.entries.sortedByDescending { it.value }.forEach { (currency, days) ->
+        // Days with no spending are the reason this button exists. A blank day
+        // and a forgotten day look the same, and §5.2 forbids reading the blank
+        // as bad, so the user can say which it was. It records attention, not
+        // money: no amount, no currency, nothing a budget sees.
+        if (onNothingToday != null) {
+            androidx.compose.material3.OutlinedButton(onClick = onNothingToday) {
+                Text("Nothing spent today")
+            }
+            Text(
+                "Counts as a day you looked. No budget is touched.",
+                style = Vitt.type.label,
+                color = Vitt.colors.inkFaint,
+                textAlign = TextAlign.Center,
+            )
+        }
+
+        // Recency per currency, not days per currency. Counting days for each
+        // would punish the currency you only spend on holiday, and there is
+        // no habit to keep with a currency you have no reason to use today.
+        if (lastRecorded.size > 1) {
+            Text("Last entry", style = Vitt.type.caption, color = Vitt.colors.inkMuted, modifier = Modifier.fillMaxWidth().padding(top = Vitt.space.snug))
+            lastRecorded.entries.sortedByDescending { it.value }.forEach { (currency, day) ->
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(vertical = Vitt.space.hair),
                     verticalAlignment = Alignment.CenterVertically,
@@ -119,9 +137,14 @@ fun HabitScreen(
                     Box(Modifier.size(8.dp).clip(CircleShape).background(Vitt.colors.currency(currencyIndex(currency))))
                     Text("  ${currency.code}", style = Vitt.type.body, color = Vitt.colors.ink, modifier = Modifier.weight(1f))
                     Text(
-                        if (days == 1) "1 day" else "$days days",
-                        style = Vitt.type.money,
-                        color = Vitt.colors.ink,
+                        when (val ago = today - day) {
+                            0 -> "today"
+                            1 -> "yesterday"
+                            in 2..60 -> "$ago days ago"
+                            else -> "a while ago"
+                        },
+                        style = Vitt.type.label,
+                        color = Vitt.colors.inkMuted,
                     )
                 }
             }

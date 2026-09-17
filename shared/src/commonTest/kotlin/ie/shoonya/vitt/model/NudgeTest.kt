@@ -140,6 +140,30 @@ class HabitFiguresTest {
     }
 }
 
+class NoSpendDayTest {
+    private fun repo(): LedgerRepository {
+        var t = 1_000L
+        return LedgerRepository(EventStore.open(testDriver(), "a219e7a71cc18912") { t++ }) { t }
+    }
+    private val today = Civil.toDays(2026, 9, 17)
+    private fun eur(minor: Long) = Money(minor, Currency.EUR)
+
+    @Test
+    fun `a day with nothing spent counts as recorded everywhere the habit looks`() {
+        val r = repo()
+        r.record("a", eur(-100), day = today - 2, category = "dining")
+        r.markNothingSpent(today - 1)
+        r.markNothingSpent(today)
+        assertEquals(setOf(today - 2, today - 1, today), r.recordedDays(today))
+        assertEquals(3, r.longestRun())
+        assertEquals(3, r.recordedDaysPerMonth(today, 1).single().recorded)
+        // And it silences the record-today nudge without touching any budget.
+        val nudges = Nudges.pending(r.transactions(), r.budgets(), today, true, true, today - 2, r.noSpendDays())
+        assertTrue(nudges.none { it.kind == NudgeKind.RECORD_TODAY })
+        assertEquals(1, r.transactions().size)
+    }
+}
+
 class InsightsShapeTest {
     private fun repo(): LedgerRepository {
         var t = 1_000L

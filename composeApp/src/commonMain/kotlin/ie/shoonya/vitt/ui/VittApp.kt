@@ -211,6 +211,7 @@ fun VittApp(
             habitOn = habitOn,
             connected = syncStatus !is SyncStatus.Off,
             firstDay = all.minOfOrNull { it.day },
+            noSpendDays = repository.noSpendDays(),
         ).firstOrNull { it.kind !in snoozed }
     }
     val nudgeAnchorKey = nudge?.let {
@@ -598,7 +599,11 @@ fun VittApp(
                     windowDays = 30,
                     currencyCount = ledgers.size,
                     animal = companion,
-                    perCurrency = remember(revision) { repository.recordedDaysByCurrency(today) },
+                    lastRecorded = remember(revision) { repository.lastRecordedByCurrency() },
+                    onNothingToday = if (today in recordedDays) null else ({
+                        repository.markNothingSpent(today)
+                        localRevision++
+                    }),
                     months = remember(revision) { repository.recordedDaysPerMonth(today) },
                     currencyIndex = indexOf,
                     onDone = { sheet = null },

@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -74,6 +76,10 @@ fun LedgersScreen(
     companionInset: androidx.compose.ui.unit.Dp = 0.dp,
     modifier: Modifier = Modifier,
 ) {
+    // Folded by default, per visit. Not persisted: "show all" is a look, not a
+    // preference, and the folded list is what keeps the home one screen.
+    var showAllAccounts by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var showAllTransfers by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     LazyColumn(
         // The inset shortens the *viewport*, not the content. As bottom
         // `contentPadding` it only cleared her at the very foot of the list —
@@ -160,6 +166,10 @@ fun LedgersScreen(
             onTransfer = onTransfer,
             accountName = accountName,
             formatDay = formatDay,
+            showAllAccounts = showAllAccounts,
+            onToggleAccounts = { showAllAccounts = !showAllAccounts },
+            showAllTransfers = showAllTransfers,
+            onToggleTransfers = { showAllTransfers = !showAllTransfers },
         )
     }
 }

@@ -75,6 +75,8 @@ object Nudges {
         habitOn: Boolean,
         connected: Boolean,
         firstDay: Int?,
+        /** Days marked as having nothing to record. They count as recorded. */
+        noSpendDays: Set<Int> = emptySet(),
     ): List<Nudge> = buildList {
         val live = transactions.filterNot { it.deleted }
 
@@ -94,7 +96,7 @@ object Nudges {
             .forEach { add(Nudge(NudgeKind.SET_BUDGET, currency = it)) }
 
         if (habitOn) {
-            val days = live.map { it.day }.toSet()
+            val days = live.map { it.day }.toSet() + noSpendDays
             val recentlyActive = (1..7).any { (today - it) in days }
             if (recentlyActive && today !in days) add(Nudge(NudgeKind.RECORD_TODAY))
         }

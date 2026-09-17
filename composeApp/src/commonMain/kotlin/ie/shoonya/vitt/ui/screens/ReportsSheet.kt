@@ -45,6 +45,7 @@ import ie.shoonya.vitt.model.peakSpent
 import ie.shoonya.vitt.model.shareOf
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.Money
+import ie.shoonya.vitt.time.Civil
 import ie.shoonya.vitt.time.Period
 import ie.shoonya.vitt.time.periodLabel
 import ie.shoonya.vitt.time.periodPhrase
@@ -145,23 +146,29 @@ fun ReportsSheet(
             color = Vitt.colors.inkMuted,
         )
 
-        // §5.3, word for word in spirit: a range, never a point, and it says so
-        // when it is guessing. The budget sits beside it as a fact to compare
-        // against, not as a line the pace is measured as crossing.
-        projection?.let { p ->
+        // A reading, not a forecast figure. The user asked for "am I burning
+        // through it, fine, or well under", and that is the honest use of a
+        // projection anyway: §5.3's range is what the reading rests on, not a
+        // number to be quoted back. Against the budget where there is one,
+        // otherwise against the user's own usual month. Behaviour is
+        // described, never the person (§5.6).
+        projection?.pace(budget)?.let { pace ->
+            val against = if (budget != null) "the budget" else "your usual month"
             Text(
-                "On this pace you'd finish around ${p.low.displayUnsigned()} to ${p.high.displayUnsigned()}" +
-                    (budget?.let { ". Budget ${it.displayUnsigned()}" } ?: ""),
+                when (pace) {
+                    Projection.Pace.AHEAD -> "Running ahead of $against. This pace spends it before the month ends."
+                    Projection.Pace.ON -> "On pace with $against."
+                    Projection.Pace.UNDER -> "Well under $against. More room than usual."
+                },
                 style = Vitt.type.body,
                 color = Vitt.colors.ink,
             )
-            if (p.rough) {
-                Text(
-                    "A rough guess until there is more history to go on.",
-                    style = Vitt.type.label,
-                    color = Vitt.colors.inkMuted,
-                )
-            }
+            Text(
+                if (projection.rough) "A rough read until there is more history to go on."
+                else "Read against your own past months, from day ${Civil.fromDays(today).third} of the month.",
+                style = Vitt.type.label,
+                color = Vitt.colors.inkMuted,
+            )
         }
 
         // The month so far as a line, against the even pace a budget implies.

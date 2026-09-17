@@ -41,6 +41,11 @@ fun LazyListScope.accountsSection(
     onTransfer: () -> Unit,
     accountName: (String) -> String,
     formatDay: (Int) -> String,
+    /** Whether every account is listed, or only the first few with a "Show all". */
+    showAllAccounts: Boolean,
+    onToggleAccounts: () -> Unit,
+    showAllTransfers: Boolean,
+    onToggleTransfers: () -> Unit,
 ) {
     item {
         Row(
@@ -66,8 +71,11 @@ fun LazyListScope.accountsSection(
         }
     } else {
         // Grouped, in the order the currencies first appeared, so a heading
-        // does not jump position when a balance changes.
-        balances.groupBy { it.account.currency }.forEach { (currency, group) ->
+        // does not jump position when a balance changes. Folded to the first
+        // few until asked: twelve accounts is a screen on its own, and the
+        // ones a person checks daily are the ones they listed first.
+        val shown = if (showAllAccounts) balances else balances.take(ACCOUNTS_FOLDED)
+        shown.groupBy { it.account.currency }.forEach { (currency, group) ->
             item {
                 Text(
                     currency.code,
@@ -77,6 +85,13 @@ fun LazyListScope.accountsSection(
                 )
             }
             items(group) { AccountCard(it) }
+        }
+        if (balances.size > ACCOUNTS_FOLDED) {
+            item {
+                TextButton(onClick = onToggleAccounts) {
+                    Text(if (showAllAccounts) "Show fewer" else "Show all ${balances.size}")
+                }
+            }
         }
         item {
             Text(
@@ -114,9 +129,20 @@ fun LazyListScope.accountsSection(
             )
         }
     } else {
-        items(transfers) { TransferRow(it, accountName, formatDay) }
+        val shown = if (showAllTransfers) transfers else transfers.take(TRANSFERS_FOLDED)
+        items(shown) { TransferRow(it, accountName, formatDay) }
+        if (transfers.size > TRANSFERS_FOLDED) {
+            item {
+                TextButton(onClick = onToggleTransfers) {
+                    Text(if (showAllTransfers) "Show fewer" else "Show all ${transfers.size}")
+                }
+            }
+        }
     }
 }
+
+private const val ACCOUNTS_FOLDED = 4
+private const val TRANSFERS_FOLDED = 2
 
 /**
  * One account, one line.

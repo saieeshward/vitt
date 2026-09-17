@@ -363,4 +363,21 @@ class InsightsAnalyticsTest {
         assertEquals(eur(200_000), p.high)
         assertEquals(eur(40_000), p.soFar)
     }
+
+    @Test
+    fun `pace reads against the budget or against the user's own usual month`() {
+        val r = repo()
+        for ((m, day) in listOf(7 to ::jul, 8 to ::aug)) {
+            r.record("a$m", eur(-50_000), day = day(5), category = "groceries")
+            r.record("b$m", eur(-50_000), day = day(20), category = "groceries")
+        }
+        // Half way through the month, half the usual spent: exactly on pace.
+        r.record("s1", eur(-50_000), day = sept(5), category = "groceries")
+        val p = Insights.projectMonth(r.transactions(), Currency.EUR, september, today = sept(15))!!
+        assertEquals(eur(100_000), p.typical)
+        assertEquals(Projection.Pace.ON, p.pace(budget = null))
+        assertEquals(Projection.Pace.ON, p.pace(budget = eur(100_000)))
+        assertEquals(Projection.Pace.AHEAD, p.pace(budget = eur(60_000)))
+        assertEquals(Projection.Pace.UNDER, p.pace(budget = eur(500_000)))
+    }
 }
