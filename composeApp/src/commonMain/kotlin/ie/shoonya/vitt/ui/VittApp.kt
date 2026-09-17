@@ -19,6 +19,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -486,6 +488,32 @@ fun VittApp(
                 { androidx.compose.material3.BottomSheetDefaults.DragHandle() }
             },
         ) {
+            // A swipe in from the left edge closes the sheet, the way it pops a
+            // screen everywhere else on the platform. Edge only, and only a
+            // deliberate distance: the keypad, the chips and the pager all
+            // live in these sheets and a stray horizontal drag on any of them
+            // must not throw the sheet away.
+            Box(
+                Modifier.fillMaxSize().pointerInput(open) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        if (down.position.x > EDGE_SWIPE_ZONE.toPx()) return@awaitEachGesture
+                        val startX = down.position.x
+                        var travelled = 0f
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                            if (!change.pressed) break
+                            travelled = change.position.x - startX
+                            if (travelled > EDGE_SWIPE_DISTANCE.toPx()) {
+                                change.consume()
+                                sheet = null
+                                break
+                            }
+                        }
+                    }
+                },
+            ) {
             when (open) {
                 Sheet.Add -> AddScreen(
                     currencies = accounts.map { it.currency }.distinct()
@@ -681,6 +709,7 @@ fun VittApp(
                     onDone = { sheet = null },
                 )
             }
+            }
         }
     }
 }
@@ -818,3 +847,8 @@ private fun TabItem(tab: Tab, current: Tab, onSelect: (Tab) -> Unit, modifier: M
     }
 }
 
+/** How far from the left edge a swipe may start and still count as a back swipe. */
+private val EDGE_SWIPE_ZONE = 28.dp
+
+/** How far the finger has to travel before the sheet closes. */
+private val EDGE_SWIPE_DISTANCE = 72.dp
