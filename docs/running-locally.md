@@ -48,6 +48,19 @@ SIMCTL_CHILD_VITT_STRESS=1 xcrun simctl launch booted ie.shoonya.vitt
 Both seeders are no-ops once the database has any transaction, so a different
 data set needs `xcrun simctl uninstall booted ie.shoonya.vitt` first.
 
+To check what VoiceOver would read on the current screen without a device, dump
+the Simulator's accessibility tree (role, frame in device points, label, value):
+
+```bash
+python3 tools/axtree.py --grep 'amount|decimal'   # --all for every node, no flag for interactive only
+```
+
+The terminal needs Accessibility permission (System Settings > Privacy &
+Security); the script says so when it is missing. It waits up to eight seconds
+for the app to publish its tree, because the screen reads as empty for a moment
+after every relaunch. `tools/sim.py tap X Y` taps in screenshot pixels, which is
+three times the points `axtree.py` prints on the iPhone 17 Pro.
+
 ## iOS device
 
 Needs an Apple ID signed in to Xcode; see the Phase 0 checklist. Then open
