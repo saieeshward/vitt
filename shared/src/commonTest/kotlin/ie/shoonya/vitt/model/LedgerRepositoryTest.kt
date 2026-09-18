@@ -167,6 +167,42 @@ class LedgerRepositoryTest {
         val r = LedgerRepository(store) { 1_000L }
         assertEquals(0, r.transactions().size)
     }
+
+    @Test
+    fun `a note set after recording reads back`() {
+        val r = repo()
+        r.record("t1", Money(-1_250, Currency.EUR), day = 20_000, merchant = "Tesco")
+        assertNull(r.transactions().single().note)
+
+        r.setNote("t1", "  Birthday cake  ")
+        assertEquals("Birthday cake", r.transactions().single().note)
+    }
+
+    @Test
+    fun `a blank note clears the old one`() {
+        val r = repo()
+        r.record("t1", Money(-1_250, Currency.EUR), day = 20_000, note = "Deposit back")
+        assertEquals("Deposit back", r.transactions().single().note)
+
+        r.setNote("t1", "   ")
+        assertNull(r.transactions().single().note)
+
+        r.setNote("t1", "Again")
+        r.setNote("t1", null)
+        assertNull(r.transactions().single().note)
+    }
+
+    @Test
+    fun `a note survives categorising the entry`() {
+        // The category and the note are separate fields, so one write must
+        // never disturb the other: a correction should not cost the reminder.
+        val r = repo()
+        r.record("t1", Money(-1_250, Currency.EUR), day = 20_000, merchant = "Tesco", note = "Party food")
+        r.categorise("t1", ie.shoonya.vitt.capture.Category.DINING, applyToPast = true)
+        val t = r.transactions().single()
+        assertEquals("Party food", t.note)
+        assertEquals("dining", t.category)
+    }
 }
 
 class CurrencyOrderTest {

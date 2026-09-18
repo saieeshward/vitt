@@ -626,6 +626,7 @@ fun VittApp(
                                 localRevision++
                                 sheet = null
                             },
+                            onNoteChange = { repository.setNote(open.id, it); localRevision++ },
                             onDone = { sheet = null },
                         )
                     }

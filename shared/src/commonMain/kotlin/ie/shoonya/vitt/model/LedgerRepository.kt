@@ -14,6 +14,7 @@ import ie.shoonya.vitt.sync.EventStore
 import ie.shoonya.vitt.time.Period
 import ie.shoonya.vitt.time.YearMonth
 import ie.shoonya.vitt.sync.TaggedValue
+import ie.shoonya.vitt.text.takeChars
 
 /**
  * Reads the app's state out of the event log, and records new transactions into
@@ -144,6 +145,28 @@ class LedgerRepository(
                 id,
                 Transaction.FIELD_SETTLED,
                 TaggedValue.Num(received.minor),
+            ),
+            now(),
+        )
+    }
+
+    /**
+     * Sets or clears the note on an entry that already exists.
+     *
+     * A blank note is written as `""` rather than skipped: LWW has no way to
+     * unset a field except by writing over it, and [Transaction.from] already
+     * reads blank as none. Trimmed and capped like [Transaction.events] so the
+     * two write paths cannot disagree about what a note is.
+     */
+    fun setNote(id: String, note: String?) {
+        val value = note?.trim()?.takeChars(Transaction.MAX_NOTE) ?: ""
+        store.append(
+            Event(
+                store.issue(),
+                Transaction.ENTITY,
+                id,
+                Transaction.FIELD_NOTE,
+                TaggedValue.Str(value),
             ),
             now(),
         )

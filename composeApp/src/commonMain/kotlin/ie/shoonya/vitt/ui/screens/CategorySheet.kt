@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -17,10 +20,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import ie.shoonya.vitt.capture.Category
 import ie.shoonya.vitt.capture.CategorySource
 import ie.shoonya.vitt.capture.MerchantName
 import ie.shoonya.vitt.model.Transaction
+import ie.shoonya.vitt.text.takeChars
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -39,6 +44,8 @@ fun CategorySheet(
     /** Past entries from the same merchant that a rule could restate. */
     pastCount: Int,
     onPick: (Category, teach: Boolean, applyToPast: Boolean) -> Unit,
+    /** Called with the edited note, or null to clear it. Only fires on a change. */
+    onNoteChange: (String?) -> Unit,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -51,6 +58,14 @@ fun CategorySheet(
     // rows on the same screen reads as broken. Entries the user categorised by
     // hand are excluded upstream and are never touched.
     var applyToPast by remember { mutableStateOf(true) }
+    var note by remember { mutableStateOf(transaction.note ?: "") }
+    // Flushed on every way out of the sheet, not just Done: a chip tap closes
+    // it too, and a note typed just before would otherwise vanish.
+    fun commitNote() {
+        val trimmed = note.trim()
+        if (trimmed != (transaction.note ?: "")) onNoteChange(trimmed.ifEmpty { null })
+    }
+    val done = { commitNote(); onDone() }
 
     Column(
         modifier = modifier
@@ -70,13 +85,28 @@ fun CategorySheet(
                 color = Vitt.colors.ink,
                 maxLines = 1,
             )
-            TextButton(onClick = onDone) { Text("Done") }
+            TextButton(onClick = done) { Text("Done") }
+        }
+
+        transaction.note?.let {
+            Text(it, style = Vitt.type.label, color = Vitt.colors.inkMuted, maxLines = 2)
         }
 
         Text(
             transaction.amount.display(),
             style = Vitt.type.money,
             color = Vitt.colors.ink,
+        )
+
+        OutlinedTextField(
+            value = note,
+            onValueChange = { note = it.takeChars(Transaction.MAX_NOTE) },
+            label = { Text("Note") },
+            placeholder = { Text("Birthday dinner, deposit back…") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { done() }),
+            modifier = Modifier.fillMaxWidth(),
         )
 
         // Provenance. Stated plainly rather than hidden in a debug screen: when
@@ -110,6 +140,7 @@ fun CategorySheet(
                 FilterChip(
                     selected = transaction.categoryOrNull == category,
                     onClick = {
+                        commitNote()
                         onPick(
                             category,
                             remember && merchantKey != null,
