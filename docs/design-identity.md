@@ -44,6 +44,15 @@ settled debts take the soft accent. The accent marks only what is *live* or
 Currency hues, in assignment order: green `#35B98A`, amber `#E39A12`, blue
 `#4C9DF7`, pink `#EE6E9C`, violet `#6B5BFF`, teal `#17A2A2` — lifted for dark.
 
+> **Contrast pass, 2026-09-18.** On the light grounds those five non-violet hues
+> measured 2.1:1 to 2.9:1, and a one-pixel chart stroke in them disappeared. The
+> light set now ships a step darker along each hue (`#2D9D75`, `#BB7F0F`,
+> `#2C8CF6`, `#EB558B`, `#169B9B`) so every stroke clears 3:1 on every light
+> ground; the dark set already passed and is unchanged. Slate's faint ink, and
+> Linen's and Mist's muted or faint inks, were nudged the same way. The values
+> live in `shared/…/theme/ThemeTokens.kt` and `ThemeContrastTest` holds them
+> there.
+
 **Health runs accent → neutral, never green → red.** A red ledger is a verdict,
 and the tone rules forbid verdicts; over budget is the *absence* of accent, so a
 bad month goes quiet rather than shouting. `VittColors.health(pressure)`

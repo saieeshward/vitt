@@ -1,6 +1,7 @@
 package ie.shoonya.vitt.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import ie.shoonya.vitt.theme.ThemeTokens
 
 /**
  * The palettes the user can choose between, and the accents that go in them.
@@ -89,21 +90,24 @@ enum class ThemeChoice(
 enum class AccentChoice(
     val code: String,
     val label: String,
-    private val light: Color,
-    private val lifted: Color,
 ) {
-    VIOLET("violet", "Violet", Palette.Violet, Palette.VioletLifted),
-    CLAY("clay", "Clay", Color(0xFFB8543A), Color(0xFFE0876A)),
-    PLUM("plum", "Plum", Color(0xFF97417F), Color(0xFFCB7EB3)),
+    VIOLET("violet", "Violet"),
+    CLAY("clay", "Clay"),
+    PLUM("plum", "Plum"),
     // Every addition is checked against the six currency hues: nothing here
-    // may be mistaken for green, amber, sky blue, pink or teal.
-    INDIGO("indigo", "Indigo", Color(0xFF3D4DB7), Color(0xFF8F9CFF)),
-    WINE("wine", "Wine", Color(0xFF8A2C45), Color(0xFFD06A84)),
-    STEEL("steel", "Steel", Color(0xFF4A6785), Color(0xFF93B1CF)),
-    CORAL("coral", "Coral", Color(0xFFE0563F), Color(0xFFFF8A72)),
+    // may be mistaken for green, amber, sky blue, pink or teal. The values
+    // themselves live in ThemeTokens so the contrast test can see them.
+    INDIGO("indigo", "Indigo"),
+    WINE("wine", "Wine"),
+    STEEL("steel", "Steel"),
+    CORAL("coral", "Coral"),
     /** No hue at all: the ink itself. For anyone who wants the currencies to be the only colour. */
-    MONO("mono", "Mono", Palette.Ink, Palette.Paper),
+    MONO("mono", "Mono"),
     ;
+
+    private val tokens get() = ThemeTokens.Accents.first { it.code == code }
+    private val light: Color get() = Color(tokens.light)
+    private val lifted: Color get() = Color(tokens.lifted)
 
     /** The lifted variant on a dark ground, where the light one goes muddy. */
     fun colour(dark: Boolean): Color = if (dark) lifted else light
@@ -125,6 +129,15 @@ enum class AccentChoice(
  */
 internal fun ThemeChoice.colours(accent: AccentChoice): VittColors {
     val tint = accent.colour(dark)
+    // Ground, surface and the three inks come from ThemeTokens, where the
+    // contrast test can hold them to a floor. Card, shadow and hairline are
+    // derived here because they carry no text.
+    val t = ThemeTokens.theme(code)
+    val ground = Color(t.ground)
+    val surface = Color(t.surface)
+    val ink = Color(t.ink)
+    val inkMuted = Color(t.inkMuted)
+    val inkFaint = Color(t.inkFaint)
     return when (this) {
         ThemeChoice.CREAM -> VittColors.light().copy(
             accent = tint,
@@ -135,16 +148,16 @@ internal fun ThemeChoice.colours(accent: AccentChoice): VittColors {
         )
 
         ThemeChoice.PAPER -> VittColors.light().copy(
-            ground = Color(0xFFFFFFFF),
-            surface = Color(0xFFF4F4F6),
+            ground = ground,
+            surface = surface,
             card = Color(0xFFFFFFFF),
             // A hard shadow would be the only heavy thing on a high-contrast
             // screen, so it stays soft and the hairline does the separating.
             shadow = Color(0x14101014),
-            ink = Color(0xFF101014),
-            inkMuted = Color(0xFF4A4A55),
-            inkFaint = Color(0xFF6E6E7A),
-            hairline = Color(0xFF101014).copy(alpha = 0.14f),
+            ink = ink,
+            inkMuted = inkMuted,
+            inkFaint = inkFaint,
+            hairline = ink.copy(alpha = 0.14f),
             accent = tint,
             accentSoft = Palette.CurrencyLight[0],
         )
@@ -155,64 +168,64 @@ internal fun ThemeChoice.colours(accent: AccentChoice): VittColors {
         )
 
         ThemeChoice.DUSK -> VittColors.dark().copy(
-            ground = Color(0xFF1B1517),
-            surface = Color(0xFF2A2124),
-            card = Color(0xFF2A2124),
-            ink = Color(0xFFE8DCDA),
-            inkMuted = Color(0xFFB4A3A2),
-            inkFaint = Color(0xFF7C6C6C),
-            hairline = Color(0xFFE8DCDA).copy(alpha = 0.09f),
+            ground = ground,
+            surface = surface,
+            card = surface,
+            ink = ink,
+            inkMuted = inkMuted,
+            inkFaint = inkFaint,
+            hairline = ink.copy(alpha = 0.09f),
             accent = tint,
             accentSoft = Palette.CurrencyDark[0],
         )
 
         ThemeChoice.LINEN -> VittColors.light().copy(
-            ground = Color(0xFFF3F1EE),
-            surface = Color(0xFFE9E6E1),
+            ground = ground,
+            surface = surface,
             card = Color(0xFFFBFAF8),
             shadow = Color(0x12332E2A),
-            ink = Color(0xFF2A2724),
-            inkMuted = Color(0xFF6E6862),
-            inkFaint = Color(0xFF908A83),
-            hairline = Color(0xFF2A2724).copy(alpha = 0.10f),
+            ink = ink,
+            inkMuted = inkMuted,
+            inkFaint = inkFaint,
+            hairline = ink.copy(alpha = 0.10f),
             accent = tint,
             accentSoft = Palette.CurrencyLight[0],
         )
 
         ThemeChoice.MIST -> VittColors.light().copy(
-            ground = Color(0xFFF4F6F9),
-            surface = Color(0xFFE8ECF2),
+            ground = ground,
+            surface = surface,
             card = Color(0xFFFFFFFF),
             shadow = Color(0x121E2430),
-            ink = Color(0xFF1E2430),
-            inkMuted = Color(0xFF5E6878),
-            inkFaint = Color(0xFF87909E),
-            hairline = Color(0xFF1E2430).copy(alpha = 0.10f),
+            ink = ink,
+            inkMuted = inkMuted,
+            inkFaint = inkFaint,
+            hairline = ink.copy(alpha = 0.10f),
             accent = tint,
             accentSoft = Palette.CurrencyLight[0],
         )
 
         ThemeChoice.INK -> VittColors.dark().copy(
-            ground = Color(0xFF000000),
-            surface = Color(0xFF141418),
-            card = Color(0xFF141418),
+            ground = ground,
+            surface = surface,
+            card = surface,
             shadow = Color(0x00000000),
-            ink = Color(0xFFECEAF2),
-            inkMuted = Color(0xFFA8A5B5),
-            inkFaint = Color(0xFF6C6978),
-            hairline = Color(0xFFECEAF2).copy(alpha = 0.10f),
+            ink = ink,
+            inkMuted = inkMuted,
+            inkFaint = inkFaint,
+            hairline = ink.copy(alpha = 0.10f),
             accent = tint,
             accentSoft = Palette.CurrencyDark[0],
         )
 
         ThemeChoice.MOSS -> VittColors.dark().copy(
-            ground = Color(0xFF141A16),
-            surface = Color(0xFF1F2822),
-            card = Color(0xFF1F2822),
-            ink = Color(0xFFDDE6DF),
-            inkMuted = Color(0xFFA3B2A8),
-            inkFaint = Color(0xFF6C7A71),
-            hairline = Color(0xFFDDE6DF).copy(alpha = 0.09f),
+            ground = ground,
+            surface = surface,
+            card = surface,
+            ink = ink,
+            inkMuted = inkMuted,
+            inkFaint = inkFaint,
+            hairline = ink.copy(alpha = 0.09f),
             accent = tint,
             accentSoft = Palette.CurrencyDark[0],
         )
