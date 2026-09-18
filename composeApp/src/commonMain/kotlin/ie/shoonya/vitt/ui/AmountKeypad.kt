@@ -17,6 +17,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -91,16 +95,28 @@ private fun AmountDisplay(entry: AmountEntry) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 24.dp)
-            // Screen readers should hear the amount, not the digit string.
-            .semantics { contentDescription = "Amount ${entry.display()}" },
+            // One node, not two: with a plain description on the Box and a
+            // Text child, a screen reader announced the amount twice. The
+            // directional isolates around an Arabic symbol are stripped, since
+            // some engines read them aloud.
+            .clearAndSetSemantics {
+                contentDescription = "Amount " + entry.display().filterNot { it == '\u2068' || it == '\u2069' }
+            },
         contentAlignment = Alignment.Center,
     ) {
-        Text(
+        // One line always. Twelve whole digits or a large system font would
+        // otherwise wrap after a comma and push the keypad down mid-entry, so
+        // the figure shrinks to fit instead.
+        BasicText(
             text = entry.display(),
-            style = Vitt.type.moneyHero,
-            // A zero placeholder is faint, not grey-as-failure: absence is
-            // styled as absence everywhere in this app.
-            color = if (entry.isEmpty) Vitt.colors.inkFaint else Vitt.colors.ink,
+            style = Vitt.type.moneyHero.copy(
+                // A zero placeholder is faint, not grey-as-failure: absence is
+                // styled as absence everywhere in this app.
+                color = if (entry.isEmpty) Vitt.colors.inkFaint else Vitt.colors.ink,
+            ),
+            maxLines = 1,
+            softWrap = false,
+            autoSize = TextAutoSize.StepBased(minFontSize = 18.sp, maxFontSize = 34.sp, stepSize = 1.sp),
         )
     }
 }
@@ -122,11 +138,23 @@ private fun KeypadKey(
         modifier = modifier
             .clip(RoundedCornerShape(Vitt.radius.key))
             .background(Vitt.colors.surface)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .combinedClickable(
+                role = Role.Button,
+                onClickLabel = when (label) {
+                    "." -> "Decimal point"
+                    "⌫" -> "Delete last digit"
+                    else -> "Type $label"
+                },
+                // Named, so an assistive-tech actions menu offers "Clear amount"
+                // rather than asking for a physical hold.
+                onLongClickLabel = if (onLongClick != null) "Clear amount" else null,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            )
             .semantics {
                 contentDescription = when (label) {
                     "." -> "Decimal point"
-                    "⌫" -> "Delete last digit. Hold to clear"
+                    "⌫" -> "Delete"
                     else -> label
                 }
             },

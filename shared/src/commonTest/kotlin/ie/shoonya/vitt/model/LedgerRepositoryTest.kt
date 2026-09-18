@@ -206,4 +206,41 @@ class CurrencyOrderTest {
         assertEquals(1, r.ledgers().single { it.currency == Currency.INR }.index)
         assertEquals(2, r.ledgers().single { it.currency == Currency.GBP }.index)
     }
+
+    @Test
+    fun `a row labelled transfer never counts as income or spend`() {
+        val r = repo()
+        r.record("t1", Money(200_000, Currency.EUR), day = 20_000, category = "transfer")
+        r.record("t2", Money(-5_000, Currency.EUR), day = 20_000, category = "transfer")
+        r.record("t3", Money(-3_000, Currency.EUR), day = 20_000, category = "dining")
+        val eur = r.ledgers().single { it.currency == Currency.EUR }
+        assertEquals(0L, eur.received.minor, "moving your own money is not income")
+        assertEquals(3_000L, eur.spent.minor, "and not spending either")
+    }
+
+    @Test
+    fun `a blank merchant reads back as none so the note can title the row`() {
+        val r = repo()
+        r.record("n1", Money(-2_550, Currency.EUR), day = 20_000, merchant = "   ", note = "Team lunch")
+        val t = r.transactions().single()
+        assertNull(t.merchant)
+        assertNull(t.merchantLabel)
+        assertEquals("Team lunch", t.note)
+    }
+
+    @Test
+    fun `a zero amount is refused before it reaches the log`() {
+        val r = repo()
+        assertFailsWith<IllegalArgumentException> {
+            r.record("z1", Money(0, Currency.EUR), day = 20_000)
+        }
+        assertTrue(r.transactions().isEmpty())
+    }
+
+    @Test
+    fun `the add screen never offers transfer as a category`() {
+        val r = repo()
+        assertTrue(r.frequentCategories(20_000, spending = false).none { it == ie.shoonya.vitt.capture.Category.TRANSFER })
+        assertTrue(r.frequentCategories(20_000, spending = true).none { it == ie.shoonya.vitt.capture.Category.TRANSFER })
+    }
 }

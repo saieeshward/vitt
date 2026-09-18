@@ -9,6 +9,7 @@ import ie.shoonya.vitt.sync.Event
 import ie.shoonya.vitt.sync.EventLog
 import ie.shoonya.vitt.sync.Hlc
 import ie.shoonya.vitt.sync.TaggedValue
+import ie.shoonya.vitt.text.takeChars
 
 /**
  * A transaction, as the app displays it.
@@ -134,6 +135,9 @@ data class Transaction(
         const val FIELD_SETTLED = "settled"
         const val FIELD_NOTE = "note"
 
+        /** UTF-16 units. A note is a reminder, not a diary entry. */
+        const val MAX_NOTE = 80
+
         /**
          * Split participants are one field each, not one field holding a list.
          *
@@ -182,13 +186,15 @@ data class Transaction(
             put(FIELD_AMOUNT, TaggedValue.Num(amount.minor))
             put(FIELD_CURRENCY, TaggedValue.Str(amount.currency.code))
             put(FIELD_DAY, TaggedValue.Num(day.toLong()))
-            merchant?.let { put(FIELD_MERCHANT, TaggedValue.Str(it)) }
+            // A blank merchant is no merchant. Written as "" it would fold to
+            // an empty title on the Activity row and hide the note behind it.
+            merchant?.takeIf { it.isNotBlank() }?.let { put(FIELD_MERCHANT, TaggedValue.Str(it)) }
             category?.let { put(FIELD_CATEGORY, TaggedValue.Str(it)) }
             categorySource?.let { put(FIELD_CATEGORY_SOURCE, TaggedValue.Str(it.code)) }
             accountId?.let { put(FIELD_ACCOUNT, TaggedValue.Str(it)) }
             totalPaid?.let { put(FIELD_TOTAL_PAID, TaggedValue.Num(it.minor)) }
             splitWith.forEach { put(splitKey(it), TaggedValue.Bool(true)) }
-            note?.trim()?.takeIf { it.isNotEmpty() }?.let { put(FIELD_NOTE, TaggedValue.Str(it)) }
+            note?.trim()?.takeIf { it.isNotEmpty() }?.let { put(FIELD_NOTE, TaggedValue.Str(it.takeChars(MAX_NOTE))) }
         }
 
         /**
@@ -207,7 +213,7 @@ data class Transaction(
             return Transaction(
                 id = key.entityId,
                 amount = Money(minor, currency),
-                merchant = (entity.fields[FIELD_MERCHANT] as? TaggedValue.Str)?.value,
+                merchant = (entity.fields[FIELD_MERCHANT] as? TaggedValue.Str)?.value?.takeIf { it.isNotBlank() },
                 category = (entity.fields[FIELD_CATEGORY] as? TaggedValue.Str)?.value,
                 categorySource = (entity.fields[FIELD_CATEGORY_SOURCE] as? TaggedValue.Str)
                     ?.value?.let { CategorySource.ofCode(it) },

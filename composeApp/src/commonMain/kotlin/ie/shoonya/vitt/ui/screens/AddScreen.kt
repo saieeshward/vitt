@@ -32,6 +32,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import ie.shoonya.vitt.capture.Category
 import ie.shoonya.vitt.model.Account
+import ie.shoonya.vitt.model.Transaction
+import ie.shoonya.vitt.text.takeChars
 import ie.shoonya.vitt.money.AmountEntry
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.Money
@@ -80,7 +82,11 @@ fun AddScreen(
     modifier: Modifier = Modifier,
 ) {
     val initialAccount = accounts.firstOrNull { it.id == lastAccountId } ?: accounts.firstOrNull()
-    var account by remember { mutableStateOf(initialAccount) }
+    // Held as an id and resolved against the live list on every composition,
+    // so an account that is renamed or archived by a sync while the sheet is
+    // open drops out of the selection rather than being saved into blind.
+    var accountId by remember { mutableStateOf(initialAccount?.id) }
+    val account = accounts.firstOrNull { it.id == accountId }
     var entry by remember {
         mutableStateOf(
             AmountEntry(currency = initialAccount?.currency ?: currencies.firstOrNull() ?: Currency.EUR),
@@ -134,9 +140,12 @@ fun AddScreen(
             when {
                 step == Step.Note -> Button(onClick = { step = Step.Main }) { Text("Done") }
                 split && step == Step.Main ->
-                    Button(enabled = !entry.isEmpty, onClick = { step = Step.Paid }) { Text("Next") }
+                    Button(enabled = entry.hasValue, onClick = { step = Step.Paid }) { Text("Next") }
                 else -> Button(
-                    enabled = !entry.isEmpty && (!split || paidEntry.money.minor >= entry.money.minor),
+                    // On value, not on text: "0" and "0." are typed on the way
+                    // to "0.50" and must not be saveable on their own.
+                    enabled = entry.hasValue &&
+                        (!split || (paidEntry.hasValue && paidEntry.money.minor >= entry.money.minor)),
                     onClick = {
                         // The keypad holds a magnitude; the sign comes from the
                         // chosen direction, never guessed from the input.
@@ -210,7 +219,7 @@ fun AddScreen(
                     LaunchedEffect(Unit) { focus.requestFocus() }
                     OutlinedTextField(
                         value = note,
-                        onValueChange = { note = it.take(MAX_NOTE) },
+                        onValueChange = { note = it.takeChars(Transaction.MAX_NOTE) },
                         placeholder = { Text("Birthday dinner, deposit back…") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -251,8 +260,11 @@ fun AddScreen(
                     // however many accounts there are, and under it most
                     // people have one or two. Picking a currency picks its
                     // only account, so the common case is still one tap.
-                    val accountCurrencies = accounts.map { it.currency }.distinct()
-                    val shownCurrencies = accountCurrencies.ifEmpty { currencies }
+                    // Account-backed currencies first, then any the ledger has
+                    // seen without an account (imported rows, entries from before
+                    // the first account). Adding one account must not take away
+                    // a currency the zero-account state offered.
+                    val shownCurrencies = (accounts.map { it.currency } + currencies).distinct()
                     if (shownCurrencies.size > 1) {
                         // Wraps, because six currencies do not fit one row and
                         // a Row squeezed the sixth into a vertical column.
@@ -265,10 +277,13 @@ fun AddScreen(
                                 FilterChip(
                                     selected = entry.currency == c,
                                     onClick = {
-                                        entry = entry.withCurrency(c)
-                                        paidEntry = paidEntry.withCurrency(c)
-                                        if (account?.currency != c) {
-                                            account = accounts.firstOrNull { it.currency == c }
+                                        // Re-tapping the current currency changes
+                                        // nothing, so an account the person just
+                                        // cleared is not quietly picked again.
+                                        if (c != entry.currency) {
+                                            entry = entry.withCurrency(c)
+                                            paidEntry = paidEntry.withCurrency(c)
+                                            accountId = accounts.firstOrNull { it.currency == c }?.id
                                         }
                                     },
                                     label = { Text(c.code, style = Vitt.type.label) },
@@ -290,11 +305,11 @@ fun AddScreen(
                         ) {
                             inCurrency.forEach { a ->
                                 FilterChip(
-                                    selected = account == a,
+                                    selected = accountId == a.id,
                                     // Tapping the chosen account clears it. Capture
                                     // often cannot tell which account paid, and a
                                     // forced guess is worse than a visible blank.
-                                    onClick = { account = if (account == a) null else a },
+                                    onClick = { accountId = if (accountId == a.id) null else a.id },
                                     label = { Text(a.name, style = Vitt.type.label) },
                                 )
                             }
@@ -346,8 +361,6 @@ fun AddScreen(
 
 private enum class Step { Main, Paid, Note }
 
-private const val MAX_NOTE = 80
-
 /**
  * The locked taxonomy, as chips: the few this person uses, then "More".
  *
@@ -369,7 +382,7 @@ private fun CategoryChips(
 ) {
     // Direction is already chosen above, so offering the categories that
     // contradict it is just a way to record something incoherent.
-    val all = Category.entries.filter { if (income) !it.isSpending else it.isSpending }
+    val all = Category.entries.filter { it.isPickable && it.isSpending != income }
     val shown = when {
         showAll || all.size <= frequent.size + 1 -> all
         selected != null && selected !in frequent -> frequent + selected

@@ -88,7 +88,8 @@ object Insights {
         }
         return periods.map { p ->
             val rows = transactions.filter {
-                it.amount.currency == currency && it.day in p
+                it.amount.currency == currency && it.day in p &&
+                    it.categoryOrNull?.movesMoney != false
             }
             PeriodSlice(
                 period = p,

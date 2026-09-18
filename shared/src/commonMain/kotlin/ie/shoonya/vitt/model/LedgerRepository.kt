@@ -45,6 +45,9 @@ class LedgerRepository(
         splitWith: Set<String> = emptySet(),
         note: String? = null,
     ) {
+        // The sheet is append-only, so a zero row can never be taken back. The
+        // keypad refuses it too; this is for every other caller.
+        require(amount.minor != 0L) { "a zero transaction records nothing" }
         require(totalPaid == null || totalPaid.currency == amount.currency) {
             "a split cannot cross currencies"
         }
@@ -116,10 +119,10 @@ class LedgerRepository(
             .asSequence()
             .filter { it.day > today - window && it.day <= today }
             .mapNotNull { it.categoryOrNull }
-            .filter { it.isSpending == spending }
+            .filter { it.isPickable && it.isSpending == spending }
             .groupingBy { it }
             .eachCount()
-        val offered = Category.entries.filter { it.isSpending == spending }
+        val offered = Category.entries.filter { it.isPickable && it.isSpending == spending }
         // Ties and the unused tail fall back to taxonomy order, so the row is
         // deterministic with no history at all.
         return offered.sortedByDescending { counts[it] ?: 0 }.take(limit)
@@ -531,6 +534,8 @@ class LedgerRepository(
             val forCurrency = all
                 .filter { it.amount.currency == currency }
                 .filter { period == null || it.day in period }
+                // An imported "transfer" row is the user's own money moving.
+                .filter { it.categoryOrNull?.movesMoney != false }
             Ledger(
                 currency = currency,
                 index = index,

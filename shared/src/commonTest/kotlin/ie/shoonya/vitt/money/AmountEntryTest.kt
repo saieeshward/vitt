@@ -2,6 +2,8 @@ package ie.shoonya.vitt.money
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class AmountEntryTest {
 
@@ -87,10 +89,32 @@ class AmountEntryTest {
     fun `takes the magnitude of an existing amount — the sign stays outside`() {
         val original = Money(-1250, Currency.EUR)
         val entry = AmountEntry.ofMagnitude(original)
-        assertEquals("€12.5", entry.display())
-        assertEquals("€12.50", entry.display(full = true))
+        // Full precision as stored, so a reopened budget reads €12.50 not €12.5.
+        assertEquals("€12.50", entry.display())
         assertEquals(1250L, entry.money.minor, "sign is held outside the keypad")
-        assertEquals("€1,500", AmountEntry.ofMagnitude(Money(150000, Currency.EUR)).display())
+        assertEquals("€1,500.00", AmountEntry.ofMagnitude(Money(150000, Currency.EUR)).display())
+        assertEquals("¥500", AmountEntry.ofMagnitude(Money(500, Currency.JPY)).display())
+        assertEquals("€0.05", AmountEntry.ofMagnitude(Money(5, Currency.EUR)).display())
+    }
+
+    @Test
+    fun `a typed zero is not a value — Save must stay off`() {
+        assertFalse(AmountEntry().hasValue)
+        assertFalse(type(AmountEntry(), "0").hasValue)
+        assertFalse(type(AmountEntry(), "0.").hasValue)
+        assertFalse(type(AmountEntry(), ".").hasValue)
+        assertFalse(type(AmountEntry(), "0.00").hasValue)
+        assertTrue(type(AmountEntry(), "0.01").hasValue)
+        // "0" is typed on the way to "0.50", so it is not empty either.
+        assertFalse(type(AmountEntry(), "0").isEmpty)
+    }
+
+    @Test
+    fun `a fraction that yen cannot hold falls back to the placeholder`() {
+        val e = type(AmountEntry(), "0.50").withCurrency(Currency.JPY)
+        assertTrue(e.isEmpty)
+        assertFalse(e.hasValue)
+        assertEquals("¥0", e.display())
     }
 
     @Test

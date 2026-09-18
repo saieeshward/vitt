@@ -24,7 +24,16 @@ data class AmountEntry(
     val text: String = "",
     val currency: Currency = Currency.EUR,
 ) {
+    /** Nothing typed: the keypad shows the faint placeholder. */
     val isEmpty: Boolean get() = text.isEmpty()
+
+    /**
+     * Something worth saving. Distinct from [isEmpty] because "0" and "0." are
+     * typed on the way to "0.50", so the text is not empty while the value is.
+     * Every Save gate checks this, never [isEmpty]: a zero row in an
+     * append-only sheet can never be taken back.
+     */
+    val hasValue: Boolean get() = money.minor > 0L
 
     private val whole: String get() = text.substringBefore(POINT)
     private val fraction: String get() = if (POINT in text) text.substringAfter(POINT) else ""
@@ -77,6 +86,9 @@ data class AmountEntry(
             POINT in text -> whole + POINT + fraction.take(newCurrency.exponent)
             else -> text
         }
+        // "0.50" into yen leaves a bare "0", which would show as a solid "¥0"
+        // that looks like an amount. Back to the placeholder instead.
+        if (kept.trimEnd(POINT).trimStart('0').isEmpty()) return copy(currency = newCurrency, text = "")
         return copy(currency = newCurrency, text = kept)
     }
 
@@ -113,11 +125,14 @@ data class AmountEntry(
         fun ofMagnitude(money: Money): AmountEntry {
             val abs = if (money.minor < 0) -money.minor else money.minor
             if (abs == 0L) return AmountEntry(currency = money.currency)
+            // Kept at full precision, "500.50" not "500.5": that is what a
+            // person would have typed to reach it, so the keypad shows the
+            // stored figure as stored and the first backspace removes the
+            // trailing zero rather than a digit that was never there.
             val exp = money.currency.exponent
             val digits = abs.toString().padStart(exp + 1, '0')
             val whole = digits.dropLast(exp)
-            val frac = digits.takeLast(exp).trimEnd('0')
-            val text = if (frac.isEmpty()) whole else whole + POINT + frac
+            val text = if (exp == 0) whole else whole + POINT + digits.takeLast(exp)
             return AmountEntry(text, money.currency)
         }
 

@@ -71,7 +71,7 @@ fun SplitSheet(
             )
             if (settling) {
                 Button(
-                    enabled = !entry.isEmpty,
+                    enabled = entry.hasValue,
                     onClick = {
                         onSettle(Money(entry.money.minor, split.amount.currency))
                         settling = false

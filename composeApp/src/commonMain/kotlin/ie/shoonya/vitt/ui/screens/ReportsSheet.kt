@@ -153,9 +153,11 @@ fun ReportsSheet(
                 style = Vitt.type.moneyHero,
                 color = Vitt.colors.ink,
             )
+            // The budget is not mentioned here: it bounds spend, not net, and
+            // "Down €500 · budget €2,000" read as over budget when the spend
+            // was well under it. The pace line and the chart carry the budget.
             Text(
-                "${received.displayUnsigned()} in, ${spent.displayUnsigned()} out ${periodPhrase(period, today)}" +
-                    (budget?.let { " · budget ${it.displayUnsigned()}" } ?: ""),
+                "${received.displayUnsigned()} in, ${spent.displayUnsigned()} out ${periodPhrase(period, today)}",
                 style = Vitt.type.label,
                 color = Vitt.colors.inkMuted,
             )
@@ -217,8 +219,10 @@ fun ReportsSheet(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Figure("In", received.displayUnsigned())
                 Figure("Out", spent.displayUnsigned())
+                // The headline's own word, so the two figures never disagree
+                // and nothing here reads as a verdict on the person (§5.6).
                 Figure(
-                    if (net.minor >= 0) "Kept" else "Over",
+                    if (net.minor >= 0) "Kept" else "Down",
                     net.displayUnsigned(),
                 )
             }

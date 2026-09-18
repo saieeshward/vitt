@@ -142,7 +142,8 @@ fun AccountSheet(
 
             TextButton(onClick = { settingOpening = true }) {
                 Text(
-                    if (entry.isEmpty) "Set an opening balance" else "Opening ${entry.display()}",
+                    // The stored form, not the typed one: "€15.00", never "€15.".
+                    if (!entry.hasValue) "Set an opening balance" else "Opening ${entry.money.displayUnsigned()}",
                 )
             }
         }

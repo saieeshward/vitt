@@ -516,8 +516,9 @@ fun VittApp(
             ) {
             when (open) {
                 Sheet.Add -> AddScreen(
-                    currencies = accounts.map { it.currency }.distinct()
-                        .ifEmpty { ledgers.map { it.currency } }
+                    // Every currency the ledger has seen; the screen puts the
+                    // account-backed ones first and adds these behind them.
+                    currencies = ledgers.map { it.currency }
                         .ifEmpty { listOf(Currency.EUR, Currency.INR) },
                     accounts = accounts,
                     frequentSpending = remember(revision) {

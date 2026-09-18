@@ -70,10 +70,14 @@ fun TransferSheet(
 
     // Same currency needs one amount, so the second leg mirrors the first unless
     // a fee was taken — and a fee is entered by editing the received leg.
-    val sentMoney = source?.let { Money(sent.money.minor, it.currency) }
+    // Re-read in the account's currency at the point of use. The entry's minor
+    // value depends on its currency's exponent, so an entry left in yen while
+    // the destination moved to euro would have saved ¥100 as €1.00.
+    val sentMoney = source?.let { sent.withCurrency(it.currency).money }
     val receivedMoney = destination?.let {
-        if (crossCurrency) Money(received.money.minor, it.currency)
-        else Money(if (received.isEmpty) sent.money.minor else received.money.minor, it.currency)
+        val leg = received.withCurrency(it.currency)
+        if (crossCurrency) leg.money
+        else if (leg.isEmpty) sent.withCurrency(it.currency).money else leg.money
     }
 
     val ready = source != null && destination != null && source != destination &&
@@ -128,7 +132,12 @@ fun TransferSheet(
             onSelect = {
                 from = it
                 sent = sent.withCurrency(it.currency)
-                if (to == it) to = accounts.firstOrNull { a -> a != it }
+                if (to == it) {
+                    val next = accounts.firstOrNull { a -> a != it }
+                    to = next
+                    // The destination moved, so its keypad must move with it.
+                    next?.let { n -> received = received.withCurrency(n.currency) }
+                }
             },
         )
         AccountPicker(
