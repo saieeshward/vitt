@@ -22,7 +22,7 @@ import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -151,7 +151,11 @@ private fun KeypadKey(
                 onClick = onClick,
                 onLongClick = onLongClick,
             )
-            .semantics {
+            // Replaces the child's text rather than merging with it: merged,
+            // the AX tree read "Decimal point, ." and "1, 1", and VoiceOver
+            // spoke each key twice. Found with tools/axtree.py.
+            .clearAndSetSemantics {
+                role = Role.Button
                 contentDescription = when (label) {
                     "." -> "Decimal point"
                     "⌫" -> "Delete"
