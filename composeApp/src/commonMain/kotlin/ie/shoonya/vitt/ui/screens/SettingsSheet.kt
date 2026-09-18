@@ -20,6 +20,8 @@ import ie.shoonya.vitt.sync.SyncStatus
 import ie.shoonya.vitt.ui.CompanionAnimal
 import ie.shoonya.vitt.ui.theme.AccentChoice
 import ie.shoonya.vitt.ui.theme.ThemeChoice
+import ie.shoonya.vitt.config.Links
+import ie.shoonya.vitt.ui.platform.rememberLinkOpener
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -155,5 +157,24 @@ fun SettingsSheet(
         // Last, because it is set up once and then forgotten about. The status
         // line is the one part of it people come back for.
         SheetSection(status = syncStatus, actions = sheetActions, now = now)
+
+        // Where the data is, said once, plainly. Both stores want the privacy
+        // policy reachable from inside the app; the link appears the moment
+        // `Links.PRIVACY_POLICY` is filled in and not before.
+        Text("About", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
+        Text(
+            "No account and no server. Your entries live on this phone and, if you connect Google, in a spreadsheet in your own Drive.",
+            style = Vitt.type.label,
+            color = Vitt.colors.inkMuted,
+        )
+        val open = rememberLinkOpener()
+        Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.snug)) {
+            if (Links.PRIVACY_POLICY.isNotBlank()) {
+                TextButton(onClick = { open(Links.PRIVACY_POLICY) }) { Text("Privacy policy") }
+            }
+            if (Links.SUPPORT.isNotBlank()) {
+                TextButton(onClick = { open(Links.SUPPORT) }) { Text("Report a problem") }
+            }
+        }
     }
 }

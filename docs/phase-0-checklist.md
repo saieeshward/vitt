@@ -110,8 +110,15 @@ are done; the rest need the maintainer.
       by 30 Sep 2026** if a Play release is planned. Android developer
       verification applies globally from that date; unregistered packages risk
       removal.
-- [ ] **[you]** Publish the privacy policy at a URL, then **[code]** add a
-      Privacy link in Settings. Apple 5.1.1(i) wants it reachable in the app.
+- [ ] **[you]** Publish the privacy policy at a URL, then paste it into
+      `Links.PRIVACY_POLICY` in `shared/.../config/Links.kt`. The Settings
+      "Privacy policy" button appears the moment it is non-empty. Apple 5.1.1(i)
+      wants it reachable in the app. `Links.SUPPORT` works the same way.
+- [x] **[code]** Release builds compile on both platforms: Android R8 release
+      APK (1.8 MB unsigned) and the iOS Release configuration linking the
+      release Kotlin framework.
+- [x] **[code]** Refresh token stored ThisDeviceOnly in the iOS Keychain, so
+      an encrypted backup restored onto another phone does not carry the grant.
 - [ ] **[you]** Decide on the two 4.2 depth items still missing from PLAN §7.2's
       list: recurring transactions and a home-screen widget. Budgets, charts and
       CSV export are in.
