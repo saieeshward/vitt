@@ -80,7 +80,7 @@ object Nudges {
     ): List<Nudge> = buildList {
         val live = transactions.filterNot { it.deleted }
 
-        val uncategorised = live.count { it.category == null && it.amount.isOutflow }
+        val uncategorised = live.count { it.category == null && it.isSpend }
         if (uncategorised > 0) add(Nudge(NudgeKind.REVIEW_CATEGORIES, uncategorised))
 
         val open = live.count { it.isSplit && !it.isSettled }
@@ -89,7 +89,7 @@ object Nudges {
         // Only currencies spent in *this* month: a budget for a currency last
         // touched on a holiday two years ago is not a gap.
         val month = YearMonth.of(today)
-        live.filter { it.day in month && it.amount.isOutflow }
+        live.filter { it.day in month && it.isSpend }
             .map { it.amount.currency }
             .distinct()
             .filterNot { it in budgets }

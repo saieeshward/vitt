@@ -156,7 +156,8 @@ data class Transfer(
                 toAccountId = to,
                 sent = Money(sentMinor, sentCurrency),
                 received = Money(receivedMinor, receivedCurrency),
-                day = (num(FIELD_DAY) ?: 0L).toInt(),
+                // No day, no transfer: epoch day 0 is not a date anyone moved money on.
+            day = (num(FIELD_DAY) ?: return null).toInt(),
                 note = str(FIELD_NOTE),
                 deleted = entity.deleted,
             )

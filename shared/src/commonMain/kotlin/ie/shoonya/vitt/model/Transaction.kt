@@ -63,6 +63,20 @@ data class Transaction(
     /** What the budget and the categories see: your share, not what you fronted. */
     val share: Money get() = amount
 
+    /**
+     * Whether this row counts in spent and received at all.
+     *
+     * The sign is the authority for direction; the category only decides
+     * whether the row counts. A row a CSV import labelled "transfer" is the
+     * user's own money changing pockets and moves neither total. Every sum in
+     * the app goes through [isSpend] and [isIncome] so there is exactly one
+     * place this rule lives.
+     */
+    val movesMoney: Boolean get() = !deleted && categoryOrNull?.movesMoney != false
+
+    val isSpend: Boolean get() = movesMoney && amount.isOutflow
+    val isIncome: Boolean get() = movesMoney && amount.isInflow
+
     val isSplit: Boolean get() = totalPaid != null
 
     /** The stored category resolved against the locked taxonomy, if it is one. */
@@ -209,6 +223,12 @@ data class Transaction(
             val currency = (entity.fields[FIELD_CURRENCY] as? TaggedValue.Str)
                 ?.value?.let { Currency.ofCode(it) } ?: return null
             val minor = (entity.fields[FIELD_AMOUNT] as? TaggedValue.Num)?.value ?: return null
+            // A row with no day would land in January 1970 and a zero row would
+            // count as a recorded day while moving nothing. Both can only come
+            // from a hand-edited or half-written sheet row, and neither is a
+            // transaction: they disappear from the list rather than distort it.
+            if (minor == 0L) return null
+            val day = (entity.fields[FIELD_DAY] as? TaggedValue.Num)?.value ?: return null
 
             return Transaction(
                 id = key.entityId,
@@ -218,7 +238,7 @@ data class Transaction(
                 categorySource = (entity.fields[FIELD_CATEGORY_SOURCE] as? TaggedValue.Str)
                     ?.value?.let { CategorySource.ofCode(it) },
                 accountId = (entity.fields[FIELD_ACCOUNT] as? TaggedValue.Str)?.value,
-                day = ((entity.fields[FIELD_DAY] as? TaggedValue.Num)?.value ?: 0L).toInt(),
+                day = day.toInt(),
                 totalPaid = (entity.fields[FIELD_TOTAL_PAID] as? TaggedValue.Num)
                     ?.let { Money(it.value, currency) },
                 splitWith = entity.fields

@@ -119,6 +119,10 @@ class LedgerRepository(
         val counts = transactions()
             .asSequence()
             .filter { it.day > today - window && it.day <= today }
+            // The sign decides which list a row informs, so an income row that
+            // was mis-filed under Dining does not vote for Dining on the
+            // spending row.
+            .filter { if (spending) it.isSpend else it.isIncome }
             .mapNotNull { it.categoryOrNull }
             .filter { it.isPickable && it.isSpending == spending }
             .groupingBy { it }
@@ -557,14 +561,12 @@ class LedgerRepository(
             val forCurrency = all
                 .filter { it.amount.currency == currency }
                 .filter { period == null || it.day in period }
-                // An imported "transfer" row is the user's own money moving.
-                .filter { it.categoryOrNull?.movesMoney != false }
             Ledger(
                 currency = currency,
                 index = index,
-                spent = forCurrency.filter { it.amount.isOutflow }
+                spent = forCurrency.filter { it.isSpend }
                     .fold(Money(0, currency)) { acc, t -> acc + t.amount.abs() },
-                received = forCurrency.filter { it.amount.isInflow }
+                received = forCurrency.filter { it.isIncome }
                     .fold(Money(0, currency)) { acc, t -> acc + t.amount },
                 // Only at month grain. A monthly limit spread over a week is an
                 // invented number, and wrong in a predictable direction: rent

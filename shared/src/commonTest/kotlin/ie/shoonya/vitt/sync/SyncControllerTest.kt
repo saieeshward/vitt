@@ -21,8 +21,11 @@ class SyncControllerTest {
         val rows = mutableListOf<List<String>>()
         var appends = 0
         var fail: SheetsError? = null
+        /** Something that is not a SheetsError at all: a bug in the transport. */
+        var explode = false
         override suspend fun createLedger(title: String) = "sheet-1"
         override suspend fun appendEvents(spreadsheetId: String, rows: List<List<String>>) {
+            if (explode) throw IllegalStateException("transport bug")
             fail?.let { throw it }
             appends++
             this.rows += rows
@@ -146,5 +149,25 @@ class SyncControllerTest {
 
         controller.syncNow()
         assertEquals(1, controller.remoteChanges.value)
+    }
+
+    @Test
+    fun `a syncer that throws still leaves the status on Failed — never stuck on Syncing`() = runTest {
+        val sheet = Sheet()
+        val store = store()
+        val controller = SyncController(
+            scope = backgroundScope,
+            isConnected = { true },
+            syncer = { Syncer(store, sheet, now = { 1L }) },
+            store = store,
+            now = { 1L },
+            debounceMillis = 0,
+        )
+        sheet.explode = true
+        store.write("t1")
+        controller.syncNow()
+        runCurrent()
+        val failed = assertIs<SyncStatus.Failed>(controller.status.value)
+        assertEquals(1L, failed.pending)
     }
 }

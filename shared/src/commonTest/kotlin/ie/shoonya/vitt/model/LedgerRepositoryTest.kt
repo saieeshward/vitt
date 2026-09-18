@@ -279,4 +279,22 @@ class CurrencyOrderTest {
         assertTrue(r.frequentCategories(20_000, spending = false).none { it == ie.shoonya.vitt.capture.Category.TRANSFER })
         assertTrue(r.frequentCategories(20_000, spending = true).none { it == ie.shoonya.vitt.capture.Category.TRANSFER })
     }
+
+    @Test
+    fun `a row with no day or a zero amount is not a transaction`() {
+        var t = 1_000L
+        val store = EventStore.open(testDriver(), node) { t++ }
+        val r = LedgerRepository(store) { t }
+        fun put(id: String, field: String, value: ie.shoonya.vitt.sync.TaggedValue) =
+            store.append(ie.shoonya.vitt.sync.Event(store.issue(), Transaction.ENTITY, id, field, value), nowMillis = t)
+        // Hand-edited row: amount and currency but the day cell was wiped.
+        put("noday", Transaction.FIELD_AMOUNT, ie.shoonya.vitt.sync.TaggedValue.Num(-500))
+        put("noday", Transaction.FIELD_CURRENCY, ie.shoonya.vitt.sync.TaggedValue.Str("EUR"))
+        // Zero row written by an older build.
+        put("zero", Transaction.FIELD_AMOUNT, ie.shoonya.vitt.sync.TaggedValue.Num(0))
+        put("zero", Transaction.FIELD_CURRENCY, ie.shoonya.vitt.sync.TaggedValue.Str("EUR"))
+        put("zero", Transaction.FIELD_DAY, ie.shoonya.vitt.sync.TaggedValue.Num(20_000))
+        assertTrue(r.transactions().isEmpty(), "neither can be shown as a transaction")
+        assertEquals(0, r.recordedDays(20_000).size, "and neither counts as a recorded day")
+    }
 }

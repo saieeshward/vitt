@@ -111,7 +111,7 @@ fun ActivityScreen(
             // the figure §0.6 forbids, and its absence is the point.
             item {
                 val total = days.flatMap { it.second }
-                    .filter { it.amount.isOutflow }
+                    .filter { it.isSpend }
                     .fold(ie.shoonya.vitt.money.Money(0, filter.currency)) { acc, t ->
                         acc + t.amount.abs()
                     }

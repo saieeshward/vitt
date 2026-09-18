@@ -5,6 +5,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -47,6 +48,9 @@ class SyncerTest {
         /** Rows matching this are rejected as malformed, however often retried. */
         var rejectIf: ((List<String>) -> Boolean)? = null
 
+        /** The append number (1-based) at which the connection drops before writing. */
+        var dropOnAppend: Int? = null
+
         override suspend fun createLedger(title: String): String {
             created++
             return "sheet-$created"
@@ -54,6 +58,7 @@ class SyncerTest {
 
         override suspend fun appendEvents(spreadsheetId: String, rows: List<List<String>>) {
             appends++
+            if (dropOnAppend == appends) throw SheetsError.Transport("connection dropped")
             failBeforeWrite?.let { boom -> failBeforeWrite = null; boom() }
             rejectIf?.let { bad ->
                 if (rows.any(bad)) throw SheetsError.BadRequest(400, "row rejected")
@@ -169,6 +174,30 @@ class SyncerTest {
         val second = Syncer(store, sheet, now = { 1L }).sync()
         assertTrue(second.ok, second.error?.message)
         assertEquals(1, sheet.rows.size)
+    }
+
+    @Test
+    fun `a connection lost during bisect leaves the batch in flight — nothing is lost or doubled`() = runTest {
+        val sheet = Sheet()
+        val store = store()
+        store.write("good1", "bad", "good2")
+        sheet.rejectIf = { row -> row.getOrNull(3) == "bad" }
+        // Append 1 is the full batch (rejected); append 2 is the first probe.
+        sheet.dropOnAppend = 2
+
+        val first = Syncer(store, sheet, now = { 1L }).sync()
+        assertFalse(first.ok, "the cycle ends with the transport error, not an exception")
+        assertIs<SheetsError.Transport>(first.error)
+        assertEquals(3L, store.outboxCounts()[OutboxState.IN_FLIGHT], "outcome unknown, so in flight")
+        assertEquals(0, store.poisoned().size)
+
+        // Next cycle: recover asks the sheet (nothing landed), requeues, and the
+        // bisect runs to completion.
+        val second = Syncer(store, sheet, now = { 1L }).sync()
+        assertEquals(1, second.poisoned)
+        assertEquals(setOf("good1", "good2"), sheet.rows.map { it[3] }.toSet())
+        assertEquals(emptyList(), sheet.duplicates())
+        assertEquals(0L, store.pendingCount())
     }
 
     @Test

@@ -89,7 +89,7 @@ fun AddScreen(
     val account = accounts.firstOrNull { it.id == accountId }
     var entry by remember {
         mutableStateOf(
-            AmountEntry(currency = initialAccount?.currency ?: currencies.firstOrNull() ?: Currency.EUR),
+            AmountEntry(currency = initialAccount?.currency ?: currencies.first()),
         )
     }
     var kind by remember { mutableStateOf(EntryKind.Expense) }

@@ -87,14 +87,11 @@ object Insights {
             walk = walk.previous()
         }
         return periods.map { p ->
-            val rows = transactions.filter {
-                it.amount.currency == currency && it.day in p &&
-                    it.categoryOrNull?.movesMoney != false
-            }
+            val rows = transactions.filter { it.amount.currency == currency && it.day in p }
             PeriodSlice(
                 period = p,
-                spent = rows.filter { it.amount.isOutflow }.total(currency),
-                received = rows.filter { it.amount.isInflow }
+                spent = rows.filter { it.isSpend }.total(currency),
+                received = rows.filter { it.isIncome }
                     .fold(Money(0, currency)) { acc, t -> acc + t.amount },
             )
         }
@@ -372,7 +369,7 @@ object Insights {
 
     private fun List<Transaction>.outflows(currency: Currency, period: Period?) = filter {
         it.amount.currency == currency &&
-            it.amount.isOutflow &&
+            it.isSpend &&
             (period == null || it.day in period)
     }
 

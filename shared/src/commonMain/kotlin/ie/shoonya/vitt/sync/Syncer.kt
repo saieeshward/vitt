@@ -192,7 +192,19 @@ class Syncer(
                     // request was understood and rejected, so nothing landed.
                     // Find which rows are actually to blame rather than
                     // condemning 500 financial records for one of them.
-                    poisoned += bisect(spreadsheetId, batch, e)
+                    //
+                    // The bisect itself sends, and a send can drop. Before this
+                    // catch, a connection lost mid-bisect escaped sync() as an
+                    // exception: the controller never wrote Failed, the status
+                    // sat on Syncing for good, and the half-landed batch was
+                    // nobody's to retry. Now it ends the cycle like any other
+                    // transport failure, with the batch still IN_FLIGHT so the
+                    // next cycle's recover() asks the sheet what actually landed.
+                    poisoned += try {
+                        bisect(spreadsheetId, batch, e)
+                    } catch (probe: SheetsError) {
+                        return SyncOutcome(pushed = sent, poisoned = poisoned, error = probe)
+                    }
                     continue
                 }
                 // Everything else leaves the batch IN_FLIGHT, which is what that
@@ -226,6 +238,9 @@ class Syncer(
                 transport.appendEvents(spreadsheetId, slice.map { it.toRow() })
                 true
             } catch (_: SheetsError.BadRequest) {
+                // Only a rejection is an answer. Anything else (a dropped
+                // connection, a 5xx, a 429) says nothing about the rows and is
+                // left to propagate so the caller ends the cycle honestly.
                 false
             }
         }

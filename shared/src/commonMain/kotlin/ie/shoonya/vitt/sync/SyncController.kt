@@ -104,7 +104,18 @@ class SyncController(
 
     private suspend fun runCycle(): SyncOutcome = gate.withLock {
         _status.value = SyncStatus.Syncing
-        val outcome = syncer().sync()
+        // sync() reports its own failures in the outcome, but a bug or a
+        // transport that throws something unexpected must not leave the status
+        // on Syncing forever. Cancellation is the one thing allowed through.
+        val outcome = try {
+            syncer().sync()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: SheetsError) {
+            SyncOutcome(error = e)
+        } catch (e: Throwable) {
+            SyncOutcome(error = SheetsError.Transport(e.message ?: e::class.simpleName ?: "failed", e))
+        }
         if (outcome.pulled > 0) _remoteChanges.value++
         val error = outcome.error
         if (error == null) {

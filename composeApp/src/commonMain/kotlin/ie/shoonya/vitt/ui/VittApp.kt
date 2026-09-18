@@ -516,10 +516,12 @@ fun VittApp(
             ) {
             when (open) {
                 Sheet.Add -> AddScreen(
-                    // Every currency the ledger has seen; the screen puts the
-                    // account-backed ones first and adds these behind them.
-                    currencies = ledgers.map { it.currency }
-                        .ifEmpty { listOf(Currency.EUR, Currency.INR) },
+                    // Every currency the ledger has seen, then every currency the
+                    // app knows. A fresh install used to offer EUR and INR only,
+                    // so a person in Dubai or Tokyo could not log their first
+                    // entry in their own money. The screen puts account-backed
+                    // currencies first and these behind them.
+                    currencies = (ledgers.map { it.currency } + Currency.entries).distinct(),
                     accounts = accounts,
                     frequentSpending = remember(revision) {
                         repository.frequentCategories(today, spending = true)
@@ -529,8 +531,9 @@ fun VittApp(
                     },
                     lastAccountId = remember(revision) { repository.choice(Choice.LAST_ACCOUNT) },
                     onSave = { new ->
+                        val id = newId()
                         repository.record(
-                            id = newId(),
+                            id = id,
                             amount = new.amount,
                             day = today,
                             category = new.category?.code,
@@ -547,7 +550,10 @@ fun VittApp(
                             }
                         }
                         localRevision++
-                        sheet = null
+                        // A split is not finished when it is saved: who was in
+                        // on it is still unsaid, and the only place to say it
+                        // was a row tap nobody was told about. Open it now.
+                        sheet = if (new.totalPaid != null) Sheet.Split(id) else null
                     },
                     onCancel = { sheet = null },
                 )
