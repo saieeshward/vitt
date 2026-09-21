@@ -35,7 +35,7 @@ android {
         minSdk = libs.versions.androidMinSdk.get().toInt()
         targetSdk = libs.versions.androidTargetSdk.get().toInt()
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "1.0.0"
     }
 
     signingConfigs {
@@ -63,7 +63,12 @@ android {
         }
     }
 
-    buildFeatures { compose = true }
+    // BuildConfig.DEBUG gates the development seeders in MainActivity. AGP 9
+    // no longer generates the class unless it is asked for.
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

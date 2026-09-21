@@ -106,6 +106,24 @@ are done; the rest need the maintainer.
 - [x] **[code]** `ITSAppUsesNonExemptEncryption: false` in `Info.plist`, so
       uploads do not stall on the export question.
 - [x] **[code]** Review notes drafted at [review-notes.md](review-notes.md).
+- [x] **[code]** Listing copy, keywords, screenshot plan, privacy-card answers
+      and the age-rating answers written at
+      [app-store-listing.md](app-store-listing.md).
+- [x] **[code]** Every remaining blank collected into one fill-in sheet at
+      [submission-placeholders.md](submission-placeholders.md). Nothing in it
+      can be automated: each needs an account, a purchase, a domain or a
+      decision.
+- [x] **[code]** Version set to `1.0.0` build `1` on both platforms. A `0.x`
+      version reads as pre-release and invites an Apple 2.2 rejection.
+- [x] **[code]** The sample-data seeders and the `VerifyScreen` harness no
+      longer exist in a release build. They were reachable by launch variable
+      (iOS) and intent extra (Android), which is a hidden feature under Apple
+      2.5.1; the gate is now `Platform.isDebugBinary` and `BuildConfig.DEBUG`.
+- [x] **[code]** The privacy policy draft re-checked line by line against the
+      app. It described a "delete local data" button, a "delete spreadsheet"
+      button and a parser-diagnostics upload, none of which exist. A privacy
+      statement that overstates the app is the single most common rejection
+      cause on both stores, so the text now says only what the app does.
 - [ ] **[you] Register the Play package name `ie.shoonya.vitt` in Play Console
       by 30 Sep 2026** if a Play release is planned. Android developer
       verification applies globally from that date; unregistered packages risk

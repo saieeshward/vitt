@@ -30,7 +30,7 @@ targets:
       path: iosApp/Info.plist
       properties:
         CFBundleDisplayName: VITT
-        CFBundleShortVersionString: "0.1.0"
+        CFBundleShortVersionString: "1.0.0"
         # Compose Multiplatform refuses to start without this: without it iOS
         # caps the app at 60fps on ProMotion displays, and CMP treats a silently
         # halved frame rate as a misconfiguration rather than a default.

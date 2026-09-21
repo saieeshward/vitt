@@ -69,8 +69,14 @@ class MainActivity : ComponentActivity() {
             driver = ie.shoonya.vitt.sync.androidDriver(applicationContext),
         )
         this.services = services
-        if (intent?.getBooleanExtra("seed", false) == true) services.seedSampleData()
-        if (intent?.getBooleanExtra("stress", false) == true) services.seedStressData()
+        //
+        // Debug builds only. A release APK that still honoured these extras
+        // would be a hidden feature reachable by anyone with adb, so the gate
+        // is the build type rather than the extra.
+        if (BuildConfig.DEBUG) {
+            if (intent?.getBooleanExtra("seed", false) == true) services.seedSampleData()
+            if (intent?.getBooleanExtra("stress", false) == true) services.seedStressData()
+        }
 
         setContent {
             // `enableEdgeToEdge` means this window draws behind the status and
