@@ -59,3 +59,7 @@ iosApp/build/
 iosApp/build-rel/
 tools/__pycache__/
 iosApp/build-device/
+
+# Ephemeral worktrees from agent runs. These were committed as orphan
+# gitlinks with no .gitmodules, which fails git on every fresh checkout.
+.claude/worktrees/

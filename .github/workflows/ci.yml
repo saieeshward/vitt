@@ -94,10 +94,17 @@ jobs:
 
       # The Xcode project is generated, not committed, so CI regenerates it the
       # same way a developer does after changing project.yml.
+      # project.yml names Local.xcconfig for both configurations, and that file
+      # is gitignored because it carries a developer's own DEVELOPMENT_TEAM.
+      # Absent, xcodegen fails spec validation before it generates anything.
+      # CI does what a developer does on first checkout, minus the team id,
+      # which nothing here needs: the build is unsigned.
       - name: Generate the Xcode project
         run: |
           brew install xcodegen
-          cd iosApp && xcodegen generate
+          cd iosApp
+          [ -f Local.xcconfig ] || echo 'DEVELOPMENT_TEAM =' > Local.xcconfig
+          xcodegen generate
 
       # No signing. CODE_SIGNING_ALLOWED=NO builds the app without a certificate,
       # which is all CI needs: it proves the code compiles and links against the
