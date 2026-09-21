@@ -102,8 +102,9 @@ First release.
 
 ## Screenshots
 
-`{{SCREENSHOTS_6_9}}` — 6.9" (1290x2796), 3 to 10 of them. Suggested order, which
-is also the order that tells the story:
+Captured, in `screenshots/6.9/`. Five of them, 1320x2868, which is the 6.9"
+size: 1290x2796 is 6.7", and an earlier revision of this file had the two
+confused. Taken from a seeded simulator, in the order that tells the story:
 
 1. Ledgers, two currencies, budget bars showing.
 2. Add, mid-amount, keypad open.
@@ -111,7 +112,8 @@ is also the order that tells the story:
 4. Activity, a list with a split visible.
 5. Settings, showing Google connect and the plain "no account, no server" line.
 
-Seed the data first so nothing is empty. See `docs/submission-placeholders.md`.
+Re-capture with `SIMCTL_CHILD_VITT_SEED=1` on a 16 Pro Max, stacked card
+layout, so the Ledgers shot shows two currencies rather than one and a peek.
 
 ## App privacy (the nutrition card)
 

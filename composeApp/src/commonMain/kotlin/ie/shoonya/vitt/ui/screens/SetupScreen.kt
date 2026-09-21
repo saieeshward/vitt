@@ -141,8 +141,17 @@ fun SetupScreen(
                             style = Vitt.type.body,
                             color = Vitt.colors.ink,
                         )
+                        // Muted, not destructive. Nothing is written to the
+                        // event log until Start, so this removes a line from a
+                        // list rather than deleting anything, and a column of
+                        // red words was shouting over the names the list exists
+                        // to show.
                         TextButton(onClick = { drafts.remove(draft) }) {
-                            Text("Remove", color = Vitt.colors.destructive)
+                            Text(
+                                "Remove",
+                                style = Vitt.type.label,
+                                color = Vitt.colors.inkMuted,
+                            )
                         }
                     }
                 }
@@ -203,7 +212,16 @@ fun SetupScreen(
             enabled = drafts.isNotEmpty(),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(if (drafts.size == 1) "Start with 1 account" else "Start with ${drafts.size} accounts")
+            Text(
+                // No count until there is one to give. "Start with 0 accounts"
+                // reads as a broken sentence on the screen everybody sees first,
+                // and the button is disabled there anyway.
+                when (drafts.size) {
+                    0 -> "Start"
+                    1 -> "Start with 1 account"
+                    else -> "Start with ${drafts.size} accounts"
+                },
+            )
         }
     }
 }

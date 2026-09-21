@@ -48,7 +48,7 @@ number on every upload, including a rejected one's replacement.
 
 | Token | What it is | Notes |
 |---|---|---|
-| `{{SCREENSHOTS_6_9}}` | 3–10 screenshots, 1290×2796 | 6.9" is the only required size; Apple scales it down for other devices |
+| ~~`{{SCREENSHOTS_6_9}}`~~ | **Done.** Five in `screenshots/6.9/`, 1320×2868 | 6.9" is the only required size; Apple scales it down for other devices. 1290×2796 is 6.7", not 6.9" |
 | `{{DEMO_VIDEO_URL}}` | Optional walkthrough for App Review | Unlisted YouTube link is fine. Record: add a spend → Ledgers → Reports → connect Google → disconnect |
 
 Screenshots must show the app in use, never a splash or an empty state. Seed the
