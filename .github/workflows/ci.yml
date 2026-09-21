@@ -1,0 +1,124 @@
+name: CI
+
+# Pull requests and main only. A feature branch pushed ten times a day does not
+# need ten macOS runs; the PR is where the gate belongs.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A second push to the same branch cancels the first. Without this, a run you
+# have already superseded keeps burning minutes to tell you about code you have
+# replaced.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Everything that does not need a Mac, which is most of it. The whole sync
+  # engine, the money rules and the parsers are plain Kotlin in :shared.
+  checks:
+    name: Tests and Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # Caches ~/.gradle between runs and keys it off the build files. A cold
+      # Gradle download is most of a short job's wall time.
+      - uses: gradle/actions/setup-gradle@v4
+
+      # compileSdk 37 is newer than the image's preinstalled SDK.
+      - uses: android-actions/setup-android@v3
+
+      # The guard that catches what only breaks on iOS. Kotlin/Native rejects a
+      # comma inside a backticked test name where the JVM accepts it, so
+      # :shared:jvmTest can pass while the iOS target fails to compile. Running
+      # it here means a Linux job catches a Native-only break for free.
+      - name: Test-name guard
+        run: ./gradlew :shared:checkTestNames
+
+      - name: Shared tests
+        run: ./gradlew :shared:jvmTest
+
+      # R8 runs in release, so this is also how the shrinker rules get exercised.
+      # An absent keystore leaves the build unsigned rather than failing, which
+      # is deliberate: CI must not need a private key to prove the code builds.
+      - name: Android debug and release
+        run: ./gradlew :androidApp:assembleDebug :androidApp:assembleRelease
+
+      - name: Keep the test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: shared/build/reports/tests/
+
+  # The Mac half. Separate because macOS runners bill at ten times the Linux
+  # rate on private repositories and are free on public ones, so this is the job
+  # whose cost depends on a decision made outside this file.
+  ios:
+    name: iOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # allTests is jvmTest plus the iOS targets. It is the only run that proves
+      # the suite compiles for Kotlin/Native, which is the failure the test-name
+      # guard exists to predict.
+      - name: All tests including iOS targets
+        run: ./gradlew :shared:allTests
+
+      # The Xcode project is generated, not committed, so CI regenerates it the
+      # same way a developer does after changing project.yml.
+      - name: Generate the Xcode project
+        run: |
+          brew install xcodegen
+          cd iosApp && xcodegen generate
+
+      # No signing. CODE_SIGNING_ALLOWED=NO builds the app without a certificate,
+      # which is all CI needs: it proves the code compiles and links against the
+      # Kotlin framework. Signing belongs to release, not to every commit.
+      - name: Build for the simulator
+        run: |
+          cd iosApp
+          xcodebuild -project VITT.xcodeproj -scheme VITT \
+            -sdk iphonesimulator -configuration Release \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+
+  # Store rules change under a shipped app, so this reads as a reminder rather
+  # than a gate. It never fails the build; it annotates the run.
+  compliance:
+    name: Store compliance (advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Placeholder and privacy drift
+        run: |
+          echo "Checks that catch the mistakes that get an app rejected."
+          # A privacy policy URL that is still a placeholder means the listing
+          # cannot be submitted, and it is easy to forget once it is written.
+          if grep -rq "{{POLICY_URL}}\|{{SUPPORT_URL}}" docs/ 2>/dev/null; then
+            echo "::warning::Submission placeholders are still unfilled (docs/submission-placeholders.md)"
+          fi
+          # Data Not Collected is only true while no SDK phones home. If one is
+          # ever added, the privacy manifest and the App Store privacy card both
+          # become false on the same day.
+          if grep -rqiE "firebase|crashlytics|sentry|amplitude|mixpanel" gradle/libs.versions.toml; then
+            echo "::error::An analytics or crash SDK was added. PrivacyInfo.xcprivacy and the App Store privacy card both say Data Not Collected."
+            exit 1
+          fi

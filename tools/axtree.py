@@ -20,7 +20,9 @@ no children yet, so a one-shot walk found nothing and printed nothing. We wait
 for the screen to fill in rather than trust the first answer.
 """
 import argparse
+import os
 import re
+import subprocess
 import sys
 import time
 
@@ -63,13 +65,40 @@ def app_element():
     sys.exit("Simulator.app is not running; boot a device and launch the app first.")
 
 
+def device_name():
+    """The booted device's name, which is also its window's title prefix.
+
+    `SIM_DEVICE` overrides, and is required when more than one device is booted.
+    """
+    forced = os.environ.get("SIM_DEVICE")
+    if forced:
+        return forced
+    out = subprocess.check_output(["xcrun", "simctl", "list", "devices"], text=True)
+    booted = [ln.strip().split(" (")[0] for ln in out.splitlines() if "(Booted)" in ln]
+    if not booted:
+        sys.exit("no booted simulator; boot one first")
+    if len(booted) > 1:
+        sys.exit("several devices are booted: " + ", ".join(booted) +
+                 "\nset SIM_DEVICE to the one you mean")
+    return booted[0]
+
+
 def device_screen(app):
     """The device screen is the one direct AXGroup child of the device window.
 
     The window also carries the bezel buttons and a toolbar; the screen group is
     the only thing whose children are the app's own semantics, so walking just it
-    drops the Simulator's chrome without a hand-kept list of its button names."""
+    drops the Simulator's chrome without a hand-kept list of its button names.
+
+    Matched by device name, not taken as the first window. Simulator keeps a
+    window per device it has ever shown, including shut-down ones, so the first
+    window is whichever opened earliest — which is how this script spent a
+    session confidently dumping a different app's tree while `simctl io` was
+    screenshotting the right device."""
+    want = device_name()
     for window in (attr(app, "AXWindows") or []):
+        if not str(attr(window, "AXTitle") or "").startswith(want):
+            continue
         for child in (attr(window, "AXChildren") or []):
             if attr(child, "AXRole") == "AXGroup":
                 return child

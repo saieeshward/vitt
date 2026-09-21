@@ -55,6 +55,19 @@ the Simulator's accessibility tree (role, frame in device points, label, value):
 python3 tools/axtree.py --grep 'amount|decimal'   # --all for every node, no flag for interactive only
 ```
 
+Both `axtree.py` and `sim.py` find the Simulator window by **device name**, and
+stop with a message when more than one device is booted:
+
+```bash
+SIM_DEVICE='iPhone 17 Pro' python3 tools/axtree.py
+```
+
+Set it whenever you have a second simulator running. Simulator keeps a window per
+device it has ever shown, including shut-down ones, so the scripts used to take
+whichever window opened first. `simctl io <udid>` screenshots the right device
+regardless, so the symptom is a screenshot and a tree that disagree, and taps
+that land in another app without either tool saying anything.
+
 The terminal needs Accessibility permission (System Settings > Privacy &
 Security); the script says so when it is missing. It waits up to eight seconds
 for the app to publish its tree, because the screen reads as empty for a moment
