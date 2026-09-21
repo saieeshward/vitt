@@ -67,6 +67,28 @@ enum class ThemeChoice(
     companion object {
         val DEFAULT = CREAM
 
+        /** The dark side's default: the identity's own dark palette. */
+        val DEFAULT_DARK = SLATE
+
+        /** The four palettes on one side, which is all the picker ever shows. */
+        fun on(dark: Boolean): List<ThemeChoice> = entries.filter { it.dark == dark }
+
+        /**
+         * Resolves a stored code *for one side*, falling back to that side's
+         * default.
+         *
+         * Side-aware because the two sides have their own keys: a light code
+         * found in the dark slot is a stale row, not a request for a light app,
+         * and honouring it would leave the app light while set to Dark.
+         */
+        fun ofCode(code: String?, dark: Boolean): ThemeChoice =
+            on(dark).firstOrNull { it.code == code?.trim()?.lowercase() }
+                ?: if (dark) DEFAULT_DARK else DEFAULT
+
+        /** True when the stored code names a dark palette. For the one-time migration. */
+        fun isDarkCode(code: String?): Boolean =
+            entries.firstOrNull { it.code == code?.trim()?.lowercase() }?.dark == true
+
         /**
          * Resolves a stored code, falling back to the default.
          *

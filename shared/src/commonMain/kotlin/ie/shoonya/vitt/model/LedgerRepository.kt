@@ -281,6 +281,17 @@ class LedgerRepository(
         putAccountField(id, Account.FIELD_NAME, TaggedValue.Str(name))
 
     /**
+     * Changes what kind of account this is.
+     *
+     * Unlike the currency, the kind carries no arithmetic: it decides whether a
+     * negative balance reads as "owed" or as "overdrawn", and nothing else. A
+     * card entered as a current account is a correction, not a re-denomination,
+     * so there is no reason to refuse it.
+     */
+    fun setAccountKind(id: String, kind: AccountKind) =
+        putAccountField(id, Account.FIELD_KIND, TaggedValue.Str(kind.code))
+
+    /**
      * Archives or unarchives an account.
      *
      * Not a delete: the account leaves the pickers but its transactions stay in

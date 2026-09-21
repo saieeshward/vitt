@@ -1,6 +1,7 @@
 package ie.shoonya.vitt.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,12 +39,17 @@ fun LazyListScope.accountsSection(
     balances: List<AccountBalance>,
     transfers: List<Transfer>,
     onAddAccount: () -> Unit,
+    /** Opens one account for correction. The row is the only way in. */
+    onEditAccount: (String) -> Unit,
     onTransfer: () -> Unit,
     accountName: (String) -> String,
     formatDay: (Int) -> String,
     /** Whether every account is listed, or only the first few with a "Show all". */
     showAllAccounts: Boolean,
     onToggleAccounts: () -> Unit,
+    /** Whether archived accounts are listed after the live ones. */
+    showArchived: Boolean,
+    onToggleArchived: () -> Unit,
     showAllTransfers: Boolean,
     onToggleTransfers: () -> Unit,
 ) {
@@ -58,7 +64,13 @@ fun LazyListScope.accountsSection(
         }
     }
 
-    if (balances.isEmpty()) {
+    // `balances` arrives with the archived accounts in it, because this section
+    // is the only place they can be brought back from. Everywhere else in the
+    // app an archived account is simply gone.
+    val live = balances.filterNot { it.account.archived }
+    val archived = balances.filter { it.account.archived }
+
+    if (live.isEmpty() && archived.isEmpty()) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
                 Text("No accounts yet.", style = Vitt.type.title, color = Vitt.colors.ink)
@@ -74,7 +86,7 @@ fun LazyListScope.accountsSection(
         // does not jump position when a balance changes. Folded to the first
         // few until asked: twelve accounts is a screen on its own, and the
         // ones a person checks daily are the ones they listed first.
-        val shown = if (showAllAccounts) balances else balances.take(ACCOUNTS_FOLDED)
+        val shown = if (showAllAccounts) live else live.take(ACCOUNTS_FOLDED)
         shown.groupBy { it.account.currency }.forEach { (currency, group) ->
             item {
                 Text(
@@ -84,21 +96,41 @@ fun LazyListScope.accountsSection(
                     modifier = Modifier.padding(top = Vitt.space.snug),
                 )
             }
-            items(group) { AccountCard(it) }
+            items(group) { balance ->
+                AccountCard(balance, onEdit = { onEditAccount(balance.account.id) })
+            }
         }
-        if (balances.size > ACCOUNTS_FOLDED) {
+        if (live.size > ACCOUNTS_FOLDED) {
             item {
                 TextButton(onClick = onToggleAccounts) {
-                    Text(if (showAllAccounts) "Show fewer" else "Show all ${balances.size}")
+                    Text(if (showAllAccounts) "Show fewer" else "Show all ${live.size}")
                 }
             }
         }
-        item {
-            Text(
-                "Grouped by currency, never added up.",
-                style = Vitt.type.label,
-                color = Vitt.colors.inkMuted,
-            )
+        if (live.isNotEmpty()) {
+            item {
+                Text(
+                    "Grouped by currency, never added up.",
+                    style = Vitt.type.label,
+                    color = Vitt.colors.inkMuted,
+                )
+            }
+        }
+
+        // Folded away by default and never counted in the fold above: archiving
+        // something is a request for it to stop taking up room, and a list that
+        // kept it in view would not have honoured that.
+        if (archived.isNotEmpty()) {
+            item {
+                TextButton(onClick = onToggleArchived) {
+                    Text(if (showArchived) "Hide archived" else "Archived (${archived.size})")
+                }
+            }
+            if (showArchived) {
+                items(archived) { balance ->
+                    AccountCard(balance, onEdit = { onEditAccount(balance.account.id) })
+                }
+            }
         }
     }
 
@@ -111,7 +143,7 @@ fun LazyListScope.accountsSection(
             Text("Transfers", style = Vitt.type.title, color = Vitt.colors.ink)
             TextButton(
                 onClick = onTransfer,
-                enabled = balances.size >= 2,
+                enabled = live.size >= 2,
             ) { Text("Move money") }
         }
     }
@@ -119,7 +151,7 @@ fun LazyListScope.accountsSection(
     if (transfers.isEmpty()) {
         item {
             Text(
-                if (balances.size >= 2) {
+                if (live.size >= 2) {
                     "Moving your own money is not spending, so no budget counts it."
                 } else {
                     "Two accounts are needed before money can move."
@@ -152,20 +184,33 @@ private const val TRANSFERS_FOLDED = 2
  * kind and the direction of the balance are the small print beside them.
  */
 @Composable
-private fun AccountCard(balance: AccountBalance) {
+private fun AccountCard(balance: AccountBalance, onEdit: () -> Unit) {
     val colors = Vitt.colors
+    val archived = balance.account.archived
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            // The whole row, not a trailing pencil. There is one thing to do
+            // with an account here, and a row that opens it is both the larger
+            // target and the one that needs no icon explaining itself.
+            .clickable(onClick = onEdit)
             .padding(vertical = Vitt.space.snug)
             .semantics(mergeDescendants = true) {},
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(balance.account.name, style = Vitt.type.body, color = colors.ink, maxLines = 1)
+            Text(
+                balance.account.name,
+                style = Vitt.type.body,
+                // Archived rows are readable but plainly set aside, so the live
+                // accounts still lead when the list is expanded.
+                color = if (archived) colors.inkMuted else colors.ink,
+                maxLines = 1,
+            )
             Text(
                 balance.account.kind.label() + when {
+                    archived -> " · archived"
                     balance.owed -> " · owed on this card"
                     balance.balance.minor < 0 -> " · overdrawn"
                     else -> ""
@@ -180,7 +225,7 @@ private fun AccountCard(balance: AccountBalance) {
         Text(
             balance.display.displayUnsigned(),
             style = Vitt.type.money,
-            color = colors.ink,
+            color = if (archived) colors.inkMuted else colors.ink,
         )
     }
 }

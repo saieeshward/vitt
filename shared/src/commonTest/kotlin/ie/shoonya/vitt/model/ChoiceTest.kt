@@ -23,6 +23,20 @@ class ChoiceTest {
     }
 
     @Test
+    fun `setup stays answered once skipped — a skip is an answer`() {
+        val r = repo()
+        // Null is what puts the first-run screen on screen, so the default has
+        // to be null rather than a falsy string.
+        assertNull(r.choice(Choice.SETUP_DONE))
+
+        // Skipping names no accounts but is still an answer: asking again on the
+        // next launch would turn it into a postponement nobody agreed to.
+        r.setChoice(Choice.SETUP_DONE, Choice.SETUP_YES)
+        assertEquals(Choice.SETUP_YES, r.choice(Choice.SETUP_DONE))
+        assertTrue(r.accounts().isEmpty())
+    }
+
+    @Test
     fun `a choice reads back`() {
         val r = repo()
         r.setChoice(Choice.COMPANION, "owl")

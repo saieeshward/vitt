@@ -33,8 +33,20 @@ data class Choice(val key: String, val value: String, val deleted: Boolean) {
         /** Which companion animal is drawn on the home screen. */
         const val COMPANION = "companion"
 
-        /** Which palette the app is painted in. */
+        /** Which light palette the app is painted in. */
         const val THEME = "theme"
+
+        /**
+         * Which dark palette, kept apart from [THEME].
+         *
+         * One key per side, so switching to Dark and back does not overwrite the
+         * light palette that was chosen. A single key would make every trip
+         * through the other side destroy a preference.
+         */
+        const val THEME_DARK = "theme_dark"
+
+        /** Light, dark, or follow the phone. See `ie.shoonya.vitt.theme.Appearance`. */
+        const val APPEARANCE = "appearance"
 
         /** Which accent marks what is live, within the chosen palette. */
         const val ACCENT = "accent"
@@ -56,6 +68,16 @@ data class Choice(val key: String, val value: String, val deleted: Boolean) {
          * right default saves a tap on almost every entry.
          */
         const val LAST_ACCOUNT = "last_account"
+
+        /**
+         * Set once the first-run setup screen has been answered or skipped.
+         *
+         * A choice rather than a local flag so it travels with the rest of the
+         * preferences: someone who has already named their accounts on one
+         * phone should not be asked again on their second.
+         */
+        const val SETUP_DONE = "setup_done"
+        const val SETUP_YES = "yes"
 
         const val HOME_LAYOUT = "home_layout"
         const val HOME_SWIPE = "swipe"

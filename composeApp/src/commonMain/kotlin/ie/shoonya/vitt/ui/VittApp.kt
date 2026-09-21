@@ -64,17 +64,20 @@ import ie.shoonya.vitt.ui.screens.ActivityScreen
 import ie.shoonya.vitt.ui.screens.AddScreen
 import ie.shoonya.vitt.ui.screens.BudgetSheet
 import ie.shoonya.vitt.ui.screens.CategorySheet
+import ie.shoonya.vitt.ui.screens.EditAccountSheet
 import ie.shoonya.vitt.ui.screens.GrainSheet
 import ie.shoonya.vitt.ui.screens.HabitScreen
 import ie.shoonya.vitt.ui.screens.LedgersScreen
 import ie.shoonya.vitt.ui.screens.PeopleScreen
 import ie.shoonya.vitt.ui.screens.ReportsSheet
 import ie.shoonya.vitt.ui.screens.SettingsSheet
+import ie.shoonya.vitt.ui.screens.SetupScreen
 import ie.shoonya.vitt.ui.screens.SheetActions
 import ie.shoonya.vitt.sync.SyncStatus
 import ie.shoonya.vitt.ui.screens.SplitSheet
 import ie.shoonya.vitt.ui.screens.TransferSheet
 import ie.shoonya.vitt.ui.theme.AccentChoice
+import ie.shoonya.vitt.theme.Appearance
 import ie.shoonya.vitt.ui.theme.ThemeChoice
 import ie.shoonya.vitt.ui.theme.Vitt
 
@@ -98,6 +101,7 @@ private sealed interface Sheet {
     data class Summary(val subject: String, val body: String) : Sheet
     data class SetBudget(val currency: Currency) : Sheet
     data class EditCategory(val id: String) : Sheet
+    data class EditAccount(val id: String) : Sheet
     data object Settings : Sheet
     data object Habit : Sheet
     data object PickGrain : Sheet
@@ -168,7 +172,22 @@ fun VittApp(
     val companion = remember(revision) {
         CompanionAnimal.ofCode(repository.choice(Choice.COMPANION))
     }
-    val theme = remember(revision) { ThemeChoice.ofCode(repository.choice(Choice.THEME)) }
+    // Resolved the same way AppRoot resolves it, so the Settings preview and
+    // the app it is previewing cannot disagree about which side they are on.
+    val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val appearanceChoice = remember(revision, systemDark) {
+        Appearance.migrated(
+            stored = repository.choice(Choice.APPEARANCE),
+            storedPaletteIsDark = ThemeChoice.isDarkCode(repository.choice(Choice.THEME)),
+        )
+    }
+    val dark = appearanceChoice.isDark(systemDark)
+    val theme = remember(revision, dark) {
+        ThemeChoice.ofCode(
+            repository.choice(if (dark) Choice.THEME_DARK else Choice.THEME),
+            dark = dark,
+        )
+    }
     val accent = remember(revision) { AccentChoice.ofCode(repository.choice(Choice.ACCENT)) }
     val swipeCards = remember(revision) { repository.choice(Choice.HOME_LAYOUT) != Choice.HOME_STACK }
     // Stored as thousandths of the screen in each axis, so the same value means
@@ -230,12 +249,18 @@ fun VittApp(
     val nudgeTarget = nudgeAnchorKey?.let { anchors[it] }?.takeIf { sheet == null }
 
     val accounts = remember(revision) { repository.accounts() }
-    val balances = remember(revision) { repository.accountBalances() }
+    // Archived ones included: the Accounts section is the only place they can be
+    // unarchived from, and it folds them away itself. Every other consumer here
+    // uses `accounts`, which stays live-only.
+    val balances = remember(revision) { repository.accountBalances(includeArchived = true) }
     val transfers = remember(revision) { repository.transfers() }
     val participants = remember(revision) { repository.openSplitParticipants() }
     val indexOf: (Currency) -> Int = { c -> ledgers.firstOrNull { it.currency == c }?.index ?: 0 }
+    // Resolved against `balances` rather than `accounts`, so a transfer into an
+    // account that was later archived still names it. Archiving is not deleting,
+    // and a history that reads "unknown account" would suggest otherwise.
     val nameOf: (String) -> String = { id ->
-        accounts.firstOrNull { it.id == id }?.name ?: "unknown account"
+        balances.firstOrNull { it.account.id == id }?.account?.name ?: "unknown account"
     }
     // Days-since-epoch is all the model carries, and a real date formatter is
     // platform work. Relative wording is honest and needs no locale.
@@ -253,6 +278,47 @@ fun VittApp(
     // up" rule. Observed on the Initial pass so it never consumes the gesture:
     // a pet that ate a tap would be a bug, not a character.
     var interactions by remember { mutableStateOf(0) }
+
+    // Shown once, on a cold install, before the shell exists.
+    //
+    // It lives here rather than in `AppRoot` so that finishing can drop straight
+    // into the Add sheet: someone who has just named five accounts is one tap
+    // from their first real entry, and that entry now has somewhere to land.
+    // Before this screen existed the first entry on an empty app was recorded
+    // against no account at all, because the person had none and nothing had
+    // told them accounts were the thing the app is built around.
+    val setupDone = remember(revision) { repository.choice(Choice.SETUP_DONE) != null }
+    if (!setupDone) {
+        SetupScreen(
+            onDone = { drafts ->
+                // Ids up front, so the first one can be pre-selected below
+                // without reading the accounts back out of the log.
+                val ids = drafts.map { newId() }
+                drafts.forEachIndexed { i, draft ->
+                    // Kind and opening balance are left at their defaults on
+                    // purpose. Both are corrections rather than questions, and
+                    // an account row opens the edit sheet.
+                    repository.openAccount(ids[i], draft.name, draft.currency)
+                }
+                // Most people pay from one account most of the time, and the
+                // one they named first is the likeliest. Saves a tap on the
+                // very first entry, which is the one that most needs to be easy.
+                ids.firstOrNull()?.let { repository.setChoice(Choice.LAST_ACCOUNT, it) }
+                repository.setChoice(Choice.SETUP_DONE, Choice.SETUP_YES)
+                localRevision++
+                sheet = Sheet.Add
+            },
+            onSkip = {
+                // Marked done even though nothing was named: skipping is an
+                // answer, and asking again on the next launch would make it a
+                // postponement the person never agreed to.
+                repository.setChoice(Choice.SETUP_DONE, Choice.SETUP_YES)
+                localRevision++
+            },
+            modifier = modifier.fillMaxSize().background(Vitt.colors.ground),
+        )
+        return
+    }
 
     CompositionLocalProvider(LocalNudgeAnchors provides anchors) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -287,6 +353,7 @@ fun VittApp(
                     balances = balances,
                     transfers = transfers,
                     onAddAccount = { sheet = Sheet.NewAccount },
+                    onEditAccount = { sheet = Sheet.EditAccount(it) },
                     onTransfer = { sheet = Sheet.Transfer },
                     accountName = nameOf,
                     formatDay = formatDay,
@@ -567,6 +634,36 @@ fun VittApp(
                     onCancel = { sheet = null },
                 )
 
+                is Sheet.EditAccount -> {
+                    // Re-read on every revision, like the other edit sheets, so
+                    // an archive toggled inside the sheet is reflected by the
+                    // sheet's own button without closing it.
+                    val account = remember(revision, open.id) {
+                        repository.accounts(includeArchived = true).firstOrNull { it.id == open.id }
+                    }
+                    if (account == null) {
+                        sheet = null
+                    } else {
+                        EditAccountSheet(
+                            account = account,
+                            onSave = { name, kind ->
+                                // One event per changed field, and none for a
+                                // field left alone: an unchanged name should not
+                                // put a row in the user's spreadsheet.
+                                if (name != account.name) repository.renameAccount(open.id, name)
+                                if (kind != account.kind) repository.setAccountKind(open.id, kind)
+                                localRevision++
+                                sheet = null
+                            },
+                            onArchivedChange = {
+                                repository.setAccountArchived(open.id, it)
+                                localRevision++
+                            },
+                            onCancel = { sheet = null },
+                        )
+                    }
+                }
+
                 Sheet.Transfer -> TransferSheet(
                     accounts = accounts,
                     onTransfer = { from, to, sent, received ->
@@ -679,7 +776,18 @@ fun VittApp(
                     },
                     theme = theme,
                     onThemeChange = {
-                        repository.setChoice(Choice.THEME, it.code)
+                        // Written to the key for the side it belongs to, so the
+                        // other side's palette is left where the user put it.
+                        repository.setChoice(
+                            if (it.dark) Choice.THEME_DARK else Choice.THEME,
+                            it.code,
+                        )
+                        localRevision++
+                        onAppearanceChange()
+                    },
+                    appearance = appearanceChoice,
+                    onAppearanceChange = {
+                        repository.setChoice(Choice.APPEARANCE, it.code)
                         localRevision++
                         onAppearanceChange()
                     },

@@ -19,6 +19,7 @@ import androidx.compose.ui.semantics.semantics
 import ie.shoonya.vitt.sync.SyncStatus
 import ie.shoonya.vitt.ui.CompanionAnimal
 import ie.shoonya.vitt.ui.theme.AccentChoice
+import ie.shoonya.vitt.theme.Appearance
 import ie.shoonya.vitt.ui.theme.ThemeChoice
 import ie.shoonya.vitt.config.Links
 import ie.shoonya.vitt.ui.platform.rememberLinkOpener
@@ -39,6 +40,8 @@ fun SettingsSheet(
     onCompanionChange: (CompanionAnimal?) -> Unit,
     theme: ThemeChoice,
     onThemeChange: (ThemeChoice) -> Unit,
+    appearance: Appearance,
+    onAppearanceChange: (Appearance) -> Unit,
     accent: AccentChoice,
     onAccentChange: (AccentChoice) -> Unit,
     currencyCount: Int,
@@ -76,6 +79,8 @@ fun SettingsSheet(
             onCompanionChange = onCompanionChange,
             theme = theme,
             onThemeChange = onThemeChange,
+            appearance = appearance,
+            onAppearanceChange = onAppearanceChange,
             accent = accent,
             onAccentChange = onAccentChange,
             currencyCount = currencyCount,

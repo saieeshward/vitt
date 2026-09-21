@@ -15,6 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import ie.shoonya.vitt.model.Choice
 import ie.shoonya.vitt.ui.theme.AccentChoice
+import ie.shoonya.vitt.theme.Appearance
+import androidx.compose.foundation.isSystemInDarkTheme
 import ie.shoonya.vitt.ui.theme.ThemeChoice
 import ie.shoonya.vitt.ui.theme.Vitt
 import ie.shoonya.vitt.ui.theme.VittTheme
@@ -30,8 +32,24 @@ fun AppRoot(
     // wraps everything below it: a theme the user picks two levels down has to
     // re-enter composition from above to take effect at all.
     var appearance by remember { mutableStateOf(0) }
-    val theme = remember(appearance) {
-        ThemeChoice.ofCode(services.ledger.choice(Choice.THEME))
+
+    // Read every recomposition rather than remembered: this is the one value
+    // that can change while the app is open and untouched, when the phone
+    // crosses into dark mode on a schedule or the user flips it in Control
+    // Centre. Remembering it would leave the app in yesterday's mode.
+    val systemDark = isSystemInDarkTheme()
+
+    val dark = remember(appearance, systemDark) {
+        Appearance.migrated(
+            stored = services.ledger.choice(Choice.APPEARANCE),
+            storedPaletteIsDark = ThemeChoice.isDarkCode(services.ledger.choice(Choice.THEME)),
+        ).isDark(systemDark)
+    }
+    val theme = remember(appearance, dark) {
+        // One key per side. The light palette survives a trip through Dark and
+        // back, which a single key would destroy each way.
+        val code = services.ledger.choice(if (dark) Choice.THEME_DARK else Choice.THEME)
+        ThemeChoice.ofCode(code, dark = dark)
     }
     val accent = remember(appearance) {
         AccentChoice.ofCode(services.ledger.choice(Choice.ACCENT))

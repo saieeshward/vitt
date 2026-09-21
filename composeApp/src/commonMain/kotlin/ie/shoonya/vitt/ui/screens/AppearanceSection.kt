@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,6 +33,7 @@ import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.ui.CompanionAnimal
 import ie.shoonya.vitt.ui.CompanionPet
 import ie.shoonya.vitt.ui.theme.AccentChoice
+import ie.shoonya.vitt.theme.Appearance
 import ie.shoonya.vitt.ui.theme.ThemeChoice
 import ie.shoonya.vitt.ui.theme.Vitt
 import ie.shoonya.vitt.ui.theme.colours
@@ -50,6 +52,8 @@ fun AppearanceSection(
     onCompanionChange: (CompanionAnimal?) -> Unit,
     theme: ThemeChoice,
     onThemeChange: (ThemeChoice) -> Unit,
+    appearance: Appearance,
+    onAppearanceChange: (Appearance) -> Unit,
     accent: AccentChoice,
     onAccentChange: (AccentChoice) -> Unit,
     /** Drives the coin slots in the previews, so they match the real one. */
@@ -104,16 +108,39 @@ fun AppearanceSection(
             color = Vitt.colors.inkMuted,
         )
 
+        // Above the palettes, because it decides which palettes are shown.
+        Text("Appearance", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
+        Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
+            Appearance.entries.forEach { option ->
+                FilterChip(
+                    selected = option == appearance,
+                    onClick = { onAppearanceChange(option) },
+                    label = { Text(option.label, style = Vitt.type.label) },
+                )
+            }
+        }
+        Text(
+            when (appearance) {
+                Appearance.SYSTEM -> "Follows your phone's Light and Dark setting."
+                Appearance.LIGHT -> "Always light, whatever the phone is set to."
+                Appearance.DARK -> "Always dark, whatever the phone is set to."
+            },
+            style = Vitt.type.label,
+            color = Vitt.colors.inkMuted,
+        )
+
         Text("Theme", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
-        // Four to a row, wrapping: eight themes is two rows of the same tiles,
-        // not a row of eight slivers.
+        // Only the four on the side the app is currently showing. Offering all
+        // eight would mean tapping a light tile to leave Dark, which makes the
+        // palette decide the appearance again, the exact tangle the two
+        // settings exist to undo. Each side keeps its own pick.
         androidx.compose.foundation.layout.FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight),
             verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
             maxItemsInEachRow = 4,
         ) {
-            ThemeChoice.entries.forEach { option ->
+            ThemeChoice.on(theme.dark).forEach { option ->
                 ThemeTile(
                     theme = option,
                     accent = accent,

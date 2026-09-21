@@ -60,6 +60,13 @@ class VittServices(
      */
     fun seedSampleData() {
         if (ledger.transactions().isNotEmpty()) return
+        // Seeded data means the first-run setup has nothing left to ask, and a
+        // screenshot run that opened on the setup screen instead of the app
+        // would be useless.
+        ledger.setChoice(
+            ie.shoonya.vitt.model.Choice.SETUP_DONE,
+            ie.shoonya.vitt.model.Choice.SETUP_YES,
+        )
         val today = today()
         // Spread across the *current* month, not the last fortnight. The ledger
         // cards are monthly, so dating the sample two weeks back leaves them
@@ -214,6 +221,12 @@ class VittServices(
      */
     fun seedStressData(months: Int = 18, perDay: Int = 3) {
         if (ledger.transactions().isNotEmpty()) return
+        // As in [seedSampleData]: a volume run must open on the app, not on the
+        // first-run setup screen.
+        ledger.setChoice(
+            ie.shoonya.vitt.model.Choice.SETUP_DONE,
+            ie.shoonya.vitt.model.Choice.SETUP_YES,
+        )
         val rng = kotlin.random.Random(20260909)
         val today = today()
         val start = today - months * 30

@@ -132,14 +132,16 @@ object Vitt {
 @Composable
 fun VittTheme(
     /**
-     * The palette, which the user chooses and the system never overrides.
+     * The palette, already resolved for the side the app is on.
      *
-     * Not read from `isSystemInDarkTheme()`. The identity's primary palette is
-     * the cream one, warm and quiet is the intended feel, and a personal tool
-     * should not inherit an OS-wide preference set for reading in bed. A phone
-     * in dark mode was otherwise showing the app's secondary palette as if it
-     * were the design. Now that the user can pick, following the system as well
-     * would mean two things deciding one question.
+     * This does not read `isSystemInDarkTheme()` itself, and still must not:
+     * the light/dark decision belongs to `ie.shoonya.vitt.theme.Appearance` and
+     * is made once in `AppRoot`, which then picks the palette for that side and
+     * passes it here. An earlier revision of this comment ruled out following
+     * the system at all, on the grounds that it would mean two things deciding
+     * one question. Splitting the question in two is what answers that: the
+     * appearance setting decides the side, the palette decides which one on
+     * that side, and neither overrides the other.
      */
     theme: ThemeChoice = ThemeChoice.DEFAULT,
     accent: AccentChoice = AccentChoice.DEFAULT,

@@ -69,6 +69,7 @@ fun LedgersScreen(
     balances: List<ie.shoonya.vitt.model.AccountBalance>,
     transfers: List<ie.shoonya.vitt.model.Transfer>,
     onAddAccount: () -> Unit,
+    onEditAccount: (String) -> Unit,
     onTransfer: () -> Unit,
     accountName: (String) -> String,
     formatDay: (Int) -> String,
@@ -79,6 +80,7 @@ fun LedgersScreen(
     // Folded by default, per visit. Not persisted: "show all" is a look, not a
     // preference, and the folded list is what keeps the home one screen.
     var showAllAccounts by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var showArchived by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     var showAllTransfers by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     LazyColumn(
         // The inset shortens the *viewport*, not the content. As bottom
@@ -163,11 +165,14 @@ fun LedgersScreen(
             balances = balances,
             transfers = transfers,
             onAddAccount = onAddAccount,
+            onEditAccount = onEditAccount,
             onTransfer = onTransfer,
             accountName = accountName,
             formatDay = formatDay,
             showAllAccounts = showAllAccounts,
             onToggleAccounts = { showAllAccounts = !showAllAccounts },
+            showArchived = showArchived,
+            onToggleArchived = { showArchived = !showArchived },
             showAllTransfers = showAllTransfers,
             onToggleTransfers = { showAllTransfers = !showAllTransfers },
         )
