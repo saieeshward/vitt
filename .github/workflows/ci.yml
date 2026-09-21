@@ -33,13 +33,17 @@ jobs:
       # Gradle download is most of a short job's wall time.
       - uses: gradle/actions/setup-gradle@v4
 
-      # compileSdk 37 is newer than the image's preinstalled SDK. `packages` is
-      # set explicitly because the action's default list still contains the
-      # obsolete `tools` package, which sdkmanager no longer serves and which
-      # fails the whole step.
+      # compileSdk 37 is newer than the image's preinstalled SDK.
+      #
+      # Two things have to be spelled out here. The action's default package
+      # list still names the obsolete `tools` package, which sdkmanager no
+      # longer serves and which fails the whole step. And the platform is
+      # `android-37.0`, not `android-37`: platforms from API 36 on carry a minor
+      # version, so the id no longer matches the `compileSdk` number that names
+      # it in gradle/libs.versions.toml.
       - uses: android-actions/setup-android@v3
         with:
-          packages: 'platform-tools platforms;android-37'
+          packages: 'platform-tools platforms;android-37.0'
 
       # The guard that catches what only breaks on iOS. Kotlin/Native rejects a
       # comma inside a backticked test name where the JVM accepts it, so
