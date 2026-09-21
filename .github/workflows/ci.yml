@@ -109,12 +109,18 @@ jobs:
       # No signing. CODE_SIGNING_ALLOWED=NO builds the app without a certificate,
       # which is all CI needs: it proves the code compiles and links against the
       # Kotlin framework. Signing belongs to release, not to every commit.
+      #
+      # `generic/platform=iOS Simulator` rather than a device by name. A named
+      # destination has to exist on the runner, and the image ships whatever
+      # simulators it ships: `iPhone 16 Pro` was simply absent, and pinning any
+      # other name only moves the expiry date. Nothing is run here, so no
+      # concrete device is needed to compile and link.
       - name: Build for the simulator
         run: |
           cd iosApp
           xcodebuild -project VITT.xcodeproj -scheme VITT \
             -sdk iphonesimulator -configuration Release \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
 
   # Store rules change under a shipped app, so this reads as a reminder rather
