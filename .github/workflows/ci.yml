@@ -6,6 +6,14 @@ on:
   push:
     branches: [main]
   pull_request:
+    # Documentation and the clan file cannot break a build, and the macOS job
+    # bills at ten times the Linux rate on a private repository. A run that can
+    # only ever come back green is a run worth not starting.
+    paths-ignore:
+      - '**.md'
+      - 'vitt.clan'
+      - 'screenshots/**'
+      - 'docs/**'
   workflow_dispatch:
 
 # A second push to the same branch cancels the first. Without this, a run you
@@ -85,6 +93,16 @@ jobs:
           java-version: '21'
 
       - uses: gradle/actions/setup-gradle@v4
+
+      # The Kotlin/Native toolchain and its LLVM live in ~/.konan, which
+      # setup-gradle does not cover: it caches Gradle User Home. Without this
+      # every run re-downloads the whole compiler before building a line, which
+      # is minutes at ten times the Linux rate.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
 
       # allTests is jvmTest plus the iOS targets. It is the only run that proves
       # the suite compiles for Kotlin/Native, which is the failure the test-name
