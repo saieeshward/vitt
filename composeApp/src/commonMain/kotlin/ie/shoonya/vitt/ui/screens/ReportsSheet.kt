@@ -329,6 +329,15 @@ fun ReportsSheet(
             )
             TextButton(onClick = onExport) { Text("Export") }
         }
+        Text(
+            // The no-lock-in premise is a claim, and a claim the user cannot
+            // test is marketing. This is where they test it. Directly under the
+            // row it describes: stacked at the end of the section, both captions
+            // read as belonging to whichever row happened to be last.
+            "Every transaction and transfer, in every currency. The data, not a summary.",
+            style = Vitt.type.label,
+            color = Vitt.colors.inkMuted,
+        )
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -342,16 +351,7 @@ fun ReportsSheet(
             TextButton(onClick = onImport) { Text("Import") }
         }
         Text(
-            // Beside the export, because they are the same promise read in two
-            // directions: your data goes out, and it can come back in.
             "A CSV from your bank. Everything is shown before anything is saved.",
-            style = Vitt.type.label,
-            color = Vitt.colors.inkMuted,
-        )
-        Text(
-            // The no-lock-in premise is a claim, and a claim the user cannot
-            // test is marketing. This is where they test it.
-            "Every transaction and transfer, in every currency. The data, not a summary.",
             style = Vitt.type.label,
             color = Vitt.colors.inkMuted,
         )
