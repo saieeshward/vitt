@@ -66,3 +66,7 @@ iosApp/build-device/
 
 # Scratch derived data from entitlement experiments.
 iosApp/build-*/
+
+# Playwright MCP scratch output — snapshots and console logs from ad-hoc
+# browser checks. Never part of the build.
+.playwright-mcp/
