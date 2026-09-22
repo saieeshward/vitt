@@ -132,4 +132,41 @@ class AmountEntryTest {
         assertEquals("€0.00", Money(0, Currency.EUR).display())
         assertEquals("+¥500", Money(500, Currency.JPY).display())
     }
+
+    @Test
+    fun `seeding from an amount round-trips through the keypad`() {
+        // What a shared bank alert puts on the keypad has to be exactly what
+        // the parse found, or the user corrects a number they never typed.
+        listOf(
+            Money(1250, Currency.EUR),
+            Money(5, Currency.EUR),
+            Money(100_000, Currency.EUR),
+            Money(4_455_000, Currency.INR),
+        ).forEach {
+            assertEquals(it, AmountEntry.of(it).money)
+        }
+    }
+
+    @Test
+    fun `seeding a zero-exponent currency has no decimal point`() {
+        // Yen has no minor unit, so a point would be a key the keypad refuses
+        // and a character `money` cannot parse back.
+        val entry = AmountEntry.of(Money(1250, Currency.JPY))
+        assertEquals("1250", entry.text)
+        assertEquals(Money(1250, Currency.JPY), entry.money)
+    }
+
+    @Test
+    fun `seeding a sub-unit amount pads the whole part`() {
+        // Five cent is "0.05", not ".5" or "5".
+        assertEquals("0.05", AmountEntry.of(Money(5, Currency.EUR)).text)
+    }
+
+    @Test
+    fun `seeding takes the magnitude — the sign belongs to the toggle`() {
+        // A minus in the keypad is a digit nobody typed and cannot delete.
+        val entry = AmountEntry.of(Money(-1250, Currency.EUR))
+        assertEquals("12.50", entry.text)
+        assertEquals(Money(1250, Currency.EUR), entry.money)
+    }
 }

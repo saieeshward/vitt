@@ -61,6 +61,10 @@ fun AppRoot(
                 VerifyScreen(services, autoRun = autoRun)
             } else {
                 val syncStatus by services.sync.status.collectAsState()
+                // Text handed in from a share or a Shortcut, waiting to be
+                // confirmed. Collected here because VittApp is recreated on a
+                // theme change and the offer must survive that.
+                val pendingCapture by services.pendingCapture.collectAsState()
                 val remoteRevision by services.sync.remoteChanges.collectAsState()
                 // A pull can change the theme too: it is a synced choice.
                 LaunchedEffect(remoteRevision) { appearance++ }
@@ -72,6 +76,8 @@ fun AppRoot(
                     today = services.today(),
                     newId = { newTransactionId(services.today()) },
                     onAppearanceChange = { appearance++ },
+                    pendingCapture = pendingCapture,
+                    onCaptureConsumed = { services.captureConsumed() },
                     syncStatus = syncStatus,
                     sheetActions = remember(services) {
                         SheetActions(

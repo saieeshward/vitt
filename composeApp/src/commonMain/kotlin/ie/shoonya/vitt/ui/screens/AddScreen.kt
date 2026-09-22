@@ -31,6 +31,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import ie.shoonya.vitt.capture.Category
+import ie.shoonya.vitt.capture.Direction
+import ie.shoonya.vitt.capture.ParsedTransaction
 import ie.shoonya.vitt.model.Account
 import ie.shoonya.vitt.model.Transaction
 import ie.shoonya.vitt.text.takeChars
@@ -77,6 +79,14 @@ fun AddScreen(
     frequentIncome: List<Category>,
     /** The account the last entry went into, pre-selected. */
     lastAccountId: String?,
+    /**
+     * A parse from shared text, filled in but never committed.
+     *
+     * The sheet opens on the amount rather than saving behind the user's back:
+     * `AmountParser` would rather be unsure than guess a sign, and a guessed
+     * sign turns a 40 refund into a 40 expense.
+     */
+    prefill: ParsedTransaction? = null,
     onSave: (NewEntry) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
@@ -88,15 +98,33 @@ fun AddScreen(
     var accountId by remember { mutableStateOf(initialAccount?.id) }
     val account = accounts.firstOrNull { it.id == accountId }
     var entry by remember {
+        val currency = prefill?.magnitude?.currency
+            ?: initialAccount?.currency
+            ?: currencies.first()
         mutableStateOf(
-            AmountEntry(currency = initialAccount?.currency ?: currencies.first()),
+            // The magnitude, not the signed amount: the sign is carried by
+            // `kind` below, and putting a negative into the keypad would show
+            // the user a minus sign they never typed.
+            prefill?.magnitude
+                ?.let { AmountEntry.of(it) }
+                ?: AmountEntry(currency = currency),
         )
     }
-    var kind by remember { mutableStateOf(EntryKind.Expense) }
+    var kind by remember {
+        mutableStateOf(
+            // UNKNOWN stays Expense and the user resolves it. `isUsable` is
+            // false in that case, which is what makes the sheet open rather
+            // than the entry save.
+            if (prefill?.direction == Direction.INFLOW) EntryKind.Income else EntryKind.Expense,
+        )
+    }
     var category by remember { mutableStateOf<Category?>(null) }
     var allCategories by remember { mutableStateOf(false) }
     var split by remember { mutableStateOf(false) }
-    var note by remember { mutableStateOf("") }
+    // The merchant goes in the note, which is where a shared bank alert's
+    // "TESCO STORES 3421 DUBLIN IE" belongs: it is what the entry was, and the
+    // categoriser already learns from it.
+    var note by remember { mutableStateOf(prefill?.merchant.orEmpty()) }
     // The second leg of a split: what was actually handed over, of which the
     // amount above is only the user's share.
     var paidEntry by remember { mutableStateOf(AmountEntry(currency = entry.currency)) }

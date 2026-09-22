@@ -21,6 +21,26 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!--
+              The share sheet. PLAN.md §6 calls this the workhorse: long-press a
+              bank alert, Share, and the text arrives here. The app never reads a
+              notification itself, which Play's Sensitive Permissions policy
+              forbids and names notification listening as the target of; the user
+              hands the text over deliberately, one gesture.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
+            <!-- Selected text anywhere, via the text-selection toolbar. -->
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
             <!-- Google redirects here after consent. singleTask above means the
                  redirect reaches the existing Activity through onNewIntent
                  rather than starting a second copy of the app. -->

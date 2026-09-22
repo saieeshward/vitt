@@ -112,6 +112,26 @@ data class AmountEntry(
     companion object {
         const val POINT = '.'
 
+        /**
+         * Seeds the keypad with an amount that came from somewhere else: a
+         * shared bank alert, a Shortcut, a widget.
+         *
+         * The inverse of [money], so what the keypad shows is exactly what the
+         * parse found. Always the magnitude: the sign belongs to the
+         * expense/income toggle, and a minus in the keypad is a digit the user
+         * never typed and cannot delete.
+         */
+        fun of(amount: Money): AmountEntry {
+            val exp = amount.currency.exponent
+            val digits = amount.abs().minor.toString().padStart(exp + 1, '0')
+            val text = if (exp == 0) {
+                digits
+            } else {
+                digits.dropLast(exp) + POINT + digits.takeLast(exp)
+            }
+            return AmountEntry(text = text, currency = amount.currency)
+        }
+
         /** Whole-unit digits allowed; twelve is far above any personal amount. */
         const val MAX_WHOLE_DIGITS = 12
 

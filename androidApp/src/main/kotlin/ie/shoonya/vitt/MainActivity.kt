@@ -24,6 +24,24 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         intent.data?.toString()?.let { BrowserAuth.onRedirect(it) }
+        // A share arriving while the app is already open. singleTask means this
+        // Activity is reused rather than recreated, so onCreate never runs.
+        sharedText(intent)?.let { services?.onSharedText(it) }
+    }
+
+    /**
+     * The text a share or a text-selection action handed over.
+     *
+     * Two actions, one meaning. SEND is the share sheet; PROCESS_TEXT is the
+     * selection toolbar, which is how someone captures an amount out of a
+     * banking app's own screen without leaving it.
+     */
+    private fun sharedText(intent: android.content.Intent?): String? = when (intent?.action) {
+        android.content.Intent.ACTION_SEND ->
+            intent.getStringExtra(android.content.Intent.EXTRA_TEXT)
+        android.content.Intent.ACTION_PROCESS_TEXT ->
+            intent.getCharSequenceExtra(android.content.Intent.EXTRA_PROCESS_TEXT)?.toString()
+        else -> null
     }
 
     /**
@@ -73,6 +91,9 @@ class MainActivity : ComponentActivity() {
         // Debug builds only. A release APK that still honoured these extras
         // would be a hidden feature reachable by anyone with adb, so the gate
         // is the build type rather than the extra.
+        // A share that launched the app cold. The parse is offered, never saved.
+        sharedText(intent)?.let { services.onSharedText(it) }
+
         if (BuildConfig.DEBUG) {
             if (intent?.getBooleanExtra("seed", false) == true) services.seedSampleData()
             if (intent?.getBooleanExtra("stress", false) == true) services.seedStressData()

@@ -22,6 +22,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -128,6 +129,15 @@ fun VittApp(
      * the tree being repainted.
      */
     onAppearanceChange: () -> Unit = {},
+    /**
+     * A parse waiting to be confirmed, from the share sheet or a Shortcut.
+     *
+     * Opens the Add sheet filled in. Never saves on its own: the parser would
+     * rather be unsure than guess a sign, and a wrong sign is an error nobody
+     * notices for weeks.
+     */
+    pendingCapture: ie.shoonya.vitt.capture.ParsedTransaction? = null,
+    onCaptureConsumed: () -> Unit = {},
     /** Where the sheet stands, for Settings. Off when the app runs local-only. */
     syncStatus: SyncStatus = SyncStatus.Off,
     sheetActions: SheetActions = SheetActions({ ie.shoonya.vitt.auth.AuthResult.Cancelled }, {}, {}),
@@ -278,6 +288,21 @@ fun VittApp(
     // up" rule. Observed on the Initial pass so it never consumes the gesture:
     // a pet that ate a tap would be a bug, not a character.
     var interactions by remember { mutableStateOf(0) }
+
+    // Shared text arriving while the app is open, or already waiting when it
+    // is launched by a share. Held for the duration of the sheet so a
+    // recomposition does not drop the prefill the user is halfway through
+    // correcting, and cleared on close so the next manual + opens blank.
+    var capturePrefill by remember {
+        mutableStateOf<ie.shoonya.vitt.capture.ParsedTransaction?>(null)
+    }
+    LaunchedEffect(pendingCapture) {
+        pendingCapture?.let {
+            capturePrefill = it
+            sheet = Sheet.Add
+            onCaptureConsumed()
+        }
+    }
 
     // Shown once, on a cold install, before the shell exists.
     //
@@ -583,6 +608,7 @@ fun VittApp(
             ) {
             when (open) {
                 Sheet.Add -> AddScreen(
+                    prefill = capturePrefill,
                     // Every currency the ledger has seen, then every currency the
                     // app knows. A fresh install used to offer EUR and INR only,
                     // so a person in Dubai or Tokyo could not log their first
@@ -620,9 +646,10 @@ fun VittApp(
                         // A split is not finished when it is saved: who was in
                         // on it is still unsaid, and the only place to say it
                         // was a row tap nobody was told about. Open it now.
+                        capturePrefill = null
                         sheet = if (new.totalPaid != null) Sheet.Split(id) else null
                     },
-                    onCancel = { sheet = null },
+                    onCancel = { capturePrefill = null; sheet = null },
                 )
 
                 Sheet.NewAccount -> AccountSheet(

@@ -44,6 +44,46 @@ class VittServices(
 
     val ledger: LedgerRepository = LedgerRepository(store, now)
 
+    /**
+     * Text handed in from outside the app, waiting for the user to confirm it.
+     *
+     * Every capture surface lands here: the Android share sheet, the iOS share
+     * extension, a Shortcut the user wrote themselves. The app never goes and
+     * fetches any of it. Google Play's Sensitive Permissions policy forbids
+     * deriving SMS-attributed data by other means and names notification
+     * listening for bank alerts as the target, so text arrives only because
+     * somebody chose to send it (`PLAN.md` §0, §6).
+     *
+     * A parse is an offer, never a saved entry. [AmountParser] is deliberately
+     * conservative and would rather be unsure than guess a sign, because a
+     * guessed sign turns a 40 refund into a 40 expense: an 80 error nobody
+     * notices for weeks. So this opens a prefilled Add sheet and waits.
+     */
+    private val _pendingCapture =
+        kotlinx.coroutines.flow.MutableStateFlow<ie.shoonya.vitt.capture.ParsedTransaction?>(null)
+    val pendingCapture: kotlinx.coroutines.flow.StateFlow<ie.shoonya.vitt.capture.ParsedTransaction?> =
+        _pendingCapture
+
+    /**
+     * Accepts shared text and offers it to the UI.
+     *
+     * The default currency is the one the last entry used, which is right far
+     * more often than the device region: somebody in Dublin paying an Indian
+     * bill is the case this app exists for.
+     */
+    fun onSharedText(text: String) {
+        if (text.isBlank()) return
+        val fallback = ledger.accounts()
+            .firstOrNull { it.id == ledger.choice(ie.shoonya.vitt.model.Choice.LAST_ACCOUNT) }
+            ?.currency
+        _pendingCapture.value = ie.shoonya.vitt.capture.AmountParser.parse(text, fallback)
+    }
+
+    /** Called once the sheet has opened, so a rotation does not reopen it. */
+    fun captureConsumed() {
+        _pendingCapture.value = null
+    }
+
     /** Wall-clock millis, for wording like "just now". */
     fun now(): Long = now.invoke()
 
