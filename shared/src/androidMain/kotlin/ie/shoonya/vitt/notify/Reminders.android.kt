@@ -19,6 +19,17 @@ fun initReminders(context: Context) {
 /** The channel the daily reminder posts on. Created lazily, once. */
 const val REMINDER_CHANNEL = "vitt.daily"
 
+/**
+ * The chosen time, mirrored out of the event log into preferences.
+ *
+ * An alarm does not survive a reboot, so something has to reschedule it, and
+ * that something runs in a broadcast before the app exists. Reading the ledger
+ * there would mean opening the one copy of someone's data on a background
+ * thread at boot, for a string. Four characters in preferences instead.
+ */
+private const val REMINDER_PREFS = "vitt.reminder"
+private const val REMINDER_KEY = "at"
+
 actual object Reminders {
 
     /**
@@ -52,6 +63,10 @@ actual object Reminders {
             Intent(context, ReminderReceiver::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+
+        context.getSharedPreferences(REMINDER_PREFS, Context.MODE_PRIVATE).edit().apply {
+            if (reminder == null) remove(REMINDER_KEY) else putString(REMINDER_KEY, reminder.format())
+        }.apply()
 
         if (reminder == null) {
             alarms.cancel(intent)
@@ -99,3 +114,9 @@ actual object Reminders {
         )
     }
 }
+
+/** The time to restore after a reboot, or null when the reminder is off. */
+internal fun storedReminder(context: Context): Reminder? = Reminder.ofCode(
+    context.getSharedPreferences(REMINDER_PREFS, Context.MODE_PRIVATE)
+        .getString(REMINDER_KEY, null),
+)

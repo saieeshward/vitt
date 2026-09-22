@@ -65,6 +65,15 @@
             android:name="ie.shoonya.vitt.notify.ReminderReceiver"
             android:exported="false" />
 
+        <!-- Alarms do not survive a reboot, so the reminder is rescheduled. -->
+        <receiver
+            android:name="ie.shoonya.vitt.notify.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
         <!--
           Exported, because the launcher is what binds it. The custom action is
           sent with an explicit package so no other app can drive it.
@@ -79,6 +88,19 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_info" />
+        </receiver>
+
+        <!-- The same snapshot, led by the running total. Both can be placed. -->
+        <receiver
+            android:name="ie.shoonya.vitt.VittSpentWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="ie.shoonya.vitt.WIDGET_UPDATED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_spent" />
         </receiver>
 
     </application>

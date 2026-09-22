@@ -28,6 +28,21 @@
 				<string>C617.1</string>
 			</array>
 		</dict>
+		<!--
+		  The widget reads the figure out of an App Group, which is
+		  NSUserDefaults and therefore a required-reason API. CA92.1 is the
+		  app-group case where the group contains this app and its own
+		  extension, which is exactly this one. Undeclared, the upload is
+		  rejected before a human ever sees the app.
+		-->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>

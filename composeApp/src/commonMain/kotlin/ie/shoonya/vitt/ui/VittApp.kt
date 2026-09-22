@@ -308,6 +308,9 @@ fun VittApp(
                     .firstOrNull { it.id == repository.choice(Choice.LAST_ACCOUNT) }
                     ?.currency,
                 recordedDays = recorded,
+                // The widget divides by this at every midnight, so it can
+                // recompute without the app ever running.
+                monthEndDay = ie.shoonya.vitt.time.YearMonth.of(today).lastDay,
             )?.encode(),
         )
     }
