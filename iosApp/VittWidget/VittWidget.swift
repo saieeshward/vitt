@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import UIKit
 
 /// What the app last published, read out of the shared App Group.
 ///
@@ -142,6 +143,36 @@ struct Provider: TimelineProvider {
     }
 }
 
+/// The widget's own palette.
+///
+/// It sits on the wallpaper rather than inside the app, so it follows the system
+/// rather than the app's chosen theme: a cream card on a dark home screen is a
+/// glare source at exactly the moment a glance is meant to cost nothing. Named
+/// from Palette.Cream and Palette.Slate, the two identity grounds.
+private enum WidgetPalette {
+    static let ground = Color(
+        light: Color(red: 0.984, green: 0.973, blue: 0.945),
+        dark: Color(red: 0.086, green: 0.078, blue: 0.110)
+    )
+    static let accent = Color(
+        light: Color(red: 0.424, green: 0.298, blue: 0.945),
+        dark: Color(red: 0.545, green: 0.451, blue: 0.961)
+    )
+    static let onAccent = Color(
+        light: .white,
+        dark: Color(red: 0.071, green: 0.063, blue: 0.102)
+    )
+}
+
+private extension Color {
+    /// A colour that resolves per appearance, which SwiftUI has no literal for.
+    init(light: Color, dark: Color) {
+        self.init(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light)
+        })
+    }
+}
+
 struct VittWidgetView: View {
     @Environment(\.widgetFamily) private var family
     var entry: Entry
@@ -198,12 +229,12 @@ struct VittWidgetView: View {
                     .font(.system(size: 14, weight: .semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
-                    .background(Color(red: 0.42, green: 0.30, blue: 0.95))
-                    .foregroundStyle(.white)
+                    .background(WidgetPalette.accent)
+                    .foregroundStyle(WidgetPalette.onAccent)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
         }
-        .containerBackground(for: .widget) { Color(red: 0.98, green: 0.97, blue: 0.945) }
+        .containerBackground(for: .widget) { WidgetPalette.ground }
     }
 
     /// The Lock Screen is where glances actually happen: seen dozens of times a

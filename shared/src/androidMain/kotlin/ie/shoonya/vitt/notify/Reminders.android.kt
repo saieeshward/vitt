@@ -11,9 +11,24 @@ import java.util.Calendar
 
 private var remindersContext: Context? = null
 
+/**
+ * Asks the user for notification permission, returning whether it was granted.
+ *
+ * Set by the Activity, because only an Activity can show the prompt. Without
+ * it this could only ever *check* the permission, which meant that on Android
+ * 13 and up switching the reminder on did nothing at all and said nothing
+ * about why — the chip did not even move.
+ */
+private var permissionRequester: (suspend () -> Boolean)? = null
+
 /** Called once from the app shell, like `initTokenStore`. */
 fun initReminders(context: Context) {
     remindersContext = context.applicationContext
+}
+
+/** Called by the Activity, which owns the permission launcher. */
+fun initReminderPermission(request: suspend () -> Boolean) {
+    permissionRequester = request
 }
 
 /** The channel the daily reminder posts on. Created lazily, once. */
@@ -50,8 +65,12 @@ actual object Reminders {
         val context = remindersContext ?: return false
         ensureChannel(context)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
-        return context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) ==
+        val already = context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) ==
             android.content.pm.PackageManager.PERMISSION_GRANTED
+        if (already) return true
+        // Actually ask. A permanent refusal is possible and is the user's
+        // answer; the caller leaves the reminder off rather than pretending.
+        return permissionRequester?.invoke() ?: false
     }
 
     actual fun apply(reminder: Reminder?) {

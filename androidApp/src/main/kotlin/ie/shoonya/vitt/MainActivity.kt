@@ -67,10 +67,28 @@ class MainActivity : ComponentActivity() {
     private var resumedOnce = false
     private var services: VittServices? = null
 
+    /**
+     * The notification permission prompt, which only an Activity can show.
+     *
+     * Registered unconditionally at construction because the contract requires
+     * it before the Activity is started, and bridged to `:shared` so the
+     * reminder switch can await a real answer instead of assuming one.
+     */
+    private var pendingPermission: kotlinx.coroutines.CompletableDeferred<Boolean>? = null
+    private val notificationPermission = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+    ) { granted -> pendingPermission?.complete(granted) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         ie.shoonya.vitt.auth.initTokenStore(applicationContext)
         ie.shoonya.vitt.sync.initInstallMarker(applicationContext)
         ie.shoonya.vitt.notify.initReminders(applicationContext)
+        ie.shoonya.vitt.notify.initReminderPermission {
+            val answer = kotlinx.coroutines.CompletableDeferred<Boolean>()
+            pendingPermission = answer
+            notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            answer.await()
+        }
         ie.shoonya.vitt.widget.initWidgets(applicationContext)
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
