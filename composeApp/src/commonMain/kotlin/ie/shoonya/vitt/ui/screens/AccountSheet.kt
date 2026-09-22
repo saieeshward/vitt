@@ -155,7 +155,7 @@ fun AccountSheet(
 @Composable
 fun EditAccountSheet(
     account: Account,
-    onSave: (name: String, kind: AccountKind) -> Unit,
+    onSave: (name: String, kind: AccountKind, opening: Money) -> Unit,
     onArchivedChange: (Boolean) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
@@ -164,6 +164,13 @@ fun EditAccountSheet(
     // account rather than from whichever one was edited last.
     var name by remember(account.id) { mutableStateOf(account.name) }
     var kind by remember(account.id) { mutableStateOf(account.kind) }
+    // Shown as the magnitude; the sign comes from the kind on save, exactly as
+    // it does when the account is opened.
+    var entry by remember(account.id) { mutableStateOf(AmountEntry.of(account.opening)) }
+    // The keypad and the system keyboard cannot share a sheet on iOS — the IME
+    // covers the lower half and the keypad's bottom row becomes unreachable —
+    // so the balance is a second step, as it is on the way in.
+    var editingOpening by remember(account.id) { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -177,12 +184,47 @@ fun EditAccountSheet(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextButton(onClick = onCancel) { Text("Cancel") }
-            Text("Account", style = Vitt.type.title, color = Vitt.colors.ink)
+            TextButton(
+                onClick = if (editingOpening) ({ editingOpening = false }) else onCancel,
+            ) { Text(if (editingOpening) "Back" else "Cancel") }
+            Text(
+                if (editingOpening) "Balance" else "Account",
+                style = Vitt.type.title,
+                color = Vitt.colors.ink,
+            )
             Button(
                 enabled = name.isNotBlank(),
-                onClick = { onSave(name.trim(), kind) },
+                onClick = {
+                    val signed = if (kind == AccountKind.CREDIT) {
+                        Money(-entry.money.minor, account.currency)
+                    } else {
+                        entry.money
+                    }
+                    onSave(name.trim(), kind, signed)
+                },
             ) { Text("Save") }
+        }
+
+        if (editingOpening) {
+            Text(
+                if (kind == AccountKind.CREDIT) {
+                    "What was owed on this card when you started tracking."
+                } else {
+                    "What was in the account when you started tracking."
+                },
+                style = Vitt.type.label,
+                color = Vitt.colors.inkMuted,
+            )
+            // Every balance is this figure plus the entries since, so changing
+            // it moves the whole account at once. Said plainly, because the
+            // effect is larger than the field looks.
+            Text(
+                "Every balance on this account moves with it.",
+                style = Vitt.type.label,
+                color = Vitt.colors.inkFaint,
+            )
+            AmountKeypad(entry = entry, onEntryChange = { entry = it })
+            return@Column
         }
 
         OutlinedTextField(
@@ -202,6 +244,17 @@ fun EditAccountSheet(
         )
 
         KindChips(kind = kind, onPick = { kind = it })
+
+        // The figure tracking started from, correctable at any point. First-run
+        // deliberately never asks for it, so for most accounts it is zero and
+        // every balance is out by the same constant until someone says so.
+        Text("Starting balance", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
+        TextButton(onClick = { editingOpening = true }) {
+            Text(
+                if (!entry.hasValue) "Set a starting balance"
+                else entry.money.displayUnsigned(),
+            )
+        }
 
         TextButton(
             onClick = { onArchivedChange(!account.archived) },

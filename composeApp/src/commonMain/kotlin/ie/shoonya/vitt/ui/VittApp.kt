@@ -424,7 +424,14 @@ fun VittApp(
                 }
             },
     ) {
-        Box(Modifier.fillMaxWidth().weight(1f)) {
+        // The fade is on the host rather than on each screen, so every tab
+        // gets the same edge and a new one cannot forget it.
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .edgeFade(Vitt.colors.ground),
+        ) {
             when (tab) {
                 Tab.Ledgers -> LedgersScreen(
                     ledgers = ledgers,
@@ -490,6 +497,7 @@ fun VittApp(
                         )?.let { sheet = Sheet.Summary(it.subject, it.body) }
                     },
                     onOpenSplit = { sheet = Sheet.Split(it.id) },
+                    companionInset = if (habitOn && companion != null) 64.dp else 0.dp,
                     formatDay = formatDay,
                 )
                 Tab.Reports -> {
@@ -753,12 +761,15 @@ fun VittApp(
                     } else {
                         EditAccountSheet(
                             account = account,
-                            onSave = { name, kind ->
+                            onSave = { name, kind, opening ->
                                 // One event per changed field, and none for a
                                 // field left alone: an unchanged name should not
                                 // put a row in the user's spreadsheet.
                                 if (name != account.name) repository.renameAccount(open.id, name)
                                 if (kind != account.kind) repository.setAccountKind(open.id, kind)
+                                if (opening != account.opening) {
+                                    repository.setAccountOpening(open.id, opening)
+                                }
                                 localRevision++
                                 sheet = null
                             },
@@ -852,6 +863,7 @@ fun VittApp(
                 )
 
                 Sheet.Habit -> HabitScreen(
+                    face = companionFace,
                     daysRecorded = recorded,
                     recordedDays = recordedDays,
                     longestRun = longestRun,

@@ -292,6 +292,21 @@ class LedgerRepository(
         putAccountField(id, Account.FIELD_KIND, TaggedValue.Str(kind.code))
 
     /**
+     * Corrects the balance the account started from.
+     *
+     * Tracking had to begin somewhere, and the figure entered at setup — or
+     * skipped entirely, because first-run deliberately does not ask — is a
+     * guess that deserves fixing later. Every balance is opening plus the
+     * transactions since, so this shifts them all by the difference at once
+     * rather than needing a correcting entry that never really happened.
+     *
+     * The currency is not a parameter: it is fixed at creation, and an opening
+     * balance in a different one would silently re-denominate the account.
+     */
+    fun setAccountOpening(id: String, opening: Money) =
+        putAccountField(id, Account.FIELD_OPENING, TaggedValue.Num(opening.minor))
+
+    /**
      * Archives or unarchives an account.
      *
      * Not a delete: the account leaves the pickers but its transactions stay in

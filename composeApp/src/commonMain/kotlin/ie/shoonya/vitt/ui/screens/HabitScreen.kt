@@ -21,8 +21,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import ie.shoonya.vitt.ui.CompanionAnimal
 import ie.shoonya.vitt.ui.CompanionPet
+import ie.shoonya.vitt.ui.CompanionPose
+import ie.shoonya.vitt.ui.pose
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -42,6 +46,15 @@ fun HabitScreen(
     windowDays: Int,
     currencyCount: Int,
     animal: CompanionAnimal?,
+    /**
+     * What she is expressing, from the same state the wander strip uses.
+     *
+     * `design-identity.md` calls Habit "the one place gamification is loud",
+     * and until now she stood here with a neutral face while six drawn
+     * expressions went unused. This is the screen she should be most readable
+     * on, because it is the only one that is about her at all.
+     */
+    face: ie.shoonya.vitt.model.CompanionFace? = null,
     /** The last day each currency was recorded in. A fact about recency, not a score. */
     lastRecorded: Map<ie.shoonya.vitt.money.Currency, Int>,
     /** Marks today as a day with nothing to record. Null once today is already recorded. */
@@ -75,12 +88,28 @@ fun HabitScreen(
         //
         // Absent entirely when the user picked no pet. The tab still works: the
         // count and the dots are the habit, and the animal was never the data.
+        // Flips to the glad face the moment a day is marked, then settles back.
+        // The button is the only action on this screen, so her reacting to it
+        // is what closes the loop: you did a thing, something noticed.
+        var justMarked by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+        androidx.compose.runtime.LaunchedEffect(justMarked) {
+            if (justMarked) {
+                kotlinx.coroutines.delay(2_600)
+                justMarked = false
+            }
+        }
+
         animal?.let {
             CompanionPet(
                 daysRecorded = daysRecorded,
                 currencyCount = currencyCount,
                 animal = it,
                 mood = null,
+                pose = when {
+                    justMarked -> CompanionPose.GLAD
+                    face != null -> face.pose()
+                    else -> CompanionPose.STAND
+                },
                 pixelSize = 5.dp,
             )
         }
@@ -113,7 +142,9 @@ fun HabitScreen(
         // as bad, so the user can say which it was. It records attention, not
         // money: no amount, no currency, nothing a budget sees.
         if (onNothingToday != null) {
-            androidx.compose.material3.OutlinedButton(onClick = onNothingToday) {
+            androidx.compose.material3.OutlinedButton(
+                onClick = { justMarked = true; onNothingToday() },
+            ) {
                 Text("Nothing spent today")
             }
             Text(

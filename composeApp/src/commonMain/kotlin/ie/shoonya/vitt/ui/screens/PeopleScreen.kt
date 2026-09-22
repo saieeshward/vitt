@@ -40,11 +40,18 @@ fun PeopleScreen(
     onShare: (String) -> Unit,
     onOpenSplit: (Transaction) -> Unit,
     formatDay: (Int) -> String,
+    /** Room kept at the foot for the companion's band, as the other tabs keep. */
+    companionInset: androidx.compose.ui.unit.Dp = 0.dp,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(Vitt.space.loose),
+        contentPadding = PaddingValues(
+            start = Vitt.space.loose,
+            top = Vitt.space.loose,
+            end = Vitt.space.loose,
+            bottom = Vitt.space.loose + companionInset,
+        ),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
     ) {
         item { Text("People", style = Vitt.type.display, color = Vitt.colors.ink) }
@@ -106,7 +113,20 @@ private fun PersonCard(
             .padding(Vitt.space.loose),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
     ) {
-        Text(person, style = Vitt.type.body, color = colors.ink)
+        // The name leads and the address sits under it. An address is a poor
+        // name — nobody thinks of the person they split a taxi with as
+        // anya@example.com — but it is still the identity the summary goes to,
+        // so it stays visible and checkable rather than being hidden.
+        Text(
+            ie.shoonya.vitt.model.PersonName.of(person),
+            style = Vitt.type.title,
+            color = colors.ink,
+        )
+        ie.shoonya.vitt.model.PersonName.address(person)
+            ?.takeIf { it != ie.shoonya.vitt.model.PersonName.of(person) }
+            ?.let {
+                Text(it, style = Vitt.type.label, color = colors.inkFaint, maxLines = 1)
+            }
 
         // One figure per currency, listed. Two lines is the honest shape.
         outstanding.forEach { (currency, amount) ->
@@ -115,7 +135,7 @@ private fun PersonCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("owes", style = Vitt.type.label, color = colors.inkMuted)
+                Text("owes you", style = Vitt.type.label, color = colors.inkMuted)
                 Text(amount.displayUnsigned(), style = Vitt.type.money, color = colors.ink)
             }
         }
