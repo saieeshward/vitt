@@ -124,6 +124,27 @@ jobs:
           [ -f Local.xcconfig ] || echo 'DEVELOPMENT_TEAM =' > Local.xcconfig
           xcodegen generate
 
+      # Release only where it earns its keep.
+      #
+      # Measured over 23 runs: the macOS job was 171 wall minutes but 1,707
+      # billed, which is 93% of the whole bill from 58% of the time, purely
+      # because of the ten times multiplier. Linking the *release* Kotlin
+      # framework is the bulk of that job, and it is a full LLVM optimisation
+      # of the entire Compose graph.
+      #
+      # It still has to happen: a release build once linked the debug framework
+      # and would have shipped that way. But it has to happen before a merge,
+      # not on every commit of a branch somebody is iterating on. PRs link
+      # Debug, main links Release.
+      - name: Pick the configuration
+        id: conf
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "value=Release" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=Debug" >> "$GITHUB_OUTPUT"
+          fi
+
       # No signing. CODE_SIGNING_ALLOWED=NO builds the app without a certificate,
       # which is all CI needs: it proves the code compiles and links against the
       # Kotlin framework. Signing belongs to release, not to every commit.
@@ -137,7 +158,7 @@ jobs:
         run: |
           cd iosApp
           xcodebuild -project VITT.xcodeproj -scheme VITT \
-            -sdk iphonesimulator -configuration Release \
+            -sdk iphonesimulator -configuration ${{ steps.conf.outputs.value }} \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
 
