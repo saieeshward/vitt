@@ -42,8 +42,17 @@ regenerated with the capability included.
 *Automatically manage signing*, pick the team, then **+ Capability → App
 Groups**, and tick `group.ie.shoonya.vitt`. Xcode regenerates both profiles.
 
-> **App Groups need a paid Apple Developer Program membership.** A free Apple ID
-> cannot create one. If the account is free, see the fallback below.
+> **This account can already do it.** Checking the profiles on this machine:
+>
+> ```
+> iOS Team Provisioning Profile: ie.shoonya.vitt   team=<TEAM_ID>   groups=no
+> iOS Team Provisioning Profile: ie.shoonya.yant   team=<TEAM_ID>   groups=YES
+> ```
+>
+> Yantra already holds an App Group on the same team, and only a paid membership
+> can create one. So VITT's profile lacks the capability purely because it was
+> minted before the entitlement existed — ticking the box regenerates it exactly
+> as it did for Yantra. The fallback below is a convenience, not a necessity.
 
 ## 3. Press Run once
 
@@ -61,8 +70,9 @@ xcodebuild -project VITT.xcodeproj -scheme VITT -configuration Debug \
 
 ## Fallback: the app without the widget
 
-If the account is free, or you just want the app on the phone today, the widget
-is the only thing that needs the App Group. Remove these two lines and
+Not needed on this account — see above — but if you just want the app on the
+phone before touching capabilities, the widget is the only thing that needs the
+App Group. Remove these two lines and
 regenerate, and everything else — capture, the reminder, the companion, sync —
 installs and runs normally:
 
