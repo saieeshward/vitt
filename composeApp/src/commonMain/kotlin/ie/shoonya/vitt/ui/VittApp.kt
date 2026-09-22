@@ -294,6 +294,24 @@ fun VittApp(
     var interactions by remember { mutableStateOf(0) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
 
+    // Republished whenever the figures move, so the home screen is never
+    // showing yesterday's number. Keyed on the ledgers themselves rather than
+    // on the revision counter: a theme change bumps the revision and must not
+    // cost a write.
+    LaunchedEffect(ledgers, recorded) {
+        ie.shoonya.vitt.widget.publishWidgetSnapshot(
+            ie.shoonya.vitt.widget.WidgetSnapshot.from(
+                ledgers = ledgers,
+                // The currency of the account last used, which is the one the
+                // person is most likely thinking in.
+                preferred = accounts
+                    .firstOrNull { it.id == repository.choice(Choice.LAST_ACCOUNT) }
+                    ?.currency,
+                recordedDays = recorded,
+            )?.encode(),
+        )
+    }
+
     // Shared text arriving while the app is open, or already waiting when it
     // is launched by a share. Held for the duration of the sheet so a
     // recomposition does not drop the prefill the user is halfway through

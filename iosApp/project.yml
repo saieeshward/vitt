@@ -46,12 +46,21 @@ targets:
         # this registration iOS has nowhere to deliver the callback and the
         # sign-in sheet simply never closes.
         CFBundleURLTypes:
+          # The widget's "Log a spend" button. Its own scheme rather than a
+          # Universal Link, because a widget tap must not need the network.
+          - CFBundleURLName: vitt
+            CFBundleURLSchemes:
+              - vitt
           - CFBundleURLName: google-oauth
             CFBundleURLSchemes:
               - com.googleusercontent.apps.1009164273104-9vueslno0lnaug94cl848pcesb2j1rnf
+    dependencies:
+      - target: VittWidget
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ie.shoonya.vitt
+        CODE_SIGN_ENTITLEMENTS: iosApp/VITT.entitlements
         # The Kotlin framework is produced by Gradle into composeApp/build.
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
@@ -99,3 +108,26 @@ targets:
             KOTLIN_CONF=Debug
           fi
           ./gradlew :composeApp:link${KOTLIN_CONF}Framework$TARGET
+
+  # The home screen widget. A separate process with its own container, which is
+  # why it reads a published snapshot out of the App Group rather than the
+  # database: it cannot see the app's storage at all.
+  VittWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: VittWidget
+    info:
+      path: VittWidget/Info.plist
+      properties:
+        CFBundleDisplayName: VITT
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ie.shoonya.vitt.widget
+        CODE_SIGN_ENTITLEMENTS: VittWidget/VittWidget.entitlements
+        # WidgetKit needs this and the app does not, so it is set here rather
+        # than raising the whole project's floor from iOS 15.
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"

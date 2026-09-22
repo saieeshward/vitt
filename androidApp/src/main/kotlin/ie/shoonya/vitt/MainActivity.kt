@@ -70,6 +70,7 @@ class MainActivity : ComponentActivity() {
         ie.shoonya.vitt.auth.initTokenStore(applicationContext)
         ie.shoonya.vitt.sync.initInstallMarker(applicationContext)
         ie.shoonya.vitt.notify.initReminders(applicationContext)
+        ie.shoonya.vitt.widget.initWidgets(applicationContext)
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 

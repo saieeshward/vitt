@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  The one thing the widget and the app share. A widget extension has its own
+	  container, so without this group the app's storage is invisible to it.
+	  Needs registering against the team in the developer portal before a signed
+	  build will install; the Simulator does not check.
+	-->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.ie.shoonya.vitt</string>
+	</array>
+</dict>
+</plist>

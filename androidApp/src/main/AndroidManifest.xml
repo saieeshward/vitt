@@ -65,5 +65,21 @@
             android:name="ie.shoonya.vitt.notify.ReminderReceiver"
             android:exported="false" />
 
+        <!--
+          Exported, because the launcher is what binds it. The custom action is
+          sent with an explicit package so no other app can drive it.
+        -->
+        <receiver
+            android:name="ie.shoonya.vitt.VittWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="ie.shoonya.vitt.WIDGET_UPDATED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info" />
+        </receiver>
+
     </application>
 </manifest>
