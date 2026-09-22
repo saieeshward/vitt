@@ -1,14 +1,62 @@
 # Building on your own iPhone
 
-`xcodebuild` cannot do this from the command line, and the reason is worth
-knowing rather than working around: signing needs an Apple ID that lives in
-Xcode's own account store, and the first provisioning profile has to be minted
-interactively. After that, CLI builds work.
+**It is on the phone.** VITT 1.0.0 (build 1) was installed and launched on the
+iPhone 13 Pro Max on 2026-09-22, without signing into Xcode at all.
 
-Attempted on 2026-09-22 against the connected iPhone 13 Pro Max and it failed on
-exactly two things.
+The trick is that `No Accounts: Add a new account in Accounts settings` is an
+*automatic signing* error: Xcode wants to talk to the developer portal to mint a
+profile. It is not needed, because this machine already has both halves —
 
-## 1. Xcode has no Apple ID signed in
+```
+Apple Development: <your-apple-id> (XXXXXXXXXX)   valid
+iOS Team Provisioning Profile: ie.shoonya.vitt           valid to 2026-09-24
+```
+
+so the app can be built unsigned and signed afterwards by hand.
+
+## The recipe that worked
+
+```bash
+cd iosApp
+# 1. Build unsigned for the device architecture.
+xcodebuild -project VITT.xcodeproj -scheme VITT -configuration Debug \
+  -sdk iphoneos -destination 'generic/platform=iOS' \
+  -derivedDataPath build-device CODE_SIGNING_ALLOWED=NO build
+
+APP=build-device/Build/Products/Debug-iphoneos/VITT.app
+PROF=~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/<PROFILE_UUID>.mobileprovision
+
+# 2. Embed the profile and pull its entitlements out.
+cp "$PROF" "$APP/embedded.mobileprovision"
+security cms -D -i "$PROF" > /tmp/prof.plist
+/usr/libexec/PlistBuddy -x -c 'Print :Entitlements' /tmp/prof.plist > /tmp/ent.plist
+
+# 3. Sign the bundle.
+codesign --force --sign "Apple Development: <your-apple-id> (XXXXXXXXXX)" \
+  --entitlements /tmp/ent.plist --timestamp=none "$APP"
+
+# 4. Install and run.
+xcrun devicectl device install app --device <UDID> "$(pwd)/$APP"
+xcrun devicectl device process launch --device <UDID> --terminate-existing ie.shoonya.vitt
+```
+
+**Manual signing with `PROVISIONING_PROFILE_SPECIFIER` does not work here** —
+the profile is Xcode-managed, and `xcodebuild` refuses to use a managed profile
+in manual mode. Signing the built bundle afterwards sidesteps that entirely.
+
+## Two caveats on this build
+
+**No widget.** The profile predates the App Group, and the widget is the only
+thing that needs it, so it was dropped for this build and `project.yml` restored
+afterwards — the repo is unchanged. Everything else is there: capture, the
+reminder, the companion, sync, reports.
+
+**The profile expires 2026-09-24.** Two days. After that it needs regenerating,
+which is the Xcode route below and is worth doing properly anyway.
+
+## Doing it properly, for the widget and for TestFlight
+
+### Sign into Xcode
 
 ```
 error: No Accounts: Add a new account in Accounts settings. (in target 'VITT')
@@ -22,7 +70,7 @@ in, both targets pick the team up from there.
 A free Apple ID is enough to run on your own device, with the caveat that its
 certificates last seven days and the app stops launching after that.
 
-## 2. The provisioning profile predates the App Group
+### Add the App Group
 
 ```
 error: Provisioning profile "iOS Team Provisioning Profile: ie.shoonya.vitt"
@@ -54,7 +102,7 @@ Groups**, and tick `group.ie.shoonya.vitt`. Xcode regenerates both profiles.
 > minted before the entitlement existed — ticking the box regenerates it exactly
 > as it did for Yantra. The fallback below is a convenience, not a necessity.
 
-## 3. Press Run once
+### Press Run once
 
 Select the phone as the destination and Run. Trust the developer on the device
 the first time: **Settings → General → VPN & Device Management**.
