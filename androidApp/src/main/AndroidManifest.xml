@@ -3,6 +3,15 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!--
+      The daily reminder, and nothing else. Notifications are posted, never
+      read: PLAN.md §0 rules out notification reading as a Play Sensitive
+      Permissions violation, and no listener permission is requested anywhere.
+    -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- So the reminder survives a restart rather than silently stopping. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:allowBackup="false"
         android:label="VITT"
@@ -51,5 +60,10 @@
                 <data android:scheme="com.googleusercontent.apps.1009164273104-9vueslno0lnaug94cl848pcesb2j1rnf" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name="ie.shoonya.vitt.notify.ReminderReceiver"
+            android:exported="false" />
+
     </application>
 </manifest>

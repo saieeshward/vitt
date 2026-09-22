@@ -45,6 +45,8 @@ fun SettingsSheet(
     accent: AccentChoice,
     onAccentChange: (AccentChoice) -> Unit,
     currencyCount: Int,
+    reminder: ie.shoonya.vitt.notify.Reminder?,
+    onReminderChange: (ie.shoonya.vitt.notify.Reminder?) -> Unit,
     swipeCards: Boolean,
     onSwipeCardsChange: (Boolean) -> Unit,
     syncStatus: SyncStatus,
@@ -106,6 +108,42 @@ fun SettingsSheet(
         Text(
             if (swipeCards) "One card at a time, with the next peeking in. Accounts stay in reach."
             else "Every card stacked. Longer with several currencies.",
+            style = Vitt.type.label,
+            color = Vitt.colors.inkMuted,
+        )
+
+        // Above Habit, because it is what makes a habit possible: a tracker
+        // does not fail because people stop caring, it fails because a gap
+        // opens and the app becomes homework they are behind on.
+        Text("Daily reminder", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
+        @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+        androidx.compose.foundation.layout.FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+            verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+        ) {
+            androidx.compose.material3.FilterChip(
+                selected = reminder == null,
+                onClick = { onReminderChange(null) },
+                label = { Text("Off", style = Vitt.type.label) },
+            )
+            ie.shoonya.vitt.notify.Reminder.CHOICES.forEach { option ->
+                androidx.compose.material3.FilterChip(
+                    selected = reminder == option,
+                    onClick = { onReminderChange(option) },
+                    label = { Text(option.format(), style = Vitt.type.label) },
+                )
+            }
+        }
+        Text(
+            if (reminder == null) {
+                "No reminder. Nothing will interrupt you."
+            } else {
+                // Says what it will say, so turning it on is not a gamble, and
+                // says that nothing is a real answer.
+                "Once a day at ${reminder.format()}: \"Anything today?\". " +
+                    "A day you spent nothing still counts."
+            },
             style = Vitt.type.label,
             color = Vitt.colors.inkMuted,
         )

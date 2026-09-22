@@ -79,6 +79,15 @@ data class Choice(val key: String, val value: String, val deleted: Boolean) {
         const val SETUP_DONE = "setup_done"
         const val SETUP_YES = "yes"
 
+        /**
+         * The daily reminder time as `HH:mm`, or absent for off.
+         *
+         * Absent rather than a sentinel, so a fresh install is silent: §5 wants
+         * the off switch to exist before the feature does, and a reminder
+         * nobody asked for is the loudest thing an app can do on day one.
+         */
+        const val REMINDER = "reminder"
+
         const val HOME_LAYOUT = "home_layout"
         const val HOME_SWIPE = "swipe"
         const val HOME_STACK = "stack"

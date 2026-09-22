@@ -22,6 +22,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -199,6 +200,9 @@ fun VittApp(
         )
     }
     val accent = remember(revision) { AccentChoice.ofCode(repository.choice(Choice.ACCENT)) }
+    val reminder = remember(revision) {
+        ie.shoonya.vitt.notify.Reminder.ofCode(repository.choice(Choice.REMINDER))
+    }
     val swipeCards = remember(revision) { repository.choice(Choice.HOME_LAYOUT) != Choice.HOME_STACK }
     // Stored as thousandths of the screen in each axis, so the same value means
     // the same place on a phone and a tablet.
@@ -288,6 +292,7 @@ fun VittApp(
     // up" rule. Observed on the Initial pass so it never consumes the gesture:
     // a pet that ate a tap would be a bug, not a character.
     var interactions by remember { mutableStateOf(0) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
 
     // Shared text arriving while the app is open, or already waiting when it
     // is launched by a share. Held for the duration of the sheet so a
@@ -825,6 +830,28 @@ fun VittApp(
                         onAppearanceChange()
                     },
                     currencyCount = ledgers.size,
+                    reminder = reminder,
+                    onReminderChange = { picked ->
+                        scope.launch {
+                            // Permission only when switching it on, and only
+                            // then: asking at launch is asking before the person
+                            // knows what for, and a refusal is permanent.
+                            val allowed = picked == null ||
+                                ie.shoonya.vitt.notify.Reminders.requestPermission()
+                            if (allowed) {
+                                // Cleared, not set blank: Choice.events refuses
+                                // an empty value, and absent is what "off"
+                                // means everywhere else this is read.
+                                if (picked == null) {
+                                    repository.clearChoice(Choice.REMINDER)
+                                } else {
+                                    repository.setChoice(Choice.REMINDER, picked.format())
+                                }
+                                ie.shoonya.vitt.notify.Reminders.apply(picked)
+                                localRevision++
+                            }
+                        }
+                    },
                     swipeCards = swipeCards,
                     onSwipeCardsChange = {
                         repository.setChoice(Choice.HOME_LAYOUT, if (it) Choice.HOME_SWIPE else Choice.HOME_STACK)

@@ -69,6 +69,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         ie.shoonya.vitt.auth.initTokenStore(applicationContext)
         ie.shoonya.vitt.sync.initInstallMarker(applicationContext)
+        ie.shoonya.vitt.notify.initReminders(applicationContext)
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
