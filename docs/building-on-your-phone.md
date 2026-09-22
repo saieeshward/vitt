@@ -14,6 +14,14 @@ iOS Team Provisioning Profile: ie.shoonya.vitt           valid to 2026-09-24
 
 so the app can be built unsigned and signed afterwards by hand.
 
+## Finding your own values
+
+```bash
+security find-identity -v -p codesigning          # the signing identity
+xcrun devicectl list devices                      # the device UDID
+ls ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/   # profile UUIDs
+```
+
 ## The recipe that worked
 
 ```bash
@@ -94,13 +102,13 @@ Groups**, and tick `group.ie.shoonya.vitt`. Xcode regenerates both profiles.
 >
 > ```
 > iOS Team Provisioning Profile: ie.shoonya.vitt   team=<TEAM_ID>   groups=no
-> iOS Team Provisioning Profile: ie.shoonya.yant   team=<TEAM_ID>   groups=YES
+> iOS Team Provisioning Profile: ie.shoonya.other   team=<TEAM_ID>   groups=YES
 > ```
 >
-> Yantra already holds an App Group on the same team, and only a paid membership
+> A sibling app already holds an App Group on the same team, and only a paid membership
 > can create one. So VITT's profile lacks the capability purely because it was
 > minted before the entitlement existed — ticking the box regenerates it exactly
-> as it did for Yantra. The fallback below is a convenience, not a necessity.
+> as it did for that one. The fallback below is a convenience, not a necessity.
 
 ### Press Run once
 
