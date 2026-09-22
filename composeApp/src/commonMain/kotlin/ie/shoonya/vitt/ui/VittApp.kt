@@ -80,6 +80,7 @@ import ie.shoonya.vitt.ui.screens.SplitSheet
 import ie.shoonya.vitt.ui.screens.TransferSheet
 import ie.shoonya.vitt.ui.theme.AccentChoice
 import ie.shoonya.vitt.theme.Appearance
+import ie.shoonya.vitt.model.whereTo
 import ie.shoonya.vitt.ui.theme.ThemeChoice
 import ie.shoonya.vitt.ui.theme.Vitt
 
@@ -294,6 +295,28 @@ fun VittApp(
     var interactions by remember { mutableStateOf(0) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
 
+    // What the companion is expressing, from what is actually true.
+    //
+    // `justSaved` is the moment rather than the day: PERKED lasts until
+    // midnight, and a glad face that sat there all evening would be a
+    // decoration rather than a reaction. Cleared by the next interaction.
+    var justSaved by remember { mutableStateOf(false) }
+    val liveliness = remember(revision, today) {
+        ie.shoonya.vitt.model.Liveliness.of(
+            repository.transactions().maxOfOrNull { it.day }?.let { today - it },
+        )
+    }
+    val companionFace = remember(liveliness, justSaved, needingCategory, ledgers) {
+        ie.shoonya.vitt.model.CompanionFace.of(
+            liveliness = liveliness,
+            justSaved = justSaved,
+            needsAttention = needingCategory,
+            // A pocket with nothing left in it. A fact about the pocket, and
+            // the only negative signal the companion carries at all.
+            anyBudgetSpent = ledgers.any { l -> l.remaining()?.let { it.minor <= 0L } == true },
+        )
+    }
+
     // Republished whenever the figures move, so the home screen is never
     // showing yesterday's number. Keyed on the ledgers themselves rather than
     // on the revision counter: a theme change bumps the revision and must not
@@ -381,7 +404,12 @@ fun VittApp(
                 awaitPointerEventScope {
                     while (true) {
                         val event = awaitPointerEvent(PointerEventPass.Initial)
-                        if (event.changes.any { it.pressed }) interactions++
+                        if (event.changes.any { it.pressed }) {
+                            interactions++
+                            // The glad face belongs to the save, not to the
+                            // rest of the evening.
+                            justSaved = false
+                        }
                     }
                 }
             },
@@ -567,6 +595,18 @@ fun VittApp(
                 localRevision++
             },
             interactionTick = interactions,
+            intent = companionFace,
+            // The subject of her own face, resolved to where it is on screen.
+            // Null sends her home, which is the honest answer to a quiet one.
+            intentTarget = when (companionFace.whereTo()) {
+                ie.shoonya.vitt.model.CompanionWhere.ACTIVITY -> anchors[Anchor.TAB_ACTIVITY]
+                ie.shoonya.vitt.model.CompanionWhere.ADD -> anchors[Anchor.ADD]
+                ie.shoonya.vitt.model.CompanionWhere.SPENT_LEDGER ->
+                    ledgers.firstOrNull { l -> l.remaining()?.let { it.minor <= 0L } == true }
+                        ?.let { anchors[Anchor.ledgerCard(it.currency.code)] }
+                // Home and stay-put both mean "do not travel".
+                else -> null
+            },
             nudge = nudge,
             nudgeTarget = nudgeTarget,
             onNudgeTap = { n ->
@@ -673,6 +713,10 @@ fun VittApp(
                         // on it is still unsaid, and the only place to say it
                         // was a row tap nobody was told about. Open it now.
                         capturePrefill = null
+                        // The reward, spent immediately. Nothing accumulates,
+                        // so nothing can be lost and there is no streak to
+                        // protect by avoiding the app.
+                        justSaved = true
                         sheet = if (new.totalPaid != null) Sheet.Split(id) else null
                     },
                     onCancel = { capturePrefill = null; sheet = null },

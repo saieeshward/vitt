@@ -112,6 +112,21 @@ fun CompanionLayer(
     onNudgeTap: (Nudge) -> Unit = {},
     /** She gave up waiting. The caller decides when to ask again. */
     onNudgeExpired: (Nudge) -> Unit = {},
+    /**
+     * What she is expressing, and therefore where she goes.
+     *
+     * Null keeps the old neutral behaviour. See
+     * [ie.shoonya.vitt.model.CompanionFace]: the face and the destination are
+     * two halves of one message, and she stands beside the thing she means.
+     */
+    intent: ie.shoonya.vitt.model.CompanionFace? = null,
+    /**
+     * Where the intent's subject is on screen, or null to settle at home.
+     *
+     * Home is the honest answer to a quiet screen. An animal that wanders at
+     * random is decoration, and decoration over a screen of numbers is noise.
+     */
+    intentTarget: Rect? = null,
     /** Height of the tab bar, which she may never be dropped onto. */
     forbiddenBottom: Dp = 92.dp,
     pixelSize: Dp = 2.dp,
@@ -277,6 +292,14 @@ fun CompanionLayer(
                 (r.bottom - layerOrigin.y + edge).coerceIn(minY, maxY),
             )
         }
+        // The same conversion for her own intent: a control's bounds in root
+        // coordinates become a standing spot on her row.
+        val intentSpot: Offset? = intentTarget?.let { r ->
+            Offset(
+                (r.center.x - layerOrigin.x - petW / 2f).coerceIn(minX, maxX),
+                (r.bottom - layerOrigin.y + edge).coerceIn(minY, maxY),
+            )
+        }
         val pointing = nudge != null && nudgeSpot != null
 
         // Her offsets are measured from home, so when home moves under her
@@ -285,7 +308,7 @@ fun CompanionLayer(
         // put her. A touch or a nudge re-entering this effect keeps them.
         var placedAt by remember { mutableStateOf(Offset(homeX, homeY)) }
 
-        LaunchedEffect(still, interactionTick, dragging, homeX, homeY, nudge, nudgeSpot) {
+        LaunchedEffect(still, interactionTick, dragging, homeX, homeY, nudge, nudgeSpot, intent, intentSpot) {
             if (placedAt != Offset(homeX, homeY)) {
                 placedAt = Offset(homeX, homeY)
                 walkedX.snapTo(0f)
@@ -318,6 +341,23 @@ fun CompanionLayer(
             // the next bout is taken where she stands rather than snapping.
             pose = CompanionPose.STAND
             delay(SETTLE_BEFORE_WANDER)
+
+            // Intent, when there is any. She walks to the subject of her own
+            // face and holds there: position is the message, so an errand with
+            // no subject would dilute the one that has a subject.
+            if (intent != null) {
+                val resting = intent.pose()
+                intentSpot?.let { walkTo(it.x, it.y) }
+                    ?: walkTo(homeX, homeY)
+                // Turned to the user for a beat on arrival, so the arrival
+                // reads as arriving somewhere rather than stopping.
+                pose = CompanionPose.FRONT
+                delay(900)
+                pose = resting
+                // Then stay. A quiet screen is allowed to be quiet, and an app
+                // willing to be still can be trusted when it moves.
+                return@LaunchedEffect
+            }
             while (true) {
                 // A bout: two to four errands across the screen, anywhere the
                 // layout allows. Each leg has to be long enough to read as
@@ -787,4 +827,20 @@ enum class Mood(val rest: Int) {
             }
         }
     }
+}
+
+/**
+ * The face that goes with each state.
+ *
+ * A straight mapping, because the sprite table already names the six faces for
+ * the triggers they were drawn for. `CompanionFace` decides *which* is true;
+ * this only says which pixels draw it.
+ */
+fun ie.shoonya.vitt.model.CompanionFace.pose(): CompanionPose = when (this) {
+    ie.shoonya.vitt.model.CompanionFace.SLEEPY -> CompanionPose.SLEEPY
+    ie.shoonya.vitt.model.CompanionFace.GLAD -> CompanionPose.GLAD
+    ie.shoonya.vitt.model.CompanionFace.PECKISH -> CompanionPose.PECKISH
+    ie.shoonya.vitt.model.CompanionFace.CAREFUL -> CompanionPose.CAREFUL
+    ie.shoonya.vitt.model.CompanionFace.EXPECT -> CompanionPose.EXPECT
+    ie.shoonya.vitt.model.CompanionFace.CONTENT -> CompanionPose.CONTENT
 }
