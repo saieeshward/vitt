@@ -1,44 +1,48 @@
 package ie.shoonya.vitt
 
+import ie.shoonya.vitt.capture.PendingHandoff
+
 /**
- * The door Swift knocks on when text arrives from outside the app.
+ * The door Swift knocks on when something arrives from outside the app.
  *
- * A Shortcut, a share extension, or anything else the user wires up hands text
- * here and the Compose side offers it for confirmation. Kept as an object with
- * a settable callback rather than a parameter on `MainViewController`, because
- * an App Intent can fire before any view controller exists: iOS launches the
- * app to run it, and the intent has no reference to the composition that has
- * not happened yet.
+ * A Shortcut, a share extension, the widget's button. Kept as an object with
+ * settable callbacks rather than parameters on `MainViewController`, because
+ * any of these can fire *before* a view controller exists: iOS launches the app
+ * to run them, and there is no composition yet to hand them to.
  *
- * The app reads nothing on its own. Everything that arrives here does so
- * because a person, or an automation a person wrote on their own device, chose
- * to send it. That distinction is the whole reason this is allowed to exist:
- * `PLAN.md` §0 rules out notification reading, and §6 explicitly keeps
- * user-authored Shortcuts automations, because exposing an intent is not the
- * same as going and taking the data.
+ * The app reads nothing on its own. Everything here arrives because a person,
+ * or an automation a person wrote on their own device, chose to send it. That
+ * distinction is why this is allowed to exist at all: `PLAN.md` §0 rules out
+ * notification reading, and §6 keeps user-authored Shortcuts automations,
+ * because exposing a door is not the same as going and taking the data.
  *
- * [pending] covers the cold-launch race. An intent that starts the app runs
- * before `MainViewController` has set [onText], so the text is held and
- * replayed the moment the callback lands, instead of being dropped into a
- * listener nobody has registered yet.
+ * Both signals use [PendingHandoff], which holds a payload until a listener
+ * registers and delivers it exactly once. That is tested in `:shared`, and it
+ * is the piece that was actually wrong first time: the widget's button opened
+ * the app and did nothing, because the tap landed before anybody was listening.
  */
 object IosCapture {
 
-    private var pending: String? = null
+    private val text = PendingHandoff<String>()
+    private val add = PendingHandoff<Unit>()
 
-    var onText: ((String) -> Unit)? = null
-        set(value) {
-            field = value
-            pending?.let { held ->
-                pending = null
-                value?.invoke(held)
-            }
-        }
+    /** Set once the UI exists. Registering drains anything that arrived first. */
+    var onText: ((String) -> Unit)?
+        get() = text.listener
+        set(value) { text.listener = value }
 
-    /** Called from Swift. Safe before the UI exists. */
+    var onOpenAdd: (() -> Unit)?
+        get() = add.listener?.let { sink -> { sink(Unit) } }
+        set(value) { add.listener = value?.let { sink -> { _: Unit -> sink() } } }
+
+    /** Called from Swift with shared text. Safe before the UI exists. */
     fun submit(text: String) {
         if (text.isBlank()) return
-        val sink = onText
-        if (sink == null) pending = text else sink(text)
+        this.text.offer(text)
+    }
+
+    /** Called from Swift when a `vitt://add` link arrives. Carries no payload. */
+    fun openAdd() {
+        add.offer(Unit)
     }
 }

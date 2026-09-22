@@ -27,6 +27,7 @@ class MainActivity : ComponentActivity() {
         // A share arriving while the app is already open. singleTask means this
         // Activity is reused rather than recreated, so onCreate never runs.
         sharedText(intent)?.let { services?.onSharedText(it) }
+        if (intent.getBooleanExtra(VittWidget.EXTRA_ADD, false)) services?.requestAdd()
     }
 
     /**
@@ -95,6 +96,8 @@ class MainActivity : ComponentActivity() {
         // is the build type rather than the extra.
         // A share that launched the app cold. The parse is offered, never saved.
         sharedText(intent)?.let { services.onSharedText(it) }
+        // The widget's button. Without this it opened the app and did nothing.
+        if (intent?.getBooleanExtra(VittWidget.EXTRA_ADD, false) == true) services.requestAdd()
 
         if (BuildConfig.DEBUG) {
             if (intent?.getBooleanExtra("seed", false) == true) services.seedSampleData()

@@ -65,6 +65,8 @@ fun AppRoot(
                 // confirmed. Collected here because VittApp is recreated on a
                 // theme change and the offer must survive that.
                 val pendingCapture by services.pendingCapture.collectAsState()
+                // The widget's button, as a counter: two taps are two requests.
+                val openAdd by services.openAdd.collectAsState()
                 val remoteRevision by services.sync.remoteChanges.collectAsState()
                 // A pull can change the theme too: it is a synced choice.
                 LaunchedEffect(remoteRevision) { appearance++ }
@@ -78,6 +80,7 @@ fun AppRoot(
                     onAppearanceChange = { appearance++ },
                     pendingCapture = pendingCapture,
                     onCaptureConsumed = { services.captureConsumed() },
+                    openAddTick = openAdd,
                     syncStatus = syncStatus,
                     sheetActions = remember(services) {
                         SheetActions(

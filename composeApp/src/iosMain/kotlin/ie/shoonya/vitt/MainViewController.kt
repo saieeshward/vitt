@@ -41,6 +41,7 @@ fun MainViewController() = ComposeUIViewController {
     // Text from a Shortcut or the share extension. Setting this replays
     // anything that arrived during a cold launch, before this line ran.
     IosCapture.onText = { services.onSharedText(it) }
+    IosCapture.onOpenAdd = { services.requestAdd() }
 
     // Returning from the background is the moment another device's entries
     // are most likely waiting. The launch itself syncs from AppRoot.

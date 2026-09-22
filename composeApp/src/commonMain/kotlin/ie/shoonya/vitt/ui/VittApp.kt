@@ -140,6 +140,8 @@ fun VittApp(
      */
     pendingCapture: ie.shoonya.vitt.capture.ParsedTransaction? = null,
     onCaptureConsumed: () -> Unit = {},
+    /** Bumped by the widget's button. Opens the Add sheet with nothing filled in. */
+    openAddTick: Int = 0,
     /** Where the sheet stands, for Settings. Off when the app runs local-only. */
     syncStatus: SyncStatus = SyncStatus.Off,
     sheetActions: SheetActions = SheetActions({ ie.shoonya.vitt.auth.AuthResult.Cancelled }, {}, {}),
@@ -344,6 +346,14 @@ fun VittApp(
     // correcting, and cleared on close so the next manual + opens blank.
     var capturePrefill by remember {
         mutableStateOf<ie.shoonya.vitt.capture.ParsedTransaction?>(null)
+    }
+    // Skips the initial composition: a counter starting at zero must not open
+    // a sheet on every launch.
+    LaunchedEffect(openAddTick) {
+        if (openAddTick > 0) {
+            capturePrefill = null
+            sheet = Sheet.Add
+        }
     }
     LaunchedEffect(pendingCapture) {
         pendingCapture?.let {

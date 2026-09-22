@@ -84,6 +84,20 @@ class VittServices(
         _pendingCapture.value = null
     }
 
+    /**
+     * A request to open the Add sheet with nothing filled in.
+     *
+     * What the widget's button means. A counter rather than a boolean, because
+     * two taps in a row are two requests and a flag would swallow the second.
+     */
+    private val _openAdd = kotlinx.coroutines.flow.MutableStateFlow(0)
+    val openAdd: kotlinx.coroutines.flow.StateFlow<Int> = _openAdd
+
+    /** Called from a widget tap or a deep link. */
+    fun requestAdd() {
+        _openAdd.value += 1
+    }
+
     /** Wall-clock millis, for wording like "just now". */
     fun now(): Long = now.invoke()
 
