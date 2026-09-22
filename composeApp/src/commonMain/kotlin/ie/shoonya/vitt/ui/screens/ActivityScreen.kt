@@ -157,6 +157,12 @@ private fun TransactionRow(
         // What the person wrote beats what the app guessed: a note names the
         // entry better than its category does.
         val name = txn.merchantLabel ?: txn.note ?: txn.categoryOrNull?.label
+        // True when the category is doing double duty as the title. An entry
+        // typed on the keypad and left unnamed has nothing else to show, and
+        // printing the category again underneath it read "Groceries /
+        // Groceries" on every hand-logged row, next to imported rows that were
+        // properly named. Once is enough.
+        val titleIsCategory = txn.merchantLabel == null && txn.note == null
         Monogram(
             name = name,
             hue = colors.currency(currencyIndex(txn.amount.currency)),
@@ -176,7 +182,9 @@ private fun TransactionRow(
             val subtitle = buildList {
                 // The label, not the stored code — "groceries" reads as a
                 // database field.
-                txn.categoryOrNull?.let { add(it.label) } ?: txn.category?.let { add(it) }
+                if (!titleIsCategory) {
+                    txn.categoryOrNull?.let { add(it.label) } ?: txn.category?.let { add(it) }
+                }
                 // Provenance, but only where it is worth a word. §6 wants this
                 // as a debugging affordance and it stays one: a wrong category
                 // with nothing here came from the shipped keyword list by

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -24,12 +23,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import ie.shoonya.vitt.money.AccountSuggestions
+import ie.shoonya.vitt.money.AmountEntry
+import ie.shoonya.vitt.money.Money
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.deviceCurrency
+import ie.shoonya.vitt.ui.AmountKeypad
+import ie.shoonya.vitt.ui.VittChip
 import ie.shoonya.vitt.ui.theme.Vitt
 
-/** One account named during setup, before any of it is written to the log. */
-data class DraftAccount(val name: String, val currency: Currency)
+/**
+ * One account named during setup, before any of it is written to the log.
+ *
+ * [opening] is null until somebody types one, and null is not zero: an account
+ * whose balance was never given is one whose figures are relative, while one
+ * given as zero is an account that is genuinely empty. Writing the first as the
+ * second would be the app inventing a fact about somebody's money.
+ */
+data class DraftAccount(
+    val name: String,
+    val currency: Currency,
+    val opening: Money? = null,
+)
 
 /**
  * The first screen on a cold install: name the accounts, then start.
@@ -66,12 +80,56 @@ fun SetupScreen(
     onSkip: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val drafts = remember { mutableStateListOf<DraftAccount>() }
+    // Which account's keypad is open, or null for the list. Held here rather
+    // than in the balances step so that stepping back and forth between naming
+    // and balances does not lose it.
+    var editing by remember { mutableStateOf<Int?>(null) }
+    var onBalances by remember { mutableStateOf(false) }
+
+    when {
+        !onBalances -> NameStep(
+            drafts = drafts,
+            onNext = { onBalances = true },
+            onSkip = onSkip,
+            modifier = modifier,
+        )
+        editing != null -> {
+            val index = editing ?: return
+            val draft = drafts.getOrNull(index) ?: run { editing = null; return }
+            BalanceStep(
+                draft = draft,
+                onBack = { editing = null },
+                onSave = { amount ->
+                    drafts[index] = draft.copy(opening = amount)
+                    editing = null
+                },
+                modifier = modifier,
+            )
+        }
+        else -> BalancesStep(
+            drafts = drafts,
+            onEdit = { editing = it },
+            onBack = { onBalances = false },
+            onDone = { onDone(drafts.toList()) },
+            modifier = modifier,
+        )
+    }
+}
+
+/** Naming the accounts. The fast path, and the only step that is required. */
+@Composable
+private fun NameStep(
+    drafts: MutableList<DraftAccount>,
+    onNext: () -> Unit,
+    onSkip: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     // The device region is a starting guess and never more than that: the
     // premise of the app is people whose money is in more than one currency, so
     // the second currency is the interesting one and it cannot be inferred.
     var currency by remember { mutableStateOf(deviceCurrency() ?: Currency.EUR) }
     var typed by remember { mutableStateOf("") }
-    val drafts = remember { mutableStateListOf<DraftAccount>() }
 
     val add: (String) -> Unit = { name ->
         val clean = name.trim()
@@ -112,7 +170,7 @@ fun SetupScreen(
             verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
         ) {
             Currency.entries.forEach { c ->
-                FilterChip(
+                VittChip(
                     selected = currency == c,
                     onClick = { currency = c },
                     label = { Text(c.code, style = Vitt.type.label) },
@@ -179,7 +237,7 @@ fun SetupScreen(
                 ) {
                     AccountSuggestions.forCurrency(currency).forEach { name ->
                         val taken = drafts.any { it.name == name && it.currency == currency }
-                        FilterChip(
+                        VittChip(
                             selected = taken,
                             enabled = !taken,
                             onClick = { add(name) },
@@ -208,20 +266,153 @@ fun SetupScreen(
         }
 
         Button(
-            onClick = { onDone(drafts.toList()) },
+            onClick = onNext,
             enabled = drafts.isNotEmpty(),
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                // No count until there is one to give. "Start with 0 accounts"
+                // No count until there is one to give. "Next with 0 accounts"
                 // reads as a broken sentence on the screen everybody sees first,
                 // and the button is disabled there anyway.
                 when (drafts.size) {
-                    0 -> "Start"
+                    0 -> "Next"
+                    1 -> "Next · 1 account"
+                    else -> "Next · ${drafts.size} accounts"
+                },
+            )
+        }
+    }
+}
+
+/**
+ * The balances, offered once and never demanded.
+ *
+ * This step exists because leaving it out was worse than the friction it
+ * avoids. The reasoning against asking was sound in itself — a balance needs the
+ * keypad, it often needs looking up in another app, and an account without one
+ * is still a correct account — so the field was left to the edit sheet, one tap
+ * away from any account row.
+ *
+ * One tap away is not the same as findable. Walking a fresh install as a new
+ * user with four accounts, the app opened on four zeroes and said nothing about
+ * them; the balances were reachable only by guessing that an account row was
+ * tappable, and filling all four cost about forty taps that nothing had asked
+ * for. A day-one app that shows every balance as zero does not read as a fast
+ * setup. It reads as broken.
+ *
+ * So the question gets asked, once, where it belongs — and every part of it is
+ * optional. No balance is required, the button says Start rather than Save, and
+ * an account left blank is left blank rather than written as zero. The cost of
+ * skipping is one tap; the cost of never being told is a person who thinks the
+ * app does not work.
+ */
+@Composable
+private fun BalancesStep(
+    drafts: List<DraftAccount>,
+    onEdit: (Int) -> Unit,
+    onBack: () -> Unit,
+    onDone: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxSize().padding(Vitt.space.loose),
+        verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("What is in them?", style = Vitt.type.title, color = Vitt.colors.ink)
+            TextButton(onClick = onBack) { Text("Back") }
+        }
+        Text(
+            "Skip anything you would have to go and look up. An account with no " +
+                "balance still works. Its figures start from where you are.",
+            style = Vitt.type.label,
+            color = Vitt.colors.inkMuted,
+        )
+
+        LazyColumn(
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(Vitt.space.snug),
+        ) {
+            items(drafts.size) { index ->
+                val draft = drafts[index]
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics(mergeDescendants = true) {},
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "${draft.name} · ${draft.currency.code}",
+                        style = Vitt.type.body,
+                        color = Vitt.colors.ink,
+                    )
+                    TextButton(onClick = { onEdit(index) }) {
+                        Text(
+                            // The figure itself once there is one, so the list
+                            // reads as the answers rather than as a row of
+                            // identical buttons.
+                            // Unsigned, as the account rows are. A leading plus
+                            // on a balance reads as a change rather than a
+                            // quantity: "+EUR 7,000.00" looks like money that
+                            // just arrived.
+                            draft.opening?.displayUnsigned() ?: "Add",
+                            style = Vitt.type.label,
+                        )
+                    }
+                }
+            }
+        }
+
+        Button(
+            onClick = onDone,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(
+                when (drafts.size) {
                     1 -> "Start with 1 account"
                     else -> "Start with ${drafts.size} accounts"
                 },
             )
         }
+    }
+}
+
+/** One account's opening balance, on the keypad. */
+@Composable
+private fun BalanceStep(
+    draft: DraftAccount,
+    onBack: () -> Unit,
+    onSave: (Money) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var entry by remember(draft.name, draft.currency) {
+        mutableStateOf(draft.opening?.let { AmountEntry.of(it) } ?: AmountEntry(currency = draft.currency))
+    }
+    Column(
+        modifier = modifier.fillMaxSize().padding(Vitt.space.loose),
+        verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextButton(onClick = onBack) { Text("Back") }
+            Text(draft.name, style = Vitt.type.title, color = Vitt.colors.ink)
+            // Enabled on a value, never on typed text: "0" and "0." are typed on
+            // the way to "0.50" and must not save on their own.
+            Button(enabled = entry.hasValue, onClick = { onSave(entry.money) }) { Text("Save") }
+        }
+        Text(
+            "What is in the account now. Everything you record from here moves it.",
+            style = Vitt.type.label,
+            color = Vitt.colors.inkMuted,
+        )
+        AmountKeypad(entry = entry, onEntryChange = { entry = it })
     }
 }

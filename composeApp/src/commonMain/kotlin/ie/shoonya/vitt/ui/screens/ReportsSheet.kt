@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.clickable
@@ -49,6 +48,7 @@ import ie.shoonya.vitt.time.Civil
 import ie.shoonya.vitt.time.Period
 import ie.shoonya.vitt.time.periodLabel
 import ie.shoonya.vitt.time.periodPhrase
+import ie.shoonya.vitt.ui.VittChip
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -128,7 +128,7 @@ fun ReportsSheet(
         if (currencies.size > 1) {
             Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
                 currencies.forEach { c ->
-                    FilterChip(
+                    VittChip(
                         selected = c == currency,
                         onClick = { onCurrencyChange(c) },
                         label = { Text(c.code, style = Vitt.type.label) },

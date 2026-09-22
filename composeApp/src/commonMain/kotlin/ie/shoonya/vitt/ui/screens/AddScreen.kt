@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -40,6 +39,7 @@ import ie.shoonya.vitt.money.AmountEntry
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.Money
 import ie.shoonya.vitt.ui.AmountKeypad
+import ie.shoonya.vitt.ui.VittChip
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /** What the user is recording. Direction is chosen, never inferred. */
@@ -87,6 +87,14 @@ fun AddScreen(
      * sign turns a 40 refund into a 40 expense.
      */
     prefill: ParsedTransaction? = null,
+    /**
+     * Opens with "Split this" already on.
+     *
+     * Set when the sheet was reached from the People tab, which is the one
+     * place in the app where somebody has said what they are doing before they
+     * say what it cost.
+     */
+    startSplit: Boolean = false,
     onSave: (NewEntry) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
@@ -120,7 +128,7 @@ fun AddScreen(
     }
     var category by remember { mutableStateOf<Category?>(null) }
     var allCategories by remember { mutableStateOf(false) }
-    var split by remember { mutableStateOf(false) }
+    var split by remember { mutableStateOf(startSplit) }
     // The merchant goes in the note, which is where a shared bank alert's
     // "TESCO STORES 3421 DUBLIN IE" belongs: it is what the entry was, and the
     // categoriser already learns from it.
@@ -264,7 +272,7 @@ fun AddScreen(
                 Step.Main -> {
                     Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.snug)) {
                         EntryKind.entries.forEach { k ->
-                            FilterChip(
+                            VittChip(
                                 selected = kind == k,
                                 onClick = {
                                     kind = k
@@ -302,7 +310,7 @@ fun AddScreen(
                             verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
                         ) {
                             shownCurrencies.forEach { c ->
-                                FilterChip(
+                                VittChip(
                                     selected = entry.currency == c,
                                     onClick = {
                                         // Re-tapping the current currency changes
@@ -332,7 +340,7 @@ fun AddScreen(
                             verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
                         ) {
                             inCurrency.forEach { a ->
-                                FilterChip(
+                                VittChip(
                                     selected = accountId == a.id,
                                     // Tapping the chosen account clears it. Capture
                                     // often cannot tell which account paid, and a
@@ -341,6 +349,20 @@ fun AddScreen(
                                     label = { Text(a.name, style = Vitt.type.label) },
                                 )
                             }
+                        }
+                        // Said out loud, because the blank is easy to arrive at
+                        // by accident: the chips are a toggle, so one stray tap
+                        // on the chosen account clears it, and nothing else on
+                        // this sheet changes when it does. Saving without an
+                        // account is still allowed — capture often cannot tell
+                        // which one paid — but it should never be a surprise.
+                        if (accountId == null) {
+                            Text(
+                                "No account picked. The entry is still recorded; " +
+                                    "no balance moves until you pick one.",
+                                style = Vitt.type.label,
+                                color = Vitt.colors.inkMuted,
+                            )
                         }
                     }
 
@@ -355,7 +377,7 @@ fun AddScreen(
                     )
 
                     Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.snug)) {
-                        FilterChip(
+                        VittChip(
                             selected = split,
                             onClick = {
                                 split = !split
@@ -363,7 +385,7 @@ fun AddScreen(
                             },
                             label = { Text("Split this", style = Vitt.type.label) },
                         )
-                        FilterChip(
+                        VittChip(
                             selected = note.isNotBlank(),
                             onClick = { step = Step.Note },
                             label = {
@@ -422,7 +444,7 @@ private fun CategoryChips(
         verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
     ) {
         shown.forEach { category ->
-            FilterChip(
+            VittChip(
                 selected = selected == category,
                 // Tapping the chosen one clears it: the field is optional, so
                 // there has to be a way back to none.
@@ -431,7 +453,7 @@ private fun CategoryChips(
             )
         }
         if (shown.size < all.size) {
-            FilterChip(
+            VittChip(
                 selected = false,
                 onClick = onShowAll,
                 label = { Text("More", style = Vitt.type.label) },

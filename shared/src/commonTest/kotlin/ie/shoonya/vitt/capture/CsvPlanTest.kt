@@ -118,10 +118,47 @@ class CsvPlanTest {
     }
 
     @Test
+    fun `the totals are magnitudes and do not cancel each other out`() {
+        // A month's pay and a month's spending netting to a small number would
+        // say nothing true about either, so the two directions stay apart.
+        val plan = CsvPlan.of(
+            result(
+                row(2, "03/04/2026", amount = eur(-1250)),
+                row(3, "04/04/2026", amount = eur(-750)),
+                row(4, "05/04/2026", amount = eur(300000)),
+            ),
+            CsvDate.Order.DAY_FIRST,
+        )
+        assertEquals(eur(2000), plan.totalOut)
+        assertEquals(eur(300000), plan.totalIn)
+    }
+
+    @Test
+    fun `a direction with no rows has no total rather than a zero`() {
+        // Zero and absent read the same on screen and mean different things.
+        // "EUR 0.00 in" invites the question of which income went missing.
+        val plan = CsvPlan.of(result(row(2, "03/04/2026")), CsvDate.Order.DAY_FIRST)
+        assertEquals(eur(1250), plan.totalOut)
+        assertEquals(null, plan.totalIn)
+    }
+
+    @Test
+    fun `a skipped row is left out of the totals`() {
+        // The totals describe what the button will do, not what the file said.
+        val plan = CsvPlan.of(
+            result(row(2, "03/04/2026"), row(3, "nonsense", amount = eur(-9999))),
+            CsvDate.Order.DAY_FIRST,
+        )
+        assertEquals(eur(1250), plan.totalOut)
+    }
+
+    @Test
     fun `an empty file plans to nothing without failing`() {
         val plan = CsvPlan.of(result(), CsvDate.Order.UNAMBIGUOUS)
         assertTrue(plan.importable.isEmpty())
         assertTrue(plan.dayRange == null)
+        assertEquals(null, plan.totalOut)
+        assertEquals(null, plan.totalIn)
         assertFalse(plan.needsDateOrder)
     }
 }

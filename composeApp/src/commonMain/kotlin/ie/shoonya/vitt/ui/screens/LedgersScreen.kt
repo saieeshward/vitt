@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,6 +70,8 @@ fun LedgersScreen(
     balances: List<ie.shoonya.vitt.model.AccountBalance>,
     transfers: List<ie.shoonya.vitt.model.Transfer>,
     onAddAccount: () -> Unit,
+    /** Offered from the empty state, where a person with history is most likely to want it. */
+    onImport: () -> Unit,
     onEditAccount: (String) -> Unit,
     onTransfer: () -> Unit,
     accountName: (String) -> String,
@@ -129,7 +132,7 @@ fun LedgersScreen(
         // list cannot remeasure the cards below it however far she walks.
 
         if (ledgers.isEmpty()) {
-            item { EmptyLedgers() }
+            item { EmptyLedgers(onImport = onImport) }
         } else if (swipeCards && ledgers.size > 1) {
             // One card in view, the next peeking at the edge. At six currencies
             // the stack ran past the fold and put Accounts a screen away; a
@@ -460,7 +463,7 @@ private fun OwedRow(owed: Map<Currency, Money>) {
 }
 
 @Composable
-private fun EmptyLedgers() {
+private fun EmptyLedgers(onImport: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
         Text("Nothing recorded yet.", style = Vitt.type.title, color = Vitt.colors.ink)
         Text(
@@ -468,5 +471,14 @@ private fun EmptyLedgers() {
             style = Vitt.type.label,
             color = Vitt.colors.inkMuted,
         )
+        // Import lived only at the foot of the Reports tab, below the charts —
+        // which is a fine place to find it again and a hopeless place to find
+        // it the first time. Somebody arriving with a year of history has
+        // nothing to report on yet, so the one screen they are looking at is
+        // this one. Offered rather than pushed: a plain text button under the
+        // sentence that tells them what the app expects instead.
+        TextButton(onClick = onImport, contentPadding = PaddingValues(0.dp)) {
+            Text("Or bring in a bank export", style = Vitt.type.label)
+        }
     }
 }

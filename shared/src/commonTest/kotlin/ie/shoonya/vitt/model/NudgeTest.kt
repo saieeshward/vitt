@@ -123,6 +123,38 @@ class HabitFiguresTest {
     }
 
     @Test
+    fun `an imported month buys no streak`() {
+        // The whole point. A bank export carries thirty dates with it, and one
+        // tap must not read as thirty days of turning up.
+        val r = repo()
+        (0..29).forEach {
+            r.record("i$it", eur(-100), day = today - it, category = "dining", imported = true)
+        }
+        assertEquals(0, r.longestRun())
+        assertEquals(emptySet(), r.recordedDays(today))
+        assertEquals(0, r.daysRecorded(today))
+    }
+
+    @Test
+    fun `a day with both a typed and an imported entry still counts`() {
+        // The person was there. That the same day also arrived in a file is
+        // neither their fault nor a reason to take the day away.
+        val r = repo()
+        r.record("imp", eur(-100), day = today, category = "dining", imported = true)
+        r.record("typed", eur(-250), day = today, category = "dining")
+        assertEquals(setOf(today), r.recordedDays(today))
+    }
+
+    @Test
+    fun `an imported row is an ordinary row everywhere else`() {
+        // Only the habit count reads the flag. A budget that ignored imported
+        // spending would be worse than no budget.
+        val r = repo()
+        r.record("imp", eur(-1_000), day = today, category = "dining", imported = true)
+        assertEquals(eur(1_000), r.ledgers().first { it.currency == Currency.EUR }.spent)
+    }
+
+    @Test
     fun `per currency days and monthly coverage never sum across currencies`() {
         val r = repo()
         r.record("e1", eur(-100), day = today, category = "dining")

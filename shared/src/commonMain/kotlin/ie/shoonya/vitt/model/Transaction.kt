@@ -59,6 +59,21 @@ data class Transaction(
      */
     val note: String?,
     val deleted: Boolean,
+    /**
+     * True when this row came in from a file rather than from a person.
+     *
+     * The habit count is the only thing that reads it, and it reads it to stay
+     * honest: a bank export carries a month of days with it, and counting those
+     * as days the person turned up would hand out a thirty-day streak for one
+     * tap. §5 asks the companion to reward presence, and an import is precisely
+     * the absence of presence. Everything else — budgets, categories, reports,
+     * balances — treats an imported row exactly like any other, because as a
+     * record of money it is exactly like any other.
+     *
+     * Absent on every row written before this field existed, which reads as
+     * false: those rows were all hand-logged, so false is also correct.
+     */
+    val imported: Boolean = false,
 ) {
     /** What the budget and the categories see: your share, not what you fronted. */
     val share: Money get() = amount
@@ -149,6 +164,12 @@ data class Transaction(
         const val FIELD_SETTLED = "settled"
         const val FIELD_NOTE = "note"
 
+        /**
+         * Written only when true, so a hand-logged row costs no extra event.
+         * The common case is the daily one and it should stay the cheap one.
+         */
+        const val FIELD_IMPORTED = "imported"
+
         /** UTF-16 units. A note is a reminder, not a diary entry. */
         const val MAX_NOTE = 80
 
@@ -192,6 +213,7 @@ data class Transaction(
             totalPaid: Money?,
             splitWith: Set<String> = emptySet(),
             note: String? = null,
+            imported: Boolean = false,
             issue: () -> Hlc,
         ): List<Event> = buildList {
             fun put(field: String, value: TaggedValue) =
@@ -209,6 +231,7 @@ data class Transaction(
             totalPaid?.let { put(FIELD_TOTAL_PAID, TaggedValue.Num(it.minor)) }
             splitWith.forEach { put(splitKey(it), TaggedValue.Bool(true)) }
             note?.trim()?.takeIf { it.isNotEmpty() }?.let { put(FIELD_NOTE, TaggedValue.Str(it.takeChars(MAX_NOTE))) }
+            if (imported) put(FIELD_IMPORTED, TaggedValue.Bool(true))
         }
 
         /**
@@ -253,6 +276,7 @@ data class Transaction(
                 ),
                 note = (entity.fields[FIELD_NOTE] as? TaggedValue.Str)?.value?.takeIf { it.isNotBlank() },
                 deleted = entity.deleted,
+                imported = (entity.fields[FIELD_IMPORTED] as? TaggedValue.Bool)?.value == true,
             )
         }
     }

@@ -45,6 +45,8 @@ class LedgerRepository(
         totalPaid: Money? = null,
         splitWith: Set<String> = emptySet(),
         note: String? = null,
+        /** True only for a row read out of a file. See [Transaction.imported]. */
+        imported: Boolean = false,
     ) {
         // The sheet is append-only, so a zero row can never be taken back. The
         // keypad refuses it too; this is for every other caller.
@@ -94,6 +96,7 @@ class LedgerRepository(
             totalPaid = totalPaid,
             splitWith = splitWith,
             note = note,
+            imported = imported,
             issue = store::issue,
         )
         val at = now()
@@ -796,7 +799,21 @@ class LedgerRepository(
     fun recordedDays(today: Int, window: Int = 30): Set<Int> =
         allRecordedDays().filter { it > today - window && it <= today }.toSet()
 
-    private fun allRecordedDays(): Set<Int> = transactions().map { it.day }.toSet() + noSpendDays()
+    /**
+     * The days this person turned up, which is not the same as the days that
+     * have entries on them.
+     *
+     * Imported rows are left out. A bank export brings a month of dates with it,
+     * and counting them would mean one tap buying a thirty-day run — the
+     * companion would be congratulating somebody for the one thing it exists to
+     * make unnecessary. A day counts when a person recorded on it, or said out
+     * loud that there was nothing to record.
+     *
+     * A day holding both a hand-logged and an imported entry still counts: the
+     * person was there.
+     */
+    private fun allRecordedDays(): Set<Int> =
+        transactions().filterNot { it.imported }.map { it.day }.toSet() + noSpendDays()
 
     /**
      * Marks a day as one with nothing to record.

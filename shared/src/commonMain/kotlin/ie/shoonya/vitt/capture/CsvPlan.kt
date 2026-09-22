@@ -51,6 +51,32 @@ data class CsvPlan(
             if (it.isEmpty()) null else it.min()..it.max()
         }
 
+    /**
+     * What is about to leave, as a magnitude. Null when nothing is importable.
+     *
+     * A count is not a quantity. "412 entries" is a number a person accepts
+     * without reading; "EUR 2,994 out" is the one that makes them check the
+     * account before they press the button, and pressing it wrongly is the
+     * least undoable thing this app does.
+     *
+     * Every importable row is in the account's currency — the file is parsed in
+     * it — so summing minor units across the file is sound. Magnitudes rather
+     * than a signed net, because a month's pay and a month's spending cancelling
+     * to a small number would say nothing true about either.
+     */
+    val totalOut: Money? get() = total { it < 0 }
+
+    /** What is about to arrive, as a magnitude. Null when nothing is importable. */
+    val totalIn: Money? get() = total { it > 0 }
+
+    private fun total(want: (Long) -> Boolean): Money? {
+        val amounts = importable.mapNotNull { it.amount }.filter { want(it.minor) }
+        if (amounts.isEmpty()) return null
+        var minor = 0L
+        amounts.forEach { minor += if (it.minor < 0) -it.minor else it.minor }
+        return Money(minor, amounts.first().currency)
+    }
+
     companion object {
         /**
          * Resolves a parsed file against a chosen date order.

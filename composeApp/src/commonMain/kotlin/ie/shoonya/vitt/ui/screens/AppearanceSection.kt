@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -35,6 +34,7 @@ import ie.shoonya.vitt.ui.CompanionPet
 import ie.shoonya.vitt.ui.theme.AccentChoice
 import ie.shoonya.vitt.theme.Appearance
 import ie.shoonya.vitt.ui.theme.ThemeChoice
+import ie.shoonya.vitt.ui.VittChip
 import ie.shoonya.vitt.ui.theme.Vitt
 import ie.shoonya.vitt.ui.theme.colours
 
@@ -112,7 +112,7 @@ fun AppearanceSection(
         Text("Appearance", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
         Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
             Appearance.entries.forEach { option ->
-                FilterChip(
+                VittChip(
                     selected = option == appearance,
                     onClick = { onAppearanceChange(option) },
                     label = { Text(option.label, style = Vitt.type.label) },

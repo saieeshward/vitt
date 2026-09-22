@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -27,6 +26,7 @@ import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.Money
 import ie.shoonya.vitt.money.Rate
 import ie.shoonya.vitt.ui.AmountKeypad
+import ie.shoonya.vitt.ui.VittChip
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -239,7 +239,7 @@ private fun AccountPicker(
             verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
         ) {
             accounts.forEach { account ->
-                FilterChip(
+                VittChip(
                     selected = selected == account,
                     onClick = { onSelect(account) },
                     label = {

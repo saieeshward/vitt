@@ -9,7 +9,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -26,6 +25,7 @@ import ie.shoonya.vitt.capture.CategorySource
 import ie.shoonya.vitt.capture.MerchantName
 import ie.shoonya.vitt.model.Transaction
 import ie.shoonya.vitt.text.takeChars
+import ie.shoonya.vitt.ui.VittChip
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -137,7 +137,7 @@ fun CategorySheet(
             // Income and Transfer are offered too. An import can legitimately be
             // either, and hiding them would leave those rows uncorrectable.
             Category.entries.forEach { category ->
-                FilterChip(
+                VittChip(
                     selected = transaction.categoryOrNull == category,
                     onClick = {
                         commitNote()
@@ -153,7 +153,7 @@ fun CategorySheet(
         }
 
         if (merchantKey != null) {
-            FilterChip(
+            VittChip(
                 selected = remember,
                 onClick = { remember = !remember },
                 label = { Text("Remember for “$merchantKey”", style = Vitt.type.label) },
@@ -169,7 +169,7 @@ fun CategorySheet(
             )
 
             if (pastCount > 0) {
-                FilterChip(
+                VittChip(
                     selected = applyToPast,
                     onClick = { applyToPast = !applyToPast },
                     label = {

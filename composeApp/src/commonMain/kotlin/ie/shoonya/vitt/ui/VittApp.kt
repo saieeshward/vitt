@@ -54,6 +54,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import ie.shoonya.vitt.model.LedgerRepository
 import ie.shoonya.vitt.model.SettlementSummary
 import ie.shoonya.vitt.money.Currency
+import ie.shoonya.vitt.money.Money
 import ie.shoonya.vitt.time.Civil
 import ie.shoonya.vitt.time.Period
 import ie.shoonya.vitt.time.YearMonth
@@ -371,11 +372,15 @@ fun VittApp(
     var capturePrefill by remember {
         mutableStateOf<ie.shoonya.vitt.capture.ParsedTransaction?>(null)
     }
+    // Set only by the People tab's empty state, and cleared the moment the Add
+    // sheet closes: reaching the sheet from anywhere else must not inherit
+    // somebody's earlier intention to split.
+    var splitFromPeople by remember { mutableStateOf(false) }
     // Skips the initial composition: a counter starting at zero must not open
     // a sheet on every launch.
     LaunchedEffect(openAddTick) {
         if (openAddTick > 0) {
-            capturePrefill = null
+            capturePrefill = null; splitFromPeople = false
             sheet = Sheet.Add
         }
     }
@@ -403,10 +408,18 @@ fun VittApp(
                 // without reading the accounts back out of the log.
                 val ids = drafts.map { newId() }
                 drafts.forEachIndexed { i, draft ->
-                    // Kind and opening balance are left at their defaults on
-                    // purpose. Both are corrections rather than questions, and
-                    // an account row opens the edit sheet.
-                    repository.openAccount(ids[i], draft.name, draft.currency)
+                    // Kind is left at its default on purpose: it decides only
+                    // whether a negative balance reads as "owed" or
+                    // "overdrawn", and asking for it up front gives it a weight
+                    // it does not carry. The opening balance *is* asked for, in
+                    // its own optional step, and a draft that skipped it opens
+                    // at zero exactly as before.
+                    repository.openAccount(
+                        ids[i],
+                        draft.name,
+                        draft.currency,
+                        opening = draft.opening ?: Money(0, draft.currency),
+                    )
                 }
                 // Most people pay from one account most of the time, and the
                 // one they named first is the likeliest. Saves a tap on the
@@ -473,6 +486,7 @@ fun VittApp(
                     balances = balances,
                     transfers = transfers,
                     onAddAccount = { sheet = Sheet.NewAccount },
+            onImport = { sheet = Sheet.Import },
                     onEditAccount = { sheet = Sheet.EditAccount(it) },
                     onTransfer = { sheet = Sheet.Transfer },
                     accountName = nameOf,
@@ -521,6 +535,7 @@ fun VittApp(
                         )?.let { sheet = Sheet.Summary(it.subject, it.body) }
                     },
                     onOpenSplit = { sheet = Sheet.Split(it.id) },
+                    onSplitSomething = { splitFromPeople = true; sheet = Sheet.Add },
                     companionInset = if (habitOn && companion != null) 64.dp else 0.dp,
                     formatDay = formatDay,
                 )
@@ -718,6 +733,7 @@ fun VittApp(
             when (open) {
                 Sheet.Add -> AddScreen(
                     prefill = capturePrefill,
+                    startSplit = splitFromPeople,
                     // The currencies actually held, and every currency the app
                     // knows only when none are.
                     //
@@ -760,14 +776,14 @@ fun VittApp(
                         // A split is not finished when it is saved: who was in
                         // on it is still unsaid, and the only place to say it
                         // was a row tap nobody was told about. Open it now.
-                        capturePrefill = null
+                        capturePrefill = null; splitFromPeople = false
                         // The reward, spent immediately. Nothing accumulates,
                         // so nothing can be lost and there is no streak to
                         // protect by avoiding the app.
                         justSaved = true
                         sheet = if (new.totalPaid != null) Sheet.Split(id) else null
                     },
-                    onCancel = { capturePrefill = null; sheet = null },
+                    onCancel = { capturePrefill = null; splitFromPeople = false; sheet = null },
                 )
 
                 Sheet.NewAccount -> AccountSheet(
@@ -844,6 +860,10 @@ fun VittApp(
                                     day = day,
                                     merchant = row.merchant,
                                     accountId = accountId,
+                                    // Marked at the only place that knows. The
+                                    // habit count leaves these days out; nothing
+                                    // else treats them differently.
+                                    imported = true,
                                 )
                             }
                             repository.setChoice(Choice.LAST_ACCOUNT, accountId)

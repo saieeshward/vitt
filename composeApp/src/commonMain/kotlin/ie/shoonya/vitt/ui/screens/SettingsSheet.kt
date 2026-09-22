@@ -23,6 +23,7 @@ import ie.shoonya.vitt.theme.Appearance
 import ie.shoonya.vitt.ui.theme.ThemeChoice
 import ie.shoonya.vitt.config.Links
 import ie.shoonya.vitt.ui.platform.rememberLinkOpener
+import ie.shoonya.vitt.ui.VittChip
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -122,13 +123,13 @@ fun SettingsSheet(
             horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight),
             verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
         ) {
-            androidx.compose.material3.FilterChip(
+            VittChip(
                 selected = reminder == null,
                 onClick = { onReminderChange(null) },
                 label = { Text("Off", style = Vitt.type.label) },
             )
             ie.shoonya.vitt.notify.Reminder.CHOICES.forEach { option ->
-                androidx.compose.material3.FilterChip(
+                VittChip(
                     selected = reminder == option,
                     onClick = { onReminderChange(option) },
                     label = { Text(option.format(), style = Vitt.type.label) },

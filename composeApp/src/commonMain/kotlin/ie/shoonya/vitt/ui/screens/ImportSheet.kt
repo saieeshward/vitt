@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -21,6 +20,7 @@ import androidx.compose.ui.Modifier
 import ie.shoonya.vitt.capture.CsvDate
 import ie.shoonya.vitt.capture.CsvPlan
 import ie.shoonya.vitt.model.Account
+import ie.shoonya.vitt.ui.VittChip
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -126,12 +126,12 @@ fun ImportSheet(
                 color = Vitt.colors.inkMuted,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
-                FilterChip(
+                VittChip(
                     selected = false,
                     onClick = { onDateOrder(CsvDate.Order.DAY_FIRST) },
                     label = { Text("03/04 is 3 April", style = Vitt.type.label) },
                 )
-                FilterChip(
+                VittChip(
                     selected = false,
                     onClick = { onDateOrder(CsvDate.Order.MONTH_FIRST) },
                     label = { Text("03/04 is 4 March", style = Vitt.type.label) },
@@ -145,6 +145,31 @@ fun ImportSheet(
             style = Vitt.type.money,
             color = Vitt.colors.ink,
         )
+
+        // The count is not the quantity. A person accepts "26 entries" without
+        // looking; the span and the two totals are what let them recognise the
+        // file as the one they meant, before pressing the least undoable button
+        // in the app. Both directions, never netted: a month's pay cancelling a
+        // month's spending would read as a quiet month.
+        plan.dayRange?.let { range ->
+            Text(
+                if (range.first == range.last) formatDay(range.first)
+                else "${formatDay(range.first)} to ${formatDay(range.last)}",
+                style = Vitt.type.label,
+                color = Vitt.colors.inkMuted,
+            )
+        }
+        val flows = listOfNotNull(
+            plan.totalOut?.let { "${it.displayUnsigned()} out" },
+            plan.totalIn?.let { "${it.displayUnsigned()} in" },
+        )
+        if (flows.isNotEmpty()) {
+            Text(
+                flows.joinToString(" · "),
+                style = Vitt.type.label,
+                color = Vitt.colors.inkMuted,
+            )
+        }
 
         // The count worth reading is the one that says what will be lost. A
         // person accepts "412 entries" without looking; "nine skipped" is the
@@ -201,7 +226,7 @@ fun ImportSheet(
                 verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
             ) {
                 accounts.forEach { account ->
-                    FilterChip(
+                    VittChip(
                         selected = account.id == accountId,
                         onClick = { onAccountChange(account.id) },
                         label = {

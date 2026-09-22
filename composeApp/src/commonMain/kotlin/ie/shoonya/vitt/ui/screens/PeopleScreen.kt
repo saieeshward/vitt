@@ -39,6 +39,8 @@ fun PeopleScreen(
     splitsFor: (String) -> List<Transaction>,
     onShare: (String) -> Unit,
     onOpenSplit: (Transaction) -> Unit,
+    /** Opens the Add sheet with the split already on, for the empty state. */
+    onSplitSomething: () -> Unit,
     formatDay: (Int) -> String,
     /** Room kept at the foot for the companion's band, as the other tabs keep. */
     companionInset: androidx.compose.ui.unit.Dp = 0.dp,
@@ -65,6 +67,14 @@ fun PeopleScreen(
                         style = Vitt.type.label,
                         color = Vitt.colors.inkMuted,
                     )
+                    // A tab that only ever describes something you do elsewhere
+                    // is a dead end, and this one is reached by people looking
+                    // for exactly the thing it will not let them start. The
+                    // sentence above stays — it is still where splits come from
+                    // — and the button saves the trip.
+                    TextButton(onClick = onSplitSomething, contentPadding = PaddingValues(0.dp)) {
+                        Text("Split something now", style = Vitt.type.label)
+                    }
                 }
             }
         } else {

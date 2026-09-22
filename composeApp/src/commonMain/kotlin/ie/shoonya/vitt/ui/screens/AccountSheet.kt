@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -25,6 +24,7 @@ import ie.shoonya.vitt.money.AmountEntry
 import ie.shoonya.vitt.money.Currency
 import ie.shoonya.vitt.money.Money
 import ie.shoonya.vitt.ui.AmountKeypad
+import ie.shoonya.vitt.ui.VittChip
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -128,7 +128,7 @@ fun AccountSheet(
                     if (allCurrencies || heldCurrencies.isEmpty()) Currency.entries
                     else heldCurrencies
                 offered.forEach { c ->
-                    FilterChip(
+                    VittChip(
                         selected = currency == c,
                         onClick = {
                             currency = c
@@ -139,7 +139,7 @@ fun AccountSheet(
                 }
                 if (!allCurrencies && heldCurrencies.isNotEmpty()) {
                     // Not hidden, just not in the way.
-                    FilterChip(
+                    VittChip(
                         selected = false,
                         onClick = { allCurrencies = true },
                         label = { Text("Another", style = Vitt.type.label) },
@@ -317,7 +317,7 @@ private fun KindChips(kind: AccountKind, onPick: (AccountKind) -> Unit) {
         verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
     ) {
         AccountKind.entries.forEach { k ->
-            FilterChip(
+            VittChip(
                 selected = kind == k,
                 onClick = { onPick(k) },
                 label = { Text(k.label(), style = Vitt.type.label) },
