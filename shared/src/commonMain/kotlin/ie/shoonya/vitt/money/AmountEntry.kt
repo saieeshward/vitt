@@ -122,6 +122,13 @@ data class AmountEntry(
          * never typed and cannot delete.
          */
         fun of(amount: Money): AmountEntry {
+            // Zero seeds an *empty* keypad, not "0.00". For the keypad the two
+            // are the same value — [money] reads empty as zero — but they are
+            // not the same state: "0.00" already has a full fraction, so
+            // [press] refuses every digit after it and the keypad appears
+            // dead. Found by setting a starting balance on a new account,
+            // where the opening is zero and nothing could be typed at all.
+            if (amount.minor == 0L) return AmountEntry(currency = amount.currency)
             val exp = amount.currency.exponent
             val digits = amount.abs().minor.toString().padStart(exp + 1, '0')
             val text = if (exp == 0) {

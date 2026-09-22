@@ -718,12 +718,17 @@ fun VittApp(
             when (open) {
                 Sheet.Add -> AddScreen(
                     prefill = capturePrefill,
-                    // Every currency the ledger has seen, then every currency the
-                    // app knows. A fresh install used to offer EUR and INR only,
-                    // so a person in Dubai or Tokyo could not log their first
-                    // entry in their own money. The screen puts account-backed
-                    // currencies first and these behind them.
-                    currencies = (ledgers.map { it.currency } + Currency.entries).distinct(),
+                    // The currencies actually held, and every currency the app
+                    // knows only when none are.
+                    //
+                    // Offering all six to somebody with a euro and a rupee
+                    // account is four chips of noise on the screen they use
+                    // most, and it invites logging into a currency no account
+                    // can hold. The fallback stays because a fresh install has
+                    // no accounts yet, and a person in Dubai or Tokyo has to be
+                    // able to log their first entry in their own money.
+                    currencies = accounts.map { it.currency }.distinct()
+                        .ifEmpty { (ledgers.map { it.currency } + Currency.entries).distinct() },
                     accounts = accounts,
                     frequentSpending = remember(revision) {
                         repository.frequentCategories(today, spending = true)
@@ -766,6 +771,7 @@ fun VittApp(
                 )
 
                 Sheet.NewAccount -> AccountSheet(
+                    heldCurrencies = accounts.map { it.currency }.distinct(),
                     onCreate = { name, currency, kind, opening ->
                         repository.openAccount(newId(), name, currency, kind, opening)
                         localRevision++

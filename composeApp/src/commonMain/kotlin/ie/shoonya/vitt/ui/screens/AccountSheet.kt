@@ -38,12 +38,23 @@ import ie.shoonya.vitt.ui.theme.Vitt
  */
 @Composable
 fun AccountSheet(
+    /**
+     * The currencies already held, offered first.
+     *
+     * Somebody with a euro and a rupee account is almost always opening a third
+     * account in one of those two, and six chips make the two that matter
+     * harder to find. The rest stay one tap away rather than gone, because
+     * opening the first account in a new currency is exactly how a second
+     * country starts.
+     */
+    heldCurrencies: List<Currency> = emptyList(),
     onCreate: (name: String, currency: Currency, kind: AccountKind, opening: Money) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var name by remember { mutableStateOf("") }
-    var currency by remember { mutableStateOf(Currency.EUR) }
+    var currency by remember { mutableStateOf(heldCurrencies.firstOrNull() ?: Currency.EUR) }
+    var allCurrencies by remember { mutableStateOf(heldCurrencies.isEmpty()) }
     var kind by remember { mutableStateOf(AccountKind.CURRENT) }
     var entry by remember { mutableStateOf(AmountEntry(currency = currency)) }
     var settingOpening by remember { mutableStateOf(false) }
@@ -107,8 +118,16 @@ fun AccountSheet(
             )
 
             Text("Currency", style = Vitt.type.caption, color = Vitt.colors.inkMuted)
-            Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
-                Currency.entries.forEach { c ->
+            @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+            androidx.compose.foundation.layout.FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+                verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+            ) {
+                val offered =
+                    if (allCurrencies || heldCurrencies.isEmpty()) Currency.entries
+                    else heldCurrencies
+                offered.forEach { c ->
                     FilterChip(
                         selected = currency == c,
                         onClick = {
@@ -116,6 +135,14 @@ fun AccountSheet(
                             entry = entry.withCurrency(c)
                         },
                         label = { Text(c.code, style = Vitt.type.label) },
+                    )
+                }
+                if (!allCurrencies && heldCurrencies.isNotEmpty()) {
+                    // Not hidden, just not in the way.
+                    FilterChip(
+                        selected = false,
+                        onClick = { allCurrencies = true },
+                        label = { Text("Another", style = Vitt.type.label) },
                     )
                 }
             }

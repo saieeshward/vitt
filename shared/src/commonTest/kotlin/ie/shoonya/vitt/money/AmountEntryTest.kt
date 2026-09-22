@@ -169,4 +169,21 @@ class AmountEntryTest {
         assertEquals("12.50", entry.text)
         assertEquals(Money(1250, Currency.EUR), entry.money)
     }
+
+    @Test
+    fun `seeding zero leaves a keypad that can still be typed on`() {
+        // "0.00" is the same value as empty but not the same state: it already
+        // has a full fraction, so press() refuses every digit and the keypad
+        // looks broken. Found setting a starting balance on a new account.
+        val zero = AmountEntry.of(Money(0, Currency.EUR))
+        assertEquals("", zero.text)
+        assertEquals(Money(0, Currency.EUR), zero.money)
+        assertEquals(Money(700_000, Currency.EUR), type(zero, "7000").money)
+    }
+
+    @Test
+    fun `seeding zero in a currency without decimals is also typeable`() {
+        val zero = AmountEntry.of(Money(0, Currency.JPY))
+        assertEquals(Money(7000, Currency.JPY), type(zero, "7000").money)
+    }
 }
