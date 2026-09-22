@@ -69,6 +69,7 @@ import ie.shoonya.vitt.ui.screens.CategorySheet
 import ie.shoonya.vitt.ui.screens.EditAccountSheet
 import ie.shoonya.vitt.ui.screens.GrainSheet
 import ie.shoonya.vitt.ui.screens.HabitScreen
+import ie.shoonya.vitt.ui.screens.ImportSheet
 import ie.shoonya.vitt.ui.screens.LedgersScreen
 import ie.shoonya.vitt.ui.screens.PeopleScreen
 import ie.shoonya.vitt.ui.screens.ReportsSheet
@@ -105,6 +106,7 @@ private sealed interface Sheet {
     data class SetBudget(val currency: Currency) : Sheet
     data class EditCategory(val id: String) : Sheet
     data class EditAccount(val id: String) : Sheet
+    data object Import : Sheet
     data object Settings : Sheet
     data object Habit : Sheet
     data object PickGrain : Sheet
@@ -296,6 +298,28 @@ fun VittApp(
     // a pet that ate a tap would be a bug, not a character.
     var interactions by remember { mutableStateOf(0) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
+
+    // The import in progress. The raw text is kept so that changing the account
+    // re-reads the file: a minor unit is not a fixed thing, and "12.50" scaled
+    // for euro is meaningless in yen, which has no decimals at all.
+    val picker = ie.shoonya.vitt.ui.platform.rememberFilePicker()
+    var importText by remember { mutableStateOf<String?>(null) }
+    var importBusy by remember { mutableStateOf(false) }
+    var importAccountId by remember { mutableStateOf<String?>(null) }
+    var importOrder by remember { mutableStateOf<ie.shoonya.vitt.capture.CsvDate.Order?>(null) }
+
+    val importPlan = remember(importText, importAccountId, importOrder, accounts) {
+        val text = importText ?: return@remember null
+        val currency = accounts.firstOrNull { it.id == importAccountId }?.currency
+            ?: accounts.firstOrNull()?.currency
+            ?: Currency.EUR
+        val parsed = ie.shoonya.vitt.capture.CsvImport.parse(text, currency)
+        // The file's own answer unless the user has overridden it, which only
+        // happens when the file could not answer for itself.
+        val order = importOrder
+            ?: ie.shoonya.vitt.capture.CsvDate.order(parsed.rows.map { it.date })
+        ie.shoonya.vitt.capture.CsvPlan.of(parsed, order)
+    }
 
     // What the companion is expressing, from what is actually true.
     //
@@ -550,6 +574,7 @@ fun VittApp(
                         merchants = remember(revision, currency, period) {
                             Insights.topMerchants(all, currency, period, limit = 5)
                         },
+                        onImport = { sheet = Sheet.Import },
                         onExport = {
                             // Two files, because a transfer has two amounts and
                             // two accounts and would leave half of every
@@ -781,6 +806,53 @@ fun VittApp(
                         )
                     }
                 }
+
+                Sheet.Import -> ImportSheet(
+                    plan = importPlan,
+                    accounts = accounts,
+                    accountId = importAccountId ?: accounts.firstOrNull()?.id,
+                    onAccountChange = { importAccountId = it },
+                    busy = importBusy,
+                    onPickFile = {
+                        importBusy = true
+                        picker.pick { text ->
+                            importBusy = false
+                            // A cancelled pick leaves the sheet exactly as it
+                            // was, which is what cancelling should do.
+                            if (text != null) {
+                                importText = text
+                                importOrder = null
+                            }
+                        }
+                    },
+                    onDateOrder = { importOrder = it },
+                    onImport = { accountId, rows ->
+                        val account = accounts.firstOrNull { it.id == accountId }
+                        if (account != null) {
+                            rows.forEach { row ->
+                                val amount = row.amount ?: return@forEach
+                                val day = row.day ?: return@forEach
+                                repository.record(
+                                    id = newId(),
+                                    amount = amount,
+                                    day = day,
+                                    merchant = row.merchant,
+                                    accountId = accountId,
+                                )
+                            }
+                            repository.setChoice(Choice.LAST_ACCOUNT, accountId)
+                            localRevision++
+                        }
+                        importText = null
+                        importOrder = null
+                        sheet = null
+                    },
+                    onCancel = {
+                        importText = null
+                        importOrder = null
+                        sheet = null
+                    },
+                )
 
                 Sheet.Transfer -> TransferSheet(
                     accounts = accounts,

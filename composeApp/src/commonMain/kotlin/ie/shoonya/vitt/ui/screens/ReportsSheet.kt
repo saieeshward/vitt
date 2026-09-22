@@ -95,6 +95,7 @@ fun ReportsSheet(
     /** Spend by weekday, Monday first. */
     weekday: List<Money>,
     onExport: () -> Unit,
+    onImport: () -> Unit,
     /** Null when this is a tab rather than a sheet: there is nothing to be done with. */
     onDone: (() -> Unit)?,
     modifier: Modifier = Modifier,
@@ -328,6 +329,25 @@ fun ReportsSheet(
             )
             TextButton(onClick = onExport) { Text("Export") }
         }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "Import a bank export",
+                style = Vitt.type.body,
+                color = Vitt.colors.ink,
+            )
+            TextButton(onClick = onImport) { Text("Import") }
+        }
+        Text(
+            // Beside the export, because they are the same promise read in two
+            // directions: your data goes out, and it can come back in.
+            "A CSV from your bank. Everything is shown before anything is saved.",
+            style = Vitt.type.label,
+            color = Vitt.colors.inkMuted,
+        )
         Text(
             // The no-lock-in premise is a claim, and a claim the user cannot
             // test is marketing. This is where they test it.
