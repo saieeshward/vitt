@@ -908,23 +908,17 @@ fun VittApp(
                     reminder = reminder,
                     onReminderChange = { picked ->
                         scope.launch {
-                            // Permission only when switching it on, and only
-                            // then: asking at launch is asking before the person
-                            // knows what for, and a refusal is permanent.
-                            val allowed = picked == null ||
-                                ie.shoonya.vitt.notify.Reminders.requestPermission()
-                            if (allowed) {
-                                // Cleared, not set blank: Choice.events refuses
-                                // an empty value, and absent is what "off"
-                                // means everywhere else this is read.
-                                if (picked == null) {
-                                    repository.clearChoice(Choice.REMINDER)
-                                } else {
-                                    repository.setChoice(Choice.REMINDER, picked.format())
-                                }
-                                ie.shoonya.vitt.notify.Reminders.apply(picked)
-                                localRevision++
-                            }
+                            // The branches live in :shared and are tested
+                            // there, including the refusal path. A branch
+                            // inside a lambda inside a bottom sheet is a
+                            // branch nothing can reach.
+                            val stored = ie.shoonya.vitt.notify.applyReminderChoice(
+                                picked = picked,
+                                scheduler = ie.shoonya.vitt.notify.platformReminderScheduler,
+                                setChoice = { repository.setChoice(Choice.REMINDER, it) },
+                                clearChoice = { repository.clearChoice(Choice.REMINDER) },
+                            )
+                            if (stored) localRevision++
                         }
                     },
                     swipeCards = swipeCards,
