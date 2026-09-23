@@ -122,4 +122,17 @@ class MoneyParsingSafetyTest {
         assertFailsWith<IllegalArgumentException> { Money.ofPlain("1..2", Currency.EUR) }
         assertFailsWith<IllegalArgumentException> { Money.ofPlain("", Currency.EUR) }
     }
+
+    @Test
+    fun `a sum of nothing is zero in the currency asked for`() {
+        assertEquals(Money(0, Currency.INR), emptyList<Money>().sumMoney(Currency.INR) { it })
+    }
+
+    @Test
+    fun `a sum never blends two currencies`() {
+        // §0.6: a mixed list is a caller bug, and it throws rather than adding
+        // rupees to euro.
+        val mixed = listOf(Money(100, Currency.EUR), Money(100, Currency.INR))
+        kotlin.test.assertFailsWith<IllegalArgumentException> { mixed.sumMoney(Currency.EUR) { it } }
+    }
 }

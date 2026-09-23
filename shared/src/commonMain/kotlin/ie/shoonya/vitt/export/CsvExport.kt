@@ -52,6 +52,7 @@ object CsvExport {
         "account",
         "total_paid",
         "split_with",
+        "split_shares",
         "settled",
         "note",
         "id",
@@ -96,9 +97,15 @@ object CsvExport {
             // is the user's own share.
             t.totalPaid?.toPlainString(),
             t.splitWith.sorted().joinToString(LIST_SEPARATOR).ifEmpty { null },
+            // Each person's part, in its own column rather than folded into
+            // split_with, so software already reading that column keeps
+            // reading a list of names. Equal parts are written out too: an
+            // export is read without this app's rule for what "equal" means.
+            t.shares().entries.joinToString(LIST_SEPARATOR) { (who, m) -> "$who=${m.toPlainString()}" }.ifEmpty { null },
             // Only meaningful for a split; a zero on every ordinary row would
-            // read as a column the user has to interpret.
-            if (t.isSplit) t.settled.toPlainString() else null,
+            // read as a column the user has to interpret. Everything that has
+            // come back, whether recorded per person or as one total.
+            if (t.isSplit) t.totalSettled.toPlainString() else null,
             t.note,
             t.id,
         )

@@ -74,6 +74,20 @@ data class Transaction(
      * false: those rows were all hand-logged, so false is also correct.
      */
     val imported: Boolean = false,
+    /**
+     * Each other person's share, when the split was entered per person, as
+     * magnitudes. Empty for an equal split, which is the common case and costs
+     * no storage. Trusted only while it still fits: see [hasCustomShares].
+     */
+    val customShares: Map<String, Money> = emptyMap(),
+    /**
+     * What each person has paid back, as a running total per person.
+     *
+     * Per person because a repayment is. The single [settled] total that came
+     * first had to be divided equally, so Bea paying her whole share showed as
+     * Bea and Cal each owing half of what was left.
+     */
+    val settledBy: Map<String, Money> = emptyMap(),
 ) {
     /** What the budget and the categories see: your share, not what you fronted. */
     val share: Money get() = amount
@@ -119,6 +133,11 @@ data class Transaction(
      */
     fun outstanding(): Money? {
         val gross = owed() ?: return null
+        // With people named, the sum of what each still owes, so one person
+        // overpaying cannot cancel another's debt.
+        if (splitWith.isNotEmpty()) {
+            return splitWith.fold(Money(0, gross.currency)) { acc, who -> acc + outstandingFor(who)!! }
+        }
         val left = gross - settled
         return if (left.minor < 0) Money(0, gross.currency) else left
     }
@@ -127,27 +146,56 @@ data class Transaction(
     val isSettled: Boolean get() = outstanding()?.minor == 0L
 
     /**
-     * What one participant still owes, of a split shared between several.
+     * True when the per-person amounts can be used: they name exactly the
+     * people on the split and add up to exactly what those people owe.
      *
-     * The outstanding amount divided equally, because per-participant shares are
-     * not recorded — only the total the user fronted and their own share. Equal
-     * division is an assumption, but the alternative is worse: attributing the
-     * *whole* outstanding to each of them counts one debt twice, so three friends
-     * owing €40 between them would read as €120.
+     * Anything else is read as an equal split. A person added or removed since
+     * the amounts were set is the ordinary way to get here, and the amounts
+     * that were right for the old group are wrong for the new one.
+     */
+    val hasCustomShares: Boolean get() {
+        val owed = owed() ?: return false
+        return customShares.isNotEmpty() &&
+            customShares.keys == splitWith &&
+            customShares.values.sumOf { it.minor } == owed.minor
+    }
+
+    /**
+     * Each person's share of what the others owe, in the order every device
+     * agrees on.
      *
-     * [Money.splitEvenly] distributes the remainder, so the shares always sum
-     * back to exactly what is outstanding — nobody's rounding invents money.
+     * Equal unless [hasCustomShares]. [Money.splitEvenly] gives the remainder
+     * cents out deterministically over the sorted names, so the shares always
+     * sum back to exactly what is owed and nobody's rounding invents money.
+     */
+    fun shares(): Map<String, Money> {
+        val owed = owed() ?: return emptyMap()
+        val people = splitWith.sorted()
+        if (people.isEmpty()) return emptyMap()
+        if (hasCustomShares) return people.associateWith { customShares.getValue(it) }
+        val even = owed.splitEvenly(people.size)
+        return people.withIndex().associate { (i, who) -> who to even[i] }
+    }
+
+    /** Everything that has come back, whichever way it was recorded. */
+    val totalSettled: Money get() = settledBy.values.fold(settled) { acc, m -> acc + m }
+
+    /**
+     * What one participant still owes: their share, less what they paid back.
      *
-     * Participants are sorted so every device assigns the same remainder cent to
-     * the same person.
+     * A split recorded before repayments were per person has a single
+     * [settled] total, which is spread equally over the people as it always
+     * was, so an old entry reads exactly as it did.
      */
     fun outstandingFor(participant: String): Money? {
-        val left = outstanding() ?: return null
         val who = participant.trim().lowercase()
-        val index = splitWith.sorted().indexOf(who)
+        val people = splitWith.sorted()
+        val index = people.indexOf(who)
         if (index < 0) return null
-        if (splitWith.isEmpty()) return left
-        return left.splitEvenly(splitWith.size)[index]
+        val share = shares().getValue(who)
+        val legacy = if (settled.minor > 0) settled.splitEvenly(people.size)[index] else Money(0, share.currency)
+        val left = share - legacy - (settledBy[who] ?: Money(0, share.currency))
+        return if (left.minor < 0) Money(0, share.currency) else left
     }
 
     companion object {
@@ -186,6 +234,38 @@ data class Transaction(
         const val FIELD_SPLIT_PREFIX = "split_with:"
 
         /**
+         * Every person's share in one field, unlike the participants.
+         *
+         * The shares are one fact: they have to add up to what is owed. Held
+         * in one register, two devices editing them at once leave one whole
+         * edit rather than half of each, which could add up to anything. An
+         * empty value means equal.
+         */
+        const val FIELD_SHARES = "shares"
+
+        /**
+         * Repayments per person, one field each, for the opposite reason: two
+         * phones recording Bea and Cal paying back at once must both land.
+         * Absolute running totals, like [FIELD_SETTLED].
+         */
+        const val FIELD_SETTLED_BY_PREFIX = "settled_by:"
+
+        fun settledByKey(participant: String): String =
+            FIELD_SETTLED_BY_PREFIX + participant.trim().lowercase()
+
+        /** One `minor<TAB>name` per line. A name is typed on one line, so it cannot hold a newline. */
+        fun encodeShares(shares: Map<String, Money>): String =
+            shares.entries.sortedBy { it.key }.joinToString("\n") { (who, m) -> "${m.minor}\t${who.trim().lowercase()}" }
+
+        fun decodeShares(encoded: String?, currency: Currency): Map<String, Money> =
+            encoded.orEmpty().lineSequence().mapNotNull { line ->
+                val tab = line.indexOf('\t')
+                if (tab <= 0) return@mapNotNull null
+                val minor = line.substring(0, tab).toLongOrNull()?.takeIf { it >= 0 } ?: return@mapNotNull null
+                line.substring(tab + 1).takeIf { it.isNotBlank() }?.let { it to Money(minor, currency) }
+            }.toMap()
+
+        /**
          * Participants are matched case-insensitively.
          *
          * Email addresses are case-insensitive in practice, and `Bob@x.com`
@@ -214,6 +294,7 @@ data class Transaction(
             splitWith: Set<String> = emptySet(),
             note: String? = null,
             imported: Boolean = false,
+            shares: Map<String, Money>? = null,
             issue: () -> Hlc,
         ): List<Event> = buildList {
             fun put(field: String, value: TaggedValue) =
@@ -232,6 +313,7 @@ data class Transaction(
             splitWith.forEach { put(splitKey(it), TaggedValue.Bool(true)) }
             note?.trim()?.takeIf { it.isNotEmpty() }?.let { put(FIELD_NOTE, TaggedValue.Str(it.takeChars(MAX_NOTE))) }
             if (imported) put(FIELD_IMPORTED, TaggedValue.Bool(true))
+            shares?.let { put(FIELD_SHARES, TaggedValue.Str(encodeShares(it))) }
         }
 
         /**
@@ -250,7 +332,10 @@ data class Transaction(
             // count as a recorded day while moving nothing. Both can only come
             // from a hand-edited or half-written sheet row, and neither is a
             // transaction: they disappear from the list rather than distort it.
-            if (minor == 0L) return null
+            // The one real zero is the user's share of a bill they paid
+            // entirely for somebody else, which has a bill beside it.
+            val paid = (entity.fields[FIELD_TOTAL_PAID] as? TaggedValue.Num)?.value
+            if (minor == 0L && (paid == null || paid == 0L)) return null
             val day = (entity.fields[FIELD_DAY] as? TaggedValue.Num)?.value ?: return null
 
             return Transaction(
@@ -277,6 +362,14 @@ data class Transaction(
                 note = (entity.fields[FIELD_NOTE] as? TaggedValue.Str)?.value?.takeIf { it.isNotBlank() },
                 deleted = entity.deleted,
                 imported = (entity.fields[FIELD_IMPORTED] as? TaggedValue.Bool)?.value == true,
+                customShares = decodeShares((entity.fields[FIELD_SHARES] as? TaggedValue.Str)?.value, currency),
+                settledBy = entity.fields
+                    .filterKeys { it.startsWith(FIELD_SETTLED_BY_PREFIX) }
+                    .mapNotNull { (k, v) ->
+                        (v as? TaggedValue.Num)?.value?.takeIf { it >= 0 }
+                            ?.let { k.removePrefix(FIELD_SETTLED_BY_PREFIX) to Money(it, currency) }
+                    }
+                    .toMap(),
             )
         }
     }

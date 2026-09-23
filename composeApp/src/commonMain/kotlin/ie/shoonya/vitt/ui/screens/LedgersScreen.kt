@@ -28,6 +28,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.semantics.Role
@@ -80,6 +81,13 @@ fun LedgersScreen(
     companionInset: androidx.compose.ui.unit.Dp = 0.dp,
     modifier: Modifier = Modifier,
 ) {
+    // Read here, outside the list builder, which is not composable. As many
+    // cards across as fit at a width a large rupee balance still reads at
+    // without wrapping, rather than by width class: a phone on its side is
+    // "expanded" by width and cramped by three.
+    val window = ie.shoonya.vitt.ui.LocalWindowLayout.current
+    val across = if (window.width == ie.shoonya.vitt.layout.WindowLayout.Width.COMPACT) 1
+    else ((minOf(window.widthDp, WIDE_CONTENT_DP) - RAIL_DP) / MIN_CARD_DP).coerceIn(1, 3)
     // Folded by default, per visit. Not persisted: "show all" is a look, not a
     // preference, and the folded list is what keeps the home one screen.
     var showAllAccounts by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
@@ -133,6 +141,31 @@ fun LedgersScreen(
 
         if (ledgers.isEmpty()) {
             item { EmptyLedgers(onImport = onImport) }
+        } else if (ledgers.size > 1 && across > 1) {
+            // Room for every currency at once: a grid, two across on a medium
+            // window and three on a wide one, in assignment order. The swipe
+            // choice is a phone's answer to not having the room, and does not
+            // apply here (docs/ipad-plan.clan, phase 2).
+            items(ledgers.chunked(across)) { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Vitt.space.base),
+                ) {
+                    row.forEach { ledger ->
+                        Box(Modifier.weight(1f)) {
+                            LedgerCard(
+                                ledger = ledger,
+                                onSetBudget = onSetBudget,
+                                periodPhrase = periodPhrase(period, today),
+                                canSetBudget = period is ie.shoonya.vitt.time.YearMonth,
+                            )
+                        }
+                    }
+                    // A short last row keeps its cards the width of the others.
+                    repeat(across - row.size) { Spacer(Modifier.weight(1f)) }
+                }
+            }
+            item { NoTotalNote() }
         } else if (swipeCards && ledgers.size > 1) {
             // One card in view, the next peeking at the edge. At six currencies
             // the stack ran past the fold and put Accounts a screen away; a
@@ -207,12 +240,31 @@ private fun LedgerPager(
             // Room for the card's shadow, which a tight clip would cut flat.
             modifier = Modifier.fillMaxWidth().padding(vertical = Vitt.space.tight),
         ) { page ->
-            LedgerCard(
-                ledger = ledgers[page],
-                onSetBudget = onSetBudget,
-                periodPhrase = periodPhrase,
-                canSetBudget = canSetBudget,
-            )
+            // Depth on the move and only on the move: a card turns a little on
+            // its vertical axis as it is swiped away, like a page, and sits flat
+            // at rest. It encodes nothing, which is the only place depth belongs
+            // in a money app; a tilted figure is a misread figure. Off under
+            // Reduce Motion.
+            val flat = ie.shoonya.vitt.ui.platform.prefersReducedMotion()
+            val density = androidx.compose.ui.platform.LocalDensity.current.density
+            Box(
+                Modifier.graphicsLayer {
+                    if (flat) return@graphicsLayer
+                    val offset = ((state.currentPage - page) + state.currentPageOffsetFraction).coerceIn(-1f, 1f)
+                    rotationY = offset * TURN_DEGREES
+                    cameraDistance = 14f * density
+                    val shrink = 1f - kotlin.math.abs(offset) * 0.05f
+                    scaleX = shrink
+                    scaleY = shrink
+                },
+            ) {
+                LedgerCard(
+                    ledger = ledgers[page],
+                    onSetBudget = onSetBudget,
+                    periodPhrase = periodPhrase,
+                    canSetBudget = canSetBudget,
+                )
+            }
         }
         // One dot per currency, in its own hue: the dots are the palette key
         // for the whole app, and the filled one says which card is up.
@@ -482,3 +534,13 @@ private fun EmptyLedgers(onImport: () -> Unit) {
         }
     }
 }
+
+/** How far a card turns at the edge of a swipe. Enough to read as depth, not a spin. */
+private const val TURN_DEGREES = 16f
+
+/** The narrowest a card in the grid gets. */
+private const val MIN_CARD_DP = 340
+
+/** Room the side rail takes, and the widest the grid screens get (VittApp). */
+private const val RAIL_DP = 100
+private const val WIDE_CONTENT_DP = 1100

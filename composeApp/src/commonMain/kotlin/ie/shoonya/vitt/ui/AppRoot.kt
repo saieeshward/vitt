@@ -1,7 +1,10 @@
 package ie.shoonya.vitt.ui
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -27,6 +30,8 @@ fun AppRoot(
     /** Runs the live Google checks instead of the app. Set from a launch variable. */
     verify: Boolean = false,
     autoRun: Boolean = false,
+    /** The tab to open on, by name. Debug builds only, for screenshots. */
+    startTab: String? = null,
 ) {
     // The palette is read here rather than inside the app, because VittTheme
     // wraps everything below it: a theme the user picks two levels down has to
@@ -56,45 +61,52 @@ fun AppRoot(
     }
 
     VittTheme(theme = theme, accent = accent) {
-        Surface(modifier = Modifier.fillMaxSize(), color = Vitt.colors.ground) {
-            if (verify || autoRun) {
-                VerifyScreen(services, autoRun = autoRun)
-            } else {
-                val syncStatus by services.sync.status.collectAsState()
-                val derivedTabs by services.derivedTabs.collectAsState()
-                // Text handed in from a share or a Shortcut, waiting to be
-                // confirmed. Collected here because VittApp is recreated on a
-                // theme change and the offer must survive that.
-                val pendingCapture by services.pendingCapture.collectAsState()
-                // The widget's button, as a counter: two taps are two requests.
-                val openAdd by services.openAdd.collectAsState()
-                val remoteRevision by services.sync.remoteChanges.collectAsState()
-                // A pull can change the theme too: it is a synced choice.
-                LaunchedEffect(remoteRevision) { appearance++ }
-                // The launch sync. Foreground returns come through the
-                // platform hosts, which are the only things that see them.
-                LaunchedEffect(Unit) { services.sync.onForeground() }
-                VittApp(
-                    repository = services.ledger,
-                    today = services.today(),
-                    newId = { newTransactionId(services.today()) },
-                    onAppearanceChange = { appearance++ },
-                    pendingCapture = pendingCapture,
-                    onCaptureConsumed = { services.captureConsumed() },
-                    openAddTick = openAdd,
-                    syncStatus = syncStatus,
-                    derivedTabs = derivedTabs,
-                    sheetActions = remember(services) {
-                        SheetActions(
-                            connect = { services.connectGoogle() },
-                            disconnect = { services.disconnectGoogle() },
-                            syncNow = { services.sync.syncNow() },
-                            overwriteSheet = { services.overwriteDerivedTabs() },
-                        )
-                    },
-                    remoteRevision = remoteRevision,
-                    now = services::now,
-                )
+        ProvideWindowLayout {
+            Surface(modifier = Modifier.fillMaxSize(), color = Vitt.colors.ground) {
+                if (verify || autoRun) {
+                    androidx.compose.foundation.layout.Box(
+                        Modifier.windowInsetsPadding(WindowInsets.safeDrawing),
+                    ) {
+                        VerifyScreen(services, autoRun = autoRun)
+                    }
+                } else {
+                    val syncStatus by services.sync.status.collectAsState()
+                    val derivedTabs by services.derivedTabs.collectAsState()
+                    // Text handed in from a share or a Shortcut, waiting to be
+                    // confirmed. Collected here because VittApp is recreated on a
+                    // theme change and the offer must survive that.
+                    val pendingCapture by services.pendingCapture.collectAsState()
+                    // The widget's button, as a counter: two taps are two requests.
+                    val openAdd by services.openAdd.collectAsState()
+                    val remoteRevision by services.sync.remoteChanges.collectAsState()
+                    // A pull can change the theme too: it is a synced choice.
+                    LaunchedEffect(remoteRevision) { appearance++ }
+                    // The launch sync. Foreground returns come through the
+                    // platform hosts, which are the only things that see them.
+                    LaunchedEffect(Unit) { services.sync.onForeground() }
+                    VittApp(
+                        repository = services.ledger,
+                        today = services.today(),
+                        newId = { newTransactionId(services.today()) },
+                        onAppearanceChange = { appearance++ },
+                        pendingCapture = pendingCapture,
+                        onCaptureConsumed = { services.captureConsumed() },
+                        openAddTick = openAdd,
+                        syncStatus = syncStatus,
+                        derivedTabs = derivedTabs,
+                        sheetActions = remember(services) {
+                            SheetActions(
+                                connect = { services.connectGoogle() },
+                                disconnect = { services.disconnectGoogle() },
+                                syncNow = { services.sync.syncNow() },
+                                overwriteSheet = { services.overwriteDerivedTabs() },
+                            )
+                        },
+                        remoteRevision = remoteRevision,
+                        now = services::now,
+                        startTab = startTab,
+                    )
+                }
             }
         }
     }

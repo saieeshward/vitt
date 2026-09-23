@@ -32,6 +32,10 @@ class LiveVerification(
     private companion object {
         const val CHANGE_POLL_INTERVAL_MS = 3_000L
         const val CHANGE_POLL_ATTEMPTS = 7
+        const val PROBE_TAB = "Probe"
+
+        /** "Transactions" already holds the probe rows written above. */
+        const val REFRESH_TAB = "Refresh"
     }
 
     suspend fun run(onStep: (Step) -> Unit): List<Step> {
@@ -163,6 +167,158 @@ class LiveVerification(
             record("change detection", false, e.message ?: e.toString())
         }
 
+        // The derived tabs (Phase 4). Everything below was built against a fake
+        // port, so the sequencing and the arithmetic are proven and that Google
+        // accepts these exact requests is not.
+        verifyDerivedTabs(id, ::record)
+
         return steps
     }
+
+    private suspend fun verifyDerivedTabs(id: String, record: (String, Boolean, String) -> Unit) {
+        // 7. addSheet through batchUpdate, and the second call recognised as
+        // "already there" rather than failing. Also the first batchUpdate this
+        // app has sent, with the unused request kinds going out as nulls.
+        try {
+            val first = sheets.addTab(id, PROBE_TAB)
+            val second = sheets.addTab(id, PROBE_TAB)
+            record(
+                "add tab, then again",
+                first && !second,
+                "first added=$first, second added=$second",
+            )
+        } catch (e: Exception) {
+            record("add tab, then again", false, e.message ?: e.toString())
+            return
+        }
+
+        // 8. A number reaches the sheet as a number under RAW, written as an
+        // unquoted JSON literal; a boolean as a boolean; a formula-shaped
+        // string as inert text. Read back unformatted, each keeps its type.
+        val written = listOf(
+            listOf(Cell.Text("Amount"), Cell.Text("Done"), Cell.Text("Merchant")),
+            listOf(Cell.Number("-12.50"), Cell.Bool(true), Cell.Text("=1+1")),
+            listOf(Cell.Number("1234.05"), Cell.Bool(false), Cell.Text("Tesco")),
+            listOf(Cell.Number("-0.01"), Cell.Blank, Cell.Text("third")),
+        )
+        try {
+            sheets.replaceValues(id, PROBE_TAB, written, 'C')
+            val back = sheets.readCells(id, "$PROBE_TAB!A1:C10")
+            val row = back.getOrNull(1).orEmpty()
+            val ok = row.getOrNull(0)?.let { it is Cell.Number && it.sameValueAs(Cell.Number("-12.50")) } == true &&
+                row.getOrNull(1) == Cell.Bool(true) &&
+                row.getOrNull(2) == Cell.Text("=1+1") &&
+                back.getOrNull(2)?.getOrNull(0)?.sameValueAs(Cell.Number("1234.05")) == true
+            record("typed values survive round trip", ok, if (ok) "number, boolean and text kept" else "got $back")
+        } catch (e: Exception) {
+            record("typed values survive round trip", false, e.message ?: e.toString())
+        }
+
+        // 9. The closed-range clear: a shorter table must not leave the old
+        // tail on screen as rows that exist nowhere else.
+        try {
+            sheets.replaceValues(id, PROBE_TAB, written.take(2), 'C')
+            val back = sheets.readCells(id, "$PROBE_TAB!A1:C10")
+            record(
+                "shorter write clears the tail",
+                back.size == 2,
+                "${back.size} rows remain, expected 2",
+            )
+        } catch (e: Exception) {
+            record("shorter write clears the tail", false, e.message ?: e.toString())
+        }
+
+        // 10. duplicateSheet under drive.file alone. If this is refused, §2.8's
+        // archive-then-replace needs a different mechanism entirely.
+        try {
+            val copied = sheets.archiveTab(id, PROBE_TAB, "${PROBE_TAB}_archive")
+            val back = sheets.readCells(id, "${PROBE_TAB}_archive!A1:C10")
+            val ok = copied && back.size == 2
+            record("archive a tab", ok, if (ok) "copy holds ${back.size} rows" else "copied=$copied, got $back")
+        } catch (e: Exception) {
+            record("archive a tab", false, e.message ?: e.toString())
+        }
+
+        // 11. The whole refresh twice over, as a sync runs it, with the ledger
+        // moving in between: one entry changed, one deleted, one new. The
+        // second pass must write rather than hold, which is what the memory is
+        // for, and it is the first time the multi-range write and the native
+        // row delete meet Google.
+        try {
+            val port = SheetsTransport(sheets).derived
+            var memory = emptyMap<String, String>()
+            val first = DerivedTabs.refresh(
+                port, id,
+                listOf(probeTransaction("live-t1", -1250), probeTransaction("live-t2", 250000)),
+                { "Probe account" }, tab = REFRESH_TAB, remember = { memory = it },
+            )
+            val second = DerivedTabs.refresh(
+                port, id,
+                listOf(probeTransaction("live-t1", -1300), probeTransaction("live-t3", -50)),
+                { "Probe account" }, tab = REFRESH_TAB, lastSeen = memory, remember = { memory = it },
+            )
+            val ids = sheets.readCells(id, "$REFRESH_TAB!J2:J10").map { it.firstOrNull()?.asText() }
+            val ok = first is DerivedTabs.Outcome.Written &&
+                second is DerivedTabs.Outcome.Written &&
+                ids == listOf("live-t1", "live-t3")
+            record("refresh twice is clean", ok, "first $first, then $second; rows $ids")
+        } catch (e: Exception) {
+            record("refresh twice is clean", false, e.message ?: e.toString())
+        }
+
+        // 12. _Meta: created, stamped once, and a second pass writes nothing.
+        // Also the locale read, whose narrowed field mask Google has to accept.
+        try {
+            val us = SheetMeta.Us(device = nodeId, appVersion = "verify", nowMillis = 1_700_000_000_000)
+            val port = SheetsTransport(sheets).meta
+            SheetMeta.sync(port, id, us)
+            val once = sheets.read(id, "${SheetMeta.TAB}!A1:D20")
+            SheetMeta.sync(port, id, us)
+            val twice = sheets.read(id, "${SheetMeta.TAB}!A1:D20")
+            val locale = sheets.locale(id)
+            val ok = once.size == 4 && twice.size == 4 && locale == "en_GB"
+            record("meta tab", ok, "${once.size} rows, then ${twice.size}; locale $locale")
+        } catch (e: Exception) {
+            record("meta tab", false, e.message ?: e.toString())
+        }
+
+        // 13. The Dashboard: values into a tab created on the write, and one
+        // addChart over a closed range. Open the file afterwards and look at
+        // the chart, because a chart Google accepted can still point at the
+        // wrong rows.
+        try {
+            val port = SheetsTransport(sheets).derived
+            var charted: DerivedDashboard.Charted? = null
+            DerivedTabs.refreshDashboard(
+                port, id,
+                listOf(probeTransaction("live-d1", -1250), probeTransaction("live-d2", -4000)),
+                emptyMap(),
+                today = ie.shoonya.vitt.time.Civil.toDays(2026, 4, 20),
+                charted = null,
+                checkCharts = true,
+                remember = { charted = it },
+            )
+            val block = sheets.readCells(id, "${DerivedDashboard.TAB}!A4:B5")
+            val ok = charted?.currencies == setOf("EUR") &&
+                block.getOrNull(1)?.getOrNull(1)?.sameValueAs(Cell.Number("52.50")) == true
+            record("dashboard and chart", ok, "charted $charted; first rows $block")
+        } catch (e: Exception) {
+            record("dashboard and chart", false, e.message ?: e.toString())
+        }
+    }
+
+    private fun probeTransaction(id: String, minor: Long) = ie.shoonya.vitt.model.Transaction(
+        id = id,
+        amount = ie.shoonya.vitt.money.Money(minor, ie.shoonya.vitt.money.Currency.EUR),
+        merchant = "Probe",
+        category = "groceries",
+        categorySource = null,
+        accountId = "probe",
+        day = ie.shoonya.vitt.time.Civil.toDays(2026, 4, 3),
+        totalPaid = null,
+        splitWith = emptySet(),
+        settled = ie.shoonya.vitt.money.Money(0, ie.shoonya.vitt.money.Currency.EUR),
+        note = null,
+        deleted = false,
+    )
 }

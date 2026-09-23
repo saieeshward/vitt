@@ -40,8 +40,22 @@ targets:
         # key App Store Connect stops every upload to ask the question.
         ITSAppUsesNonExemptEncryption: false
         UILaunchScreen: {}
+        # iPhone: upright and on its side, never upside down. The shared UI
+        # moves to a rail and a two-pane Add sheet on a short window.
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        # iPad: every way up. App Store Connect rejects an iPad-capable build
+        # that joins in multitasking without all four, and the build has been
+        # iPad-capable since the start (XcodeGen's default device family).
+        # Harmless if 1.0 is made iPhone-only: the key is then ignored.
+        # docs/ipad-plan.clan, F2 and D1.
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
         # Google redirects back to the reversed client id after consent. Without
         # this registration iOS has nowhere to deliver the callback and the
         # sign-in sheet simply never closes.

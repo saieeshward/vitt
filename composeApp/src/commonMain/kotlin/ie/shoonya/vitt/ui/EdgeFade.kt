@@ -24,14 +24,15 @@ import androidx.compose.ui.unit.dp
  * difference nobody can see is the wrong trade on a list that has to stay at
  * sixty frames while someone flicks through a year of entries.
  *
- * Kept short on purpose. A long fade turns into a vignette and starts hiding
+ * Eased rather than linear (see [eased]), and kept short on purpose. A long
+ * fade turns into a vignette and starts hiding
  * the content it is meant to be introducing; this is just enough to take the
  * blade off the edge.
  */
 fun Modifier.edgeFade(
     ground: Color,
-    top: Dp = 20.dp,
-    bottom: Dp = 28.dp,
+    top: Dp = 24.dp,
+    bottom: Dp = 32.dp,
 ): Modifier = drawWithContent {
     drawContent()
 
@@ -39,7 +40,7 @@ fun Modifier.edgeFade(
     if (topPx > 0f) {
         drawRect(
             brush = Brush.verticalGradient(
-                colors = listOf(ground, ground.copy(alpha = 0f)),
+                colorStops = eased(ground, fromTop = true),
                 startY = 0f,
                 endY = topPx,
             ),
@@ -51,7 +52,7 @@ fun Modifier.edgeFade(
     if (bottomPx > 0f) {
         drawRect(
             brush = Brush.verticalGradient(
-                colors = listOf(ground.copy(alpha = 0f), ground),
+                colorStops = eased(ground, fromTop = false),
                 startY = size.height - bottomPx,
                 endY = size.height,
             ),
@@ -60,3 +61,22 @@ fun Modifier.edgeFade(
         )
     }
 }
+
+/**
+ * The scrim's stops along a smoothstep rather than a straight line.
+ *
+ * A two-stop linear fade has a visible start: the eye finds the line where the
+ * gradient begins, and a row sliding under it seems to hit a soft wall rather
+ * than dissolve. Easing both ends removes that line, which is the whole of the
+ * difference between a fade that looks drawn and one that looks like depth.
+ */
+private fun eased(ground: Color, fromTop: Boolean): Array<Pair<Float, Color>> =
+    Array(STOPS + 1) { i ->
+        val t = i / STOPS.toFloat()
+        val smooth = t * t * (3 - 2 * t)
+        // From the edge inward: solid ground at the edge, clear by the end.
+        val alpha = if (fromTop) 1f - smooth else smooth
+        t to ground.copy(alpha = alpha)
+    }
+
+private const val STOPS = 8

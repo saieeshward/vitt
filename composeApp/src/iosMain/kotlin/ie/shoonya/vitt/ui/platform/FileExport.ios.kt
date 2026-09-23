@@ -3,6 +3,8 @@ package ie.shoonya.vitt.ui.platform
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.useContents
+import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSString
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSURL
@@ -10,6 +12,7 @@ import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.writeToFile
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication
+import platform.UIKit.popoverPresentationController
 
 /**
  * The share sheet, which is what an iOS user reaches for to get a file out.
@@ -46,7 +49,19 @@ actual fun rememberFileExporter(): FileExporter = remember {
         // Presented from the key window's root controller, which is the Compose
         // view controller: Compose Multiplatform on iOS is hosted inside one, so
         // there is always something to present from.
-        UIApplication.sharedApplication.keyWindow?.rootViewController
-            ?.presentViewController(sheet, animated = true, completion = null)
+        val root = UIApplication.sharedApplication.keyWindow?.rootViewController ?: return@FileExporter
+        // On iPad a share sheet is a popover and UIKit throws if it has nothing
+        // to point at. The build has always been universal, so Export crashed
+        // on every iPad. Anchored to the middle of the window with no arrow,
+        // which is how a sheet with no button of its own is shown there; on a
+        // phone this controller is null and the sheet is the usual one.
+        sheet.popoverPresentationController?.let { popover ->
+            popover.sourceView = root.view
+            popover.sourceRect = root.view.bounds.useContents {
+                CGRectMake(size.width / 2, size.height / 2, 0.0, 0.0)
+            }
+            popover.permittedArrowDirections = 0uL
+        }
+        root.presentViewController(sheet, animated = true, completion = null)
     }
 }

@@ -63,6 +63,11 @@ jobs:
       - name: Shared tests
         run: ./gradlew :shared:jvmTest
 
+      # The Add sheet driven through its keys and chips, on the JVM target that
+      # exists only for this, so it needs neither a simulator nor an emulator.
+      - name: UI tests
+        run: ./gradlew :composeApp:jvmTest
+
       # R8 runs in release, so this is also how the shrinker rules get exercised.
       # An absent keystore leaves the build unsigned rather than failing, which
       # is deliberate: CI must not need a private key to prove the code builds.

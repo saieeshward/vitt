@@ -70,3 +70,15 @@ iosApp/build-*/
 # Playwright MCP scratch output — snapshots and console logs from ad-hoc
 # browser checks. Never part of the build.
 .playwright-mcp/
+
+# /brag launch video: the scratch and the parts that are not ours to publish.
+# The music track is ende.app's, redistributable in the rendered video the
+# skill exists to make but not as a raw file in a public repo; re-renders copy
+# it from the brag skill (see brag-output/composition-brief.md). The scaffold's
+# own agent notes tell any agent to install Hyperframes skills, which would
+# mislead an agent working on the app.
+brag-output/snapshots/
+brag-output/composition/assets/music/
+brag-output/composition/AGENTS.md
+brag-output/composition/CLAUDE.md
+brag-output/composition/.hyperframes/

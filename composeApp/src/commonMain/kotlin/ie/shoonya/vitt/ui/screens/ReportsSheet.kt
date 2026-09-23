@@ -94,6 +94,17 @@ fun ReportsSheet(
     daysInMonth: Int,
     /** Spend by weekday, Monday first. */
     weekday: List<Money>,
+    /** The month being shown, when the period is one; the calendar needs its weekdays. */
+    month: ie.shoonya.vitt.time.YearMonth? = null,
+    /** What went out each day of [month] so far. */
+    daily: List<Money> = emptyList(),
+    /** How big purchases were, between round amounts. */
+    sizes: List<ie.shoonya.vitt.model.SizeBin> = emptyList(),
+    /** The month told back as a story, when there is one to tell. */
+    review: ie.shoonya.vitt.model.MonthReview? = null,
+    onOpenReview: () -> Unit = {},
+    /** Opens the one-tap-each pass over entries with no category. */
+    onSort: (() -> Unit)? = null,
     onExport: () -> Unit,
     onImport: () -> Unit,
     /** Null when this is a tab rather than a sheet: there is nothing to be done with. */
@@ -198,123 +209,175 @@ fun ReportsSheet(
             )
         }
 
-        // The month so far as a line, against the even pace a budget implies.
-        // A line rather than a figure because the *shape* is the information:
-        // rent on the 1st is a step, a trip is a jump, groceries are a slope.
-        if (cumulative.isNotEmpty() && daysInMonth > 0) {
-            SectionHeader("This month, day by day")
-            CumulativeChart(
-                cumulative = cumulative,
-                daysInMonth = daysInMonth,
-                budget = budget,
-                hue = currencyIndex(currency),
-                currency = currency,
-            )
+        review?.let {
+            ie.shoonya.vitt.ui.screens.ReviewCard(review = it, hue = currencyIndex(currency), onOpen = onOpenReview)
         }
 
-        // In and out, only once there is an in. A section reading "In €0.00"
-        // on every screen would be a reminder of what is not being recorded.
-        // The headline above already says the net; this is the working.
-        if (received.minor > 0) {
-            SectionHeader("In and out")
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Figure("In", received.displayUnsigned())
-                Figure("Out", spent.displayUnsigned())
-                // The headline's own word, so the two figures never disagree
-                // and nothing here reads as a verdict on the person (§5.6).
-                Figure(
-                    if (net.minor >= 0) "Kept" else "Down",
-                    net.displayUnsigned(),
+        // Wide windows read in two columns: how the money moved on the left,
+        // where it went on the right. A phone reads them one after the other.
+        TwoColumns(
+            wide = ie.shoonya.vitt.ui.LocalWindowLayout.current.width == ie.shoonya.vitt.layout.WindowLayout.Width.EXPANDED,
+            first = {
+            // The month so far as a line, against the even pace a budget implies.
+            // A line rather than a figure because the *shape* is the information:
+            // rent on the 1st is a step, a trip is a jump, groceries are a slope.
+            if (cumulative.isNotEmpty() && daysInMonth > 0) {
+                SectionHeader("This month, day by day")
+                CumulativeChart(
+                    cumulative = cumulative,
+                    daysInMonth = daysInMonth,
+                    budget = budget,
+                    hue = currencyIndex(currency),
+                    currency = currency,
+                )
+                if (month != null && daily.isNotEmpty()) {
+                    ie.shoonya.vitt.ui.DayDots(month = month, daily = daily, today = today, hue = currencyIndex(currency))
+                }
+            }
+
+            // In and out, only once there is an in. A section reading "In €0.00"
+            // on every screen would be a reminder of what is not being recorded.
+            // The headline above already says the net; this is the working.
+            if (received.minor > 0) {
+                SectionHeader("In and out")
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Figure("In", received.displayUnsigned())
+                    Figure("Out", spent.displayUnsigned())
+                    // The headline's own word, so the two figures never disagree
+                    // and nothing here reads as a verdict on the person (§5.6).
+                    Figure(
+                        if (net.minor >= 0) "Kept" else "Down",
+                        net.displayUnsigned(),
+                    )
+                }
+                Text(
+                    if (net.minor >= 0) {
+                        "What came in covered what went out."
+                    } else {
+                        "More went out than came in ${periodPhrase(period, today)}."
+                    },
+                    style = Vitt.type.label,
+                    color = Vitt.colors.inkMuted,
                 )
             }
-            Text(
-                if (net.minor >= 0) {
-                    "What came in covered what went out."
-                } else {
-                    "More went out than came in ${periodPhrase(period, today)}."
-                },
-                style = Vitt.type.label,
-                color = Vitt.colors.inkMuted,
-            )
-        }
 
-        comparison?.let { c ->
-            SectionHeader("Against ${periodLabel(c.before, today)}")
-            ComparisonSection(c, today)
-        }
+            // Only with something to compare against. A heading over "nothing
+            // recorded last month" was a row of screen spent saying nothing,
+            // on every first month anybody has.
+            comparison?.takeIf { it.spentBefore.minor > 0 }?.let { c ->
+                SectionHeader("Against ${periodLabel(c.before, today)}")
+                ComparisonSection(c, today)
+            }
 
-        if (trend.isNotEmpty()) {
-            SectionHeader("Trend")
-            TrendChart(trend = trend, hue = currencyIndex(currency), today = today)
-        } else {
-            SectionHeader("Trend")
-            Text(
-                // All-time is the absence of a period, and a trend needs a grain
-                // to step along. Saying so is better than drawing one bar.
-                "All time has no grain to plot. Pick a period on Ledgers.",
-                style = Vitt.type.label,
-                color = Vitt.colors.inkMuted,
-            )
-        }
-
-        SectionHeader("Categories")
-        if (categories.isEmpty()) {
-            Text(
-                "Nothing recorded in ${currency.code} ${periodPhrase(period, today)}.",
-                style = Vitt.type.label,
-                color = Vitt.colors.inkMuted,
-            )
-        } else {
-            // One open at a time: the drilldown is a glance at what is behind
-            // a row, not a second list to scroll.
-            var open by remember(currency, period) { mutableStateOf<Category?>(null) }
-            var openNone by remember(currency, period) { mutableStateOf(false) }
-            categories.forEach { slice ->
-                val isOpen = if (slice.category == null) openNone else open == slice.category
-                CategoryRow(
-                    slice = slice,
-                    total = spent,
-                    hue = currencyIndex(currency),
-                    open = isOpen,
-                    onToggle = {
-                        if (slice.category == null) { openNone = !openNone; open = null }
-                        else { open = if (isOpen) null else slice.category; openNone = false }
-                    },
+            // A trend needs two points. One month of history drew half a
+            // screen of empty axis with a single line at its end, so the
+            // section waits until there is a second period to draw.
+            if (trend.count { it.spent.minor > 0 || it.received.minor > 0 } >= 2) {
+                SectionHeader("Trend")
+                TrendChart(trend = trend, hue = currencyIndex(currency), today = today)
+            } else if (trend.isEmpty()) {
+                SectionHeader("Trend")
+                Text(
+                    // All-time is the absence of a period, and a trend needs a grain
+                    // to step along. Saying so is better than drawing one bar.
+                    "All time has no grain to plot. Pick a period on Ledgers.",
+                    style = Vitt.type.label,
+                    color = Vitt.colors.inkMuted,
                 )
-                if (isOpen) {
-                    val inside = merchantsIn(slice.category)
-                    if (inside.isEmpty()) {
-                        Text(
-                            "No merchant named on these.",
-                            style = Vitt.type.label,
-                            color = Vitt.colors.inkMuted,
-                            modifier = Modifier.padding(start = Vitt.space.loose),
-                        )
-                    } else {
-                        Column(modifier = Modifier.padding(start = Vitt.space.loose)) {
-                            inside.forEach { MerchantRow(it) }
+            }
+
+            },
+            second = {
+            SectionHeader("Categories")
+            if (categories.isEmpty()) {
+                Text(
+                    "Nothing recorded in ${currency.code} ${periodPhrase(period, today)}.",
+                    style = Vitt.type.label,
+                    color = Vitt.colors.inkMuted,
+                )
+            } else {
+                // One open at a time: the drilldown is a glance at what is behind
+                // a row, not a second list to scroll.
+                var open by remember(currency, period) { mutableStateOf<Category?>(null) }
+                var openNone by remember(currency, period) { mutableStateOf(false) }
+                // The ring leads, with the rows below as its legend: a glance at
+                // the shape first, then the names and figures. At most six arcs,
+                // the tail folded, and one in the hue at a time.
+                val ring = remember(categories) { ie.shoonya.vitt.model.Insights.foldTail(categories) }
+                var ringFocus by remember(currency, period) { mutableStateOf(0) }
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    ie.shoonya.vitt.ui.CategoryRing(
+                        slices = ring,
+                        total = spent,
+                        hue = currencyIndex(currency),
+                        focused = ringFocus,
+                        onFocus = { ringFocus = it },
+                    )
+                }
+                categories.forEach { slice ->
+                    val isOpen = if (slice.category == null) openNone else open == slice.category
+                    CategoryRow(
+                        slice = slice,
+                        total = spent,
+                        hue = currencyIndex(currency),
+                        open = isOpen,
+                        onToggle = {
+                            if (slice.category == null) { openNone = !openNone; open = null }
+                            else { open = if (isOpen) null else slice.category; openNone = false }
+                            ring.indexOfFirst { it.category == slice.category }.takeIf { it >= 0 }?.let { ringFocus = it }
+                        },
+                    )
+                    if (isOpen) {
+                        val inside = merchantsIn(slice.category)
+                        if (inside.isEmpty()) {
+                            Text(
+                                "No merchant named on these.",
+                                style = Vitt.type.label,
+                                color = Vitt.colors.inkMuted,
+                                modifier = Modifier.padding(start = Vitt.space.loose),
+                            )
+                        } else {
+                            Column(modifier = Modifier.padding(start = Vitt.space.loose)) {
+                                inside.forEach { MerchantRow(it) }
+                            }
                         }
                     }
                 }
+                // The way to shrink the "No category" row, beside it, rather than
+                // a trip through Activity opening entries one sheet at a time.
+                if (onSort != null && categories.any { it.category == null }) {
+                    ie.shoonya.vitt.ui.VittChip(
+                        selected = false,
+                        onClick = onSort,
+                        label = { Text("Sort the ones with no category", style = Vitt.type.label) },
+                    )
+                }
+                Text(
+                    // Worth stating, because it is the reason the "No category" row
+                    // is on the chart at all rather than quietly dropped.
+                    "These add up to the figure above.",
+                    style = Vitt.type.label,
+                    color = Vitt.colors.inkFaint,
+                )
             }
-            Text(
-                // Worth stating, because it is the reason the "No category" row
-                // is on the chart at all rather than quietly dropped.
-                "These add up to the figure above.",
-                style = Vitt.type.label,
-                color = Vitt.colors.inkFaint,
-            )
-        }
 
-        if (weekday.any { it.minor > 0 }) {
-            SectionHeader("By weekday")
-            WeekdayDots(weekday = weekday, hue = currencyIndex(currency))
-        }
+            if (weekday.any { it.minor > 0 }) {
+                SectionHeader("By weekday")
+                WeekdayDots(weekday = weekday, hue = currencyIndex(currency))
+            }
 
-        if (merchants.isNotEmpty()) {
-            SectionHeader("Where it went")
-            merchants.forEach { MerchantRow(it) }
-        }
+            if (sizes.sumOf { it.count } >= MIN_FOR_SIZES) {
+                SectionHeader("Purchase sizes")
+                ie.shoonya.vitt.ui.SizeDots(bins = sizes, hue = currencyIndex(currency))
+            }
+
+            if (merchants.isNotEmpty()) {
+                SectionHeader("Where it went")
+                merchants.forEach { MerchantRow(it) }
+            }
+
+            },
+        )
 
         SectionHeader("Your data")
         Row(
@@ -468,18 +531,10 @@ private fun Figure(label: String, value: String) {
  */
 @Composable
 private fun ComparisonSection(c: Comparison, today: Int) {
+    // Never called with an empty last period: that is missing data, not a
+    // baseline of zero (§5.6), and comparing against it would call every
+    // first month a rise. The caller leaves the section out instead.
     val before = periodLabel(c.before, today)
-    // An empty last period is missing data, not a baseline of zero (§5.6:
-    // missing is described as missing). Comparing against it would call
-    // every first month a rise, and list every category as a mover.
-    if (c.spentBefore.minor == 0L) {
-        Text(
-            "Nothing recorded in $before to compare with.",
-            style = Vitt.type.label,
-            color = Vitt.colors.inkMuted,
-        )
-        return
-    }
     val headline = when {
         c.delta.minor == 0L -> "The same as $before."
         c.delta.minor > 0 -> "${c.delta.displayUnsigned()} more than $before."
@@ -713,6 +768,29 @@ private fun WeekdayDots(weekday: List<Money>, hue: Int) {
                 }
                 Text(names[i], style = Vitt.type.caption, color = if (i == heaviest) colors.ink else colors.inkFaint)
             }
+        }
+    }
+}
+
+/**
+ * Below this many purchases a size chart is a handful of dots that says
+ * nothing a list would not.
+ */
+private const val MIN_FOR_SIZES = 8
+
+/** Two columns side by side when [wide], otherwise one after the other. */
+@Composable
+private fun TwoColumns(wide: Boolean, first: @Composable () -> Unit, second: @Composable () -> Unit) {
+    val gap = Vitt.space.base
+    if (wide) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Vitt.space.section)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(gap)) { first() }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(gap)) { second() }
+        }
+    } else {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(gap)) {
+            first()
+            second()
         }
     }
 }

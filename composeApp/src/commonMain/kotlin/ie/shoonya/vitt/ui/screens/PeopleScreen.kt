@@ -11,9 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +44,8 @@ fun PeopleScreen(
     splitsFor: (String) -> List<Transaction>,
     onShare: (String) -> Unit,
     onOpenSplit: (Transaction) -> Unit,
+    /** Marks everything this person owes as paid back. */
+    onSettleUp: (String) -> Unit = {},
     /** Opens the Add sheet with the split already on, for the empty state. */
     onSplitSomething: () -> Unit,
     formatDay: (Int) -> String,
@@ -85,6 +92,7 @@ fun PeopleScreen(
                     splits = splitsFor(person),
                     onShare = { onShare(person) },
                     onOpenSplit = onOpenSplit,
+                    onSettleUp = { onSettleUp(person) },
                     formatDay = formatDay,
                 )
             }
@@ -106,9 +114,11 @@ private fun PersonCard(
     splits: List<Transaction>,
     onShare: () -> Unit,
     onOpenSplit: (Transaction) -> Unit,
+    onSettleUp: () -> Unit,
     formatDay: (Int) -> String,
 ) {
     val colors = Vitt.colors
+    var confirming by remember(person) { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -180,10 +190,32 @@ private fun PersonCard(
             }
         }
 
-        // Sending is the only channel that reliably reaches them: there is no
-        // server here, so there is no push notification to send.
-        TextButton(onClick = onShare, modifier = Modifier.padding(top = Vitt.space.hair)) {
-            Text("Send a summary")
+        // "She paid me back" is one thing that happened, so it is one tap
+        // and a yes, not a repayment typed into every split she was on. The
+        // yes is there because this writes money and the card goes when it
+        // does; it says the figure, so it is a check and not a formality.
+        if (confirming) {
+            val figures = outstanding.values.joinToString(" and ") { it.displayUnsigned() }
+            Text(
+                "${ie.shoonya.vitt.model.PersonName.of(person)} paid back $figures?",
+                style = Vitt.type.body,
+                color = colors.ink,
+                modifier = Modifier.padding(top = Vitt.space.hair),
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(Vitt.space.snug)) {
+                Button(onClick = { confirming = false; onSettleUp() }) { Text("Yes, all of it") }
+                TextButton(onClick = { confirming = false }) { Text("Not yet") }
+            }
+        } else {
+            Row(
+                modifier = Modifier.padding(top = Vitt.space.hair),
+                horizontalArrangement = Arrangement.spacedBy(Vitt.space.snug),
+            ) {
+                TextButton(onClick = { confirming = true }) { Text("Paid back") }
+                // Sending is the only channel that reliably reaches them: there is no
+                // server here, so there is no push notification to send.
+                TextButton(onClick = onShare) { Text("Send a summary") }
+            }
         }
     }
 }

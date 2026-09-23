@@ -100,8 +100,11 @@ class SheetsClient(
     /**
      * Replaces a range with typed values, and clears whatever was below it.
      *
-     * This is the derived-tab write, and it is a replace rather than an append
-     * because a derived tab *is* the current state rather than a history of it.
+     * The write for a tab the app owns outright (a fresh Transactions tab, the
+     * summaries, the Dashboard), and a replace rather than an append because
+     * such a tab *is* the current state rather than a history of it. A
+     * Transactions tab that already has rows goes through [writeRanges]
+     * instead, so a person's columns are never part of the write.
      * The clear is the half that is easy to forget: a month where three rows
      * were deleted writes a shorter table, and without it the old tail stays on
      * screen as rows that no longer exist anywhere else.
@@ -206,6 +209,75 @@ class SheetsClient(
         }
 
     /**
+     * Writes several ranges in one request, `RAW` like every other write here.
+     *
+     * The derived tab's write. It carries only the columns the app owns, as one
+     * range per run of adjacent ones, so a column somebody inserted between
+     * them is never part of any range and never written, which is the only way
+     * a formula in it survives. One request however many ranges, which also
+     * halves what a refresh used to cost, since a replace was a write and a
+     * clear.
+     */
+    suspend fun writeRanges(spreadsheetId: String, ranges: List<Pair<String, List<List<Cell>>>>) {
+        if (ranges.isEmpty()) return
+        request<BatchValuesResponse> {
+            http.post("$SHEETS_BASE/spreadsheets/$spreadsheetId/values:batchUpdate") {
+                auth()
+                contentType(ContentType.Application.Json)
+                setBody(
+                    BatchValuesRequest(
+                        data = ranges.map { (range, rows) ->
+                            TypedValueRange(range = range, values = rows.map { row -> row.map(Cell::toJson) })
+                        },
+                    )
+                )
+            }
+        }
+    }
+
+    /**
+     * Deletes whole rows, given as 1-based row numbers.
+     *
+     * A native row delete rather than blanking the cells, because Sheets then
+     * moves everything below up and adjusts every formula that pointed past
+     * it, which nothing written from here could do. Bottom-up in one request,
+     * so each index still means the row it meant when the tab was read.
+     */
+    suspend fun deleteRows(spreadsheetId: String, tab: String, rows: List<Int>) {
+        if (rows.isEmpty()) return
+        val id = sheetId(spreadsheetId, tab) ?: return
+        request<BatchUpdateResponse> {
+            http.post("$SHEETS_BASE/spreadsheets/$spreadsheetId:batchUpdate") {
+                auth()
+                contentType(ContentType.Application.Json)
+                setBody(
+                    BatchUpdateRequest(
+                        rows.distinct().sortedDescending().map { row ->
+                            SheetRequest(
+                                deleteDimension = DeleteDimensionRequest(
+                                    DimensionRange(sheetId = id, startIndex = row - 1, endIndex = row),
+                                ),
+                            )
+                        },
+                    )
+                )
+            }
+        }
+    }
+
+    /** Adds charts in one request. Built by [DerivedDashboard.chart]. */
+    suspend fun addCharts(spreadsheetId: String, charts: List<EmbeddedChart>) {
+        if (charts.isEmpty()) return
+        request<BatchUpdateResponse> {
+            http.post("$SHEETS_BASE/spreadsheets/$spreadsheetId:batchUpdate") {
+                auth()
+                contentType(ContentType.Application.Json)
+                setBody(BatchUpdateRequest(charts.map { SheetRequest(addChart = AddChartRequest(it)) }))
+            }
+        }
+    }
+
+    /**
      * Copies a tab under a new name, leaving the original where it is.
      *
      * The safe half of §2.8's archive-then-replace. A duplicate rather than a
@@ -247,14 +319,32 @@ class SheetsClient(
      * `fields` is narrowed deliberately: the default response to
      * `spreadsheets.get` carries every cell in the file, which for this is a
      * megabyte of grid to learn one integer.
+     *
+     * `spreadsheetId` has to be in the mask as well. Google returns only what
+     * the mask names, and [Spreadsheet] requires it, so a mask without it
+     * failed to decode on every call. The first live run found it, in the
+     * archive, the row delete and the charts at once; the mock had been
+     * answering with a field the real API never sent.
      */
     suspend fun sheetId(spreadsheetId: String, tab: String): Int? =
         request<Spreadsheet> {
             http.get("$SHEETS_BASE/spreadsheets/$spreadsheetId") {
                 auth()
-                parameter("fields", "sheets.properties.title,sheets.properties.sheetId")
+                parameter("fields", "spreadsheetId,sheets.properties.title,sheets.properties.sheetId")
             }
         }.sheets.firstOrNull { it.properties.title == tab }?.properties?.sheetId
+
+    /**
+     * The spreadsheet's locale, which a person can change under File, Settings.
+     * Narrowed like [sheetId] so the answer is not a megabyte of grid.
+     */
+    suspend fun locale(spreadsheetId: String): String? =
+        request<Spreadsheet> {
+            http.get("$SHEETS_BASE/spreadsheets/$spreadsheetId") {
+                auth()
+                parameter("fields", "spreadsheetId,properties.title,properties.locale")
+            }
+        }.properties?.locale
 
     /** Reads a closed range. Never pass an open range like `A:F` — see below. */
     suspend fun read(spreadsheetId: String, range: String): List<List<String>> =
@@ -283,15 +373,55 @@ class SheetsClient(
         pageSize: Int = 5_000,
         startRow: Int = 2,
     ): Page {
-        val all = mutableListOf<List<String>>()
+        val (rows, next) = paged(pageSize, startRow) { first, last ->
+            read(spreadsheetId, "$tab!${columns.first()}$first:${columns.last()}$last")
+        }
+        return Page(rows, next)
+    }
+
+    /**
+     * Reads a closed range with each cell's type kept. See [TypedValueRangeResponse]
+     * for why the derived tabs need this and the event log does not.
+     */
+    suspend fun readCells(spreadsheetId: String, range: String): List<List<Cell>> =
+        request<TypedValueRangeResponse> {
+            http.get("$SHEETS_BASE/spreadsheets/$spreadsheetId/values/${encodePathSegment(range)}") {
+                auth()
+                parameter("majorDimension", "ROWS")
+                parameter("valueRenderOption", "UNFORMATTED_VALUE")
+                // A date somebody typed into a column of their own comes back
+                // as the serial number it is, and goes back as one, so the
+                // cell's date format still has something to format.
+                parameter("dateTimeRenderOption", "SERIAL_NUMBER")
+            }
+        }.values.map { row -> row.map(::cellOf) }
+
+    /** [readPaged], typed. */
+    suspend fun readCellsPaged(
+        spreadsheetId: String,
+        tab: String,
+        columns: String,
+        pageSize: Int = 5_000,
+        startRow: Int = 2,
+    ): List<List<Cell>> =
+        paged(pageSize, startRow) { first, last ->
+            readCells(spreadsheetId, "$tab!${columns.first()}$first:${columns.last()}$last")
+        }.first
+
+    private suspend fun <T> paged(
+        pageSize: Int,
+        startRow: Int,
+        fetch: suspend (first: Int, last: Int) -> List<T>,
+    ): Pair<List<T>, Int> {
+        val all = mutableListOf<T>()
         var row = startRow
         while (true) {
             val last = row + pageSize - 1
-            val page = read(spreadsheetId, "$tab!${columns.first()}$row:${columns.last()}$last")
+            val page = fetch(row, last)
             all += page
             // A short page means the end of the data, since Sheets trims
             // trailing empty rows.
-            if (page.size < pageSize) return Page(all, row + page.size)
+            if (page.size < pageSize) return all to row + page.size
             row = last + 1
         }
     }

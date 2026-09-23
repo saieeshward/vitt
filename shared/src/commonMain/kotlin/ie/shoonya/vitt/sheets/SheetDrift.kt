@@ -69,18 +69,29 @@ object SheetDrift {
     /**
      * Compares the tab as read against the table the app would write.
      *
-     * [existing] is the whole tab including its header row, as strings — which
-     * is all a read can give, since the API returns formatted values and cannot
-     * say whether a cell was a number or text. [desired] is
-     * [DerivedTransactions.table], header included.
+     * [existing] is the whole tab including its header row, read unformatted so
+     * a number is its value rather than whatever the column's format displays.
+     * [desired] is [DerivedTransactions.table], header included.
+     *
+     * [lastSeen] is this device's memory of the tab: each row's [fingerprint]
+     * as it was last written or found clean. Without it the comparison can only
+     * be against what the app is *about* to write, and then every entry added
+     * in the app looks like a row somebody deleted from the sheet and every
+     * entry edited in the app looks like a cell somebody changed. That froze
+     * the tab the first time a second transaction was recorded. With it, a
+     * row is somebody's edit only when it matches neither the new rendering
+     * nor the last one this device knew, and a missing row is somebody's
+     * deletion only when this device has seen it there before.
      *
      * Extra columns somebody added are ignored rather than reported: they are
-     * not the app's to have an opinion about, and §2.6 requires they be
-     * preserved. They are still a reason the write cannot be wholesale, which is
-     * [extraColumns]' job.
+     * not the app's to have an opinion about, and the write never touches them.
      */
-    fun compare(existing: List<List<String>>, desired: List<List<Cell>>): Verdict {
-        val header = existing.firstOrNull()?.map { it.trim() }
+    fun compare(
+        existing: List<List<Cell>>,
+        desired: List<List<Cell>>,
+        lastSeen: Map<String, String> = emptyMap(),
+    ): Verdict {
+        val header = existing.firstOrNull()?.map { it.asText() }
             // An empty tab is the ordinary first case, not a problem.
             ?: return Verdict.Clean
         if (header.all { it.isEmpty() }) return Verdict.Clean
@@ -100,67 +111,89 @@ object SheetDrift {
         }
 
         val idAt = index.getValue(ID_COLUMN)
-        fun cellOf(row: List<String>, column: String): String =
-            row.getOrNull(index.getValue(column)).orEmpty().trim()
+        fun cellOf(row: List<Cell>, column: String): Cell =
+            row.getOrNull(index.getValue(column)) ?: Cell.Blank
 
         val wantByIdColumn = desired.first().map { (it as? Cell.Text)?.value.orEmpty() }
+        // Where each of the app's columns sits in the desired table, once.
+        val wantAt = DerivedTransactions.COLUMNS.map { wantByIdColumn.indexOf(it) }
         val wantIdAt = wantByIdColumn.indexOf(ID_COLUMN)
-        val want = desired.drop(1).associateBy { it[wantIdAt].text() }
+        val want = desired.drop(1).associateBy { it[wantIdAt].asText() }
 
         val changes = mutableListOf<Change>()
         val seen = mutableSetOf<String>()
 
         existing.drop(1).forEachIndexed { offset, row ->
             // Sheets trims trailing empties, so a short row is ordinary rather
-            // than malformed; a row that is entirely empty is a spacer.
-            if (row.all { it.isBlank() }) return@forEachIndexed
+            // than malformed. A row with nothing in any of the app's columns
+            // is a spacer, or somebody's own subtotal, and not the app's to
+            // report: the write never touches it either.
+            if (DerivedTransactions.COLUMNS.all { cellOf(row, it).asText().isBlank() }) return@forEachIndexed
             val rowNumber = offset + FIRST_DATA_ROW
-            val id = row.getOrNull(idAt)?.trim().orEmpty()
+            val id = row.getOrNull(idAt)?.asText().orEmpty()
             val expected = want[id]
-            if (id.isEmpty() || expected == null) {
-                changes += Change.Added(id.ifEmpty { null }, rowNumber)
+            if (expected == null) {
+                // A row the app deleted, still in the sheet until this write
+                // removes it, is the app's own business and not a change.
+                if (id.isEmpty() || id !in lastSeen) changes += Change.Added(id.ifEmpty { null }, rowNumber)
                 return@forEachIndexed
             }
             seen += id
-            DerivedTransactions.COLUMNS.forEach { column ->
+            val sheet = fingerprint(DerivedTransactions.COLUMNS.map { cellOf(row, it) })
+            val wanted = fingerprint(wantAt.map { expected[it] })
+            // Untouched by a person: it is either what the app would write now,
+            // or what it was the last time this device looked, and the app has
+            // simply moved on since.
+            if (sheet == wanted || sheet == lastSeen[id]) return@forEachIndexed
+            DerivedTransactions.COLUMNS.forEachIndexed { i, column ->
                 val now = cellOf(row, column)
-                val was = expected[wantByIdColumn.indexOf(column)].text()
-                if (now != was) changes += Change.Edited(id, column, was, now)
+                val was = expected[wantAt[i]]
+                if (!now.sameValueAs(was)) changes += Change.Edited(id, column, was.asText(), now.asText())
             }
         }
 
-        (want.keys - seen).sorted().forEach { changes += Change.Removed(it) }
+        // Missing and never seen is an entry the sheet has not been given yet.
+        (want.keys - seen).filter { it in lastSeen }.sorted().forEach { changes += Change.Removed(it) }
 
         return if (changes.isEmpty()) Verdict.Clean else Verdict.Drifted(changes)
     }
 
     /**
-     * Columns in the sheet that the app did not put there.
-     *
-     * Somebody's own "Reviewed?" or "Business expense" column. §2.6 requires
-     * these survive, so their presence is what turns a whole-tab write into a
-     * per-column one.
+     * A short, stable digest of one row's app-owned cells, compared by value so
+     * `-12.50` and `-12.5` agree. FNV-1a: this only has to tell an edited row
+     * from an untouched one, not resist anybody.
      */
-    fun extraColumns(existing: List<List<String>>): List<String> =
-        existing.firstOrNull().orEmpty()
-            .map { it.trim() }
-            .filter { it.isNotEmpty() && it !in DerivedTransactions.COLUMNS }
+    fun fingerprint(cells: List<Cell>): String {
+        var hash = -0x340d631b7bdddcdbL // FNV offset basis
+        cells.joinToString("\u001f") { it.canonicalText() }.encodeToByteArray().forEach { byte ->
+            hash = hash xor (byte.toLong() and 0xFF)
+            hash *= 0x100000001b3L // FNV prime
+        }
+        return hash.toULong().toString(16).padStart(16, '0')
+    }
+
+    /** What to remember after writing [table]: each row's fingerprint, by id. */
+    fun memoryOf(table: List<List<Cell>>): Map<String, String> {
+        val header = table.firstOrNull()?.map { it.asText() } ?: return emptyMap()
+        val idAt = header.indexOf(ID_COLUMN).takeIf { it >= 0 } ?: return emptyMap()
+        val at = DerivedTransactions.COLUMNS.map { header.indexOf(it) }
+        return table.drop(1).associate { row ->
+            row[idAt].asText() to fingerprint(at.map { i -> row.getOrNull(i) ?: Cell.Blank })
+        }
+    }
+
+    /** Encodes a memory for a key-value store: one `id<TAB>fingerprint` per line. */
+    fun encodeMemory(memory: Map<String, String>): String =
+        memory.entries.joinToString("\n") { (id, fp) -> "$id\t$fp" }
+
+    fun decodeMemory(encoded: String?): Map<String, String> =
+        encoded.orEmpty().lineSequence().mapNotNull { line ->
+            val tab = line.indexOf('\t')
+            if (tab <= 0) null else line.substring(0, tab) to line.substring(tab + 1)
+        }.toMap()
 
     private const val ID_COLUMN = "id"
 
     /** Row 1 is the frozen header, so data starts at 2. */
     private const val FIRST_DATA_ROW = 2
-
-    /**
-     * A cell as the sheet will hand it back.
-     *
-     * A read cannot tell a number from text, so the comparison has to happen in
-     * the one form both sides can produce — and a blank has to compare equal to
-     * an empty string, because that is what Sheets returns for one.
-     */
-    private fun Cell.text(): String = when (this) {
-        is Cell.Text -> value.trim()
-        is Cell.Number -> plain
-        Cell.Blank -> ""
-    }
 }

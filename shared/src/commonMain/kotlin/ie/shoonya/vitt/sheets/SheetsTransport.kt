@@ -65,19 +65,19 @@ class SheetsTransport(
      * defending.
      */
     val derived: DerivedTabPort = object : DerivedTabPort {
-        override suspend fun read(spreadsheetId: String, tab: String): List<List<String>> {
+        override suspend fun read(spreadsheetId: String, tab: String): List<List<Cell>> =
             // From row 1, not row 2: the header is the thing being read. Every
             // other read in this file starts at 2 because the header is known
             // in advance, and here it is precisely what is not.
-            val page = sheets.readPaged(
-                spreadsheetId = spreadsheetId,
-                tab = tab,
-                columns = "AZ",
-                pageSize = pageSize,
-                startRow = 1,
-            )
-            return page.rows
-        }
+            orCreated(spreadsheetId, tab, afterCreate = { emptyList() }) {
+                sheets.readCellsPaged(
+                    spreadsheetId = spreadsheetId,
+                    tab = tab,
+                    columns = "AZ",
+                    pageSize = pageSize,
+                    startRow = 1,
+                )
+            }
 
         override suspend fun replace(
             spreadsheetId: String,
@@ -85,16 +85,67 @@ class SheetsTransport(
             rows: List<List<Cell>>,
             lastColumn: Char,
         ) {
-            sheets.replaceValues(spreadsheetId, tab, rows, lastColumn)
-        }
-
-        override suspend fun ensureTab(spreadsheetId: String, tab: String) {
-            sheets.addTab(spreadsheetId, tab)
+            val write = suspend { sheets.replaceValues(spreadsheetId, tab, rows, lastColumn) }
+            orCreated(spreadsheetId, tab, afterCreate = write, first = write)
         }
 
         override suspend fun archive(spreadsheetId: String, tab: String, asTab: String): Boolean =
             sheets.archiveTab(spreadsheetId, tab, asTab)
+
+        override suspend fun writeBlocks(spreadsheetId: String, tab: String, blocks: List<DerivedTabs.Block>) =
+            sheets.writeRanges(
+                spreadsheetId,
+                blocks.filter { it.rows.isNotEmpty() && it.rows.first().isNotEmpty() }.map { block ->
+                    val first = DerivedTabs.columnName(block.firstColumn)
+                    val last = DerivedTabs.columnName(block.firstColumn + block.rows.first().size - 1)
+                    "$tab!$first${block.firstRow}:$last${block.firstRow + block.rows.size - 1}" to block.rows
+                },
+            )
+
+        override suspend fun deleteRows(spreadsheetId: String, tab: String, rows: List<Int>) =
+            sheets.deleteRows(spreadsheetId, tab, rows)
+
+        override suspend fun sheetId(spreadsheetId: String, tab: String): Int? =
+            sheets.sheetId(spreadsheetId, tab)
+
+        override suspend fun addCharts(spreadsheetId: String, charts: List<EmbeddedChart>) =
+            sheets.addCharts(spreadsheetId, charts)
     }
+
+    /** The `_Meta` half. Strings in, strings out, appended like the log. */
+    val meta: MetaPort = object : MetaPort {
+        override suspend fun read(spreadsheetId: String, tab: String): List<List<String>> =
+            orCreated(spreadsheetId, tab, afterCreate = { emptyList() }) {
+                sheets.readPaged(spreadsheetId, tab, columns = "AZ", pageSize = pageSize, startRow = 1).rows
+            }
+
+        override suspend fun append(spreadsheetId: String, tab: String, rows: List<List<String>>) {
+            sheets.append(spreadsheetId, tab, rows)
+        }
+
+        override suspend fun locale(spreadsheetId: String): String? = sheets.locale(spreadsheetId)
+    }
+
+    /**
+     * Runs [first], and if it fails because the tab is not there, creates the
+     * tab and runs [afterCreate] instead: an empty read, or the same write again.
+     *
+     * Created then rather than before every call: an up-front create is a
+     * request that fails on every sync but the first, and syncs run every
+     * couple of seconds while somebody is typing. Any other 400 is passed on,
+     * since addTab only answers true when it actually made the tab.
+     */
+    private suspend fun <T> orCreated(
+        spreadsheetId: String,
+        tab: String,
+        afterCreate: suspend () -> T,
+        first: suspend () -> T,
+    ): T =
+        try {
+            first()
+        } catch (e: SheetsError.BadRequest) {
+            if (sheets.addTab(spreadsheetId, tab)) afterCreate() else throw e
+        }
 
     companion object {
         const val EVENTS_TAB = "Events"

@@ -187,6 +187,41 @@ internal fun Cell.toJson(): kotlinx.serialization.json.JsonPrimitive = when (thi
     is Cell.Text -> kotlinx.serialization.json.JsonPrimitive(value)
     is Cell.Number -> kotlinx.serialization.json.JsonUnquotedLiteral(plain)
     Cell.Blank -> kotlinx.serialization.json.JsonPrimitive("")
+    is Cell.Bool -> kotlinx.serialization.json.JsonPrimitive(value)
+}
+
+/**
+ * A read that keeps each cell's type: `valueRenderOption=UNFORMATTED_VALUE`.
+ *
+ * The derived tabs are read this way and the event log is not. A formatted read
+ * returns what the cell *displays*, so `-12.50` written as a number comes back
+ * as `-12.5`, and as `€12.50` once somebody formats the column as currency —
+ * which is the first thing anybody does to a column of money. Compared against
+ * what the app wrote, every one of those reads as an edit, and the tab stops
+ * updating the second time it is refreshed.
+ */
+@Serializable
+data class TypedValueRangeResponse(
+    val range: String? = null,
+    val values: List<List<kotlinx.serialization.json.JsonElement>> = emptyList(),
+)
+
+/**
+ * A cell as an unformatted read returns it.
+ *
+ * A number keeps the spelling Google sent, never passing through a Double here.
+ * An empty string is a blank, because that is how the API reports one inside a
+ * row.
+ */
+internal fun cellOf(element: kotlinx.serialization.json.JsonElement): Cell {
+    val primitive = element as? kotlinx.serialization.json.JsonPrimitive ?: return Cell.Text(element.toString())
+    return when {
+        primitive is kotlinx.serialization.json.JsonNull -> Cell.Blank
+        primitive.isString -> if (primitive.content.isEmpty()) Cell.Blank else Cell.Text(primitive.content)
+        primitive.content == "true" -> Cell.Bool(true)
+        primitive.content == "false" -> Cell.Bool(false)
+        else -> Cell.Number(primitive.content)
+    }
 }
 
 // ---- spreadsheets.batchUpdate ------------------------------------------------
@@ -198,7 +233,89 @@ data class BatchUpdateRequest(val requests: List<SheetRequest>)
 data class SheetRequest(
     val addSheet: AddSheetRequest? = null,
     val duplicateSheet: DuplicateSheetRequest? = null,
+    val deleteDimension: DeleteDimensionRequest? = null,
+    val addChart: AddChartRequest? = null,
 )
+
+// ---- charts ------------------------------------------------------------------
+// Only the fields a column chart over a closed range needs.
+
+@Serializable
+data class AddChartRequest(val chart: EmbeddedChart)
+
+@Serializable
+data class EmbeddedChart(val spec: ChartSpec, val position: EmbeddedObjectPosition)
+
+@Serializable
+data class ChartSpec(val title: String, val basicChart: BasicChartSpec)
+
+@Serializable
+data class BasicChartSpec(
+    val chartType: String = "COLUMN",
+    val legendPosition: String = "BOTTOM_LEGEND",
+    val axis: List<BasicChartAxis>,
+    val domains: List<BasicChartDomain>,
+    val series: List<BasicChartSeries>,
+    /** The first row of the range is the labels, not a month. */
+    val headerCount: Int = 1,
+)
+
+@Serializable
+data class BasicChartAxis(val position: String, val title: String? = null)
+
+@Serializable
+data class BasicChartDomain(val domain: ChartData)
+
+@Serializable
+data class BasicChartSeries(val series: ChartData, val targetAxis: String = "LEFT_AXIS")
+
+@Serializable
+data class ChartData(val sourceRange: ChartSourceRange)
+
+@Serializable
+data class ChartSourceRange(val sources: List<GridRange>)
+
+/** Zero-based, end-exclusive. */
+@Serializable
+data class GridRange(
+    val sheetId: Int,
+    val startRowIndex: Int,
+    val endRowIndex: Int,
+    val startColumnIndex: Int,
+    val endColumnIndex: Int,
+)
+
+@Serializable
+data class EmbeddedObjectPosition(val overlayPosition: OverlayPosition)
+
+@Serializable
+data class OverlayPosition(val anchorCell: GridCoordinate, val widthPixels: Int, val heightPixels: Int)
+
+@Serializable
+data class GridCoordinate(val sheetId: Int, val rowIndex: Int, val columnIndex: Int)
+
+@Serializable
+data class DeleteDimensionRequest(val range: DimensionRange)
+
+/** Zero-based and end-exclusive, as the API counts. */
+@Serializable
+data class DimensionRange(
+    val sheetId: Int,
+    val dimension: String = "ROWS",
+    val startIndex: Int,
+    val endIndex: Int,
+)
+
+// ---- values.batchUpdate ------------------------------------------------------
+
+@Serializable
+data class BatchValuesRequest(
+    val valueInputOption: String = "RAW",
+    val data: List<TypedValueRange>,
+)
+
+@Serializable
+data class BatchValuesResponse(val totalUpdatedCells: Int? = null)
 
 @Serializable
 data class AddSheetRequest(val properties: SheetProperties)

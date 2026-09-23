@@ -19,7 +19,8 @@ shared/src/commonMain/kotlin/ie/shoonya/vitt/
   model/     Transaction, LedgerRepository
   money/     Money, AmountEntry  — minor-unit integers, never Double
   net/       HttpClientFactory
-  sheets/    SheetsClient, SheetsWire, SheetsError, LiveVerification
+  sheets/    SheetsClient, SheetsWire, SheetsError, SheetsTransport, LiveVerification,
+             DerivedTabs, DerivedTransactions, DerivedSummary, SheetDrift, SheetMeta
   sync/      Hlc, Iso8601, Event, EventLog, EventStore, Outbox, DeviceIdentity, Bisect
 composeApp/src/commonMain/.../ui/
   VittApp, AppRoot, AmountKeypad, MoneyLine, Pip, Icons, VerifyScreen
@@ -91,6 +92,11 @@ not a design preference.
 
 `docs/phase-0-checklist.md` tracks long-lead items; `[you]` items need the maintainer
 and cannot be automated.
+
+`docs/live-verification.clan` is the record of every check run against real Google,
+with each check's status. Update it after a run with `clan patch-data --append runs`,
+then `python3 tools/verification-view.py docs/live-verification.clan`. New records
+and results go in a `.clan` like this one rather than in a new markdown file.
 
 ## Test naming
 

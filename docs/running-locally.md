@@ -48,6 +48,11 @@ SIMCTL_CHILD_VITT_STRESS=1 xcrun simctl launch booted ie.shoonya.vitt
 Both seeders are no-ops once the database has any transaction, so a different
 data set needs `xcrun simctl uninstall booted ie.shoonya.vitt` first.
 
+`VITT_TAB=ledgers|activity|people|reports` opens on that tab, so a screenshot of
+any tab needs no taps at all, which matters when another simulator is running
+and synthesized taps have nowhere safe to go. Debug builds only, like the
+seeders.
+
 To check what VoiceOver would read on the current screen without a device, dump
 the Simulator's accessibility tree (role, frame in device points, label, value):
 
@@ -98,8 +103,15 @@ Things that cost time to work out, recorded so they cost nobody else any:
 - **`CADisableMinimumFrameDurationOnPhone` must be `true` in `Info.plist`.**
   Compose Multiplatform aborts at launch without it, because iOS would otherwise
   silently cap the app at 60fps on ProMotion displays.
-- **Do not `.ignoresSafeArea(.all)`** around the Compose view — content then draws
-  under the Dynamic Island. Only the keyboard inset should be ceded to Compose.
+- **The Compose view ignores every safe area, and the shared UI applies the
+  insets itself.** An earlier note here said the opposite, and it was right at
+  the time: with nothing in Compose reading the insets, ignoring the safe area
+  drew the title under the Dynamic Island. Keeping it, though, stopped the app
+  at a hard line below the status bar and above the home indicator, with a band
+  of the system's colour beyond it. `VittApp` now pads the top and sides with
+  `WindowInsets.safeDrawing` and the tab bar pads its own bottom, so the ground
+  runs to both edges, and Android does the same from the same code instead of
+  its own status-bar wrapper.
 
 ## Simulator vs device — which to use
 

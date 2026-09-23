@@ -133,6 +133,16 @@ fun SheetSection(
                 )
             }
 
+            // The one thing this phone cannot fix itself.
+            (derived as? DerivedTabs.Outcome.Deferred)?.let {
+                Text(
+                    "A newer version of VITT set up this spreadsheet. Update the app " +
+                        "here to keep its tabs current. Syncing still works.",
+                    style = Vitt.type.label,
+                    color = Vitt.colors.inkMuted,
+                )
+            }
+
             // Only when there is something to say. A line reporting that a tab
             // was rewritten successfully is a line about plumbing, and this
             // screen does not report plumbing.
