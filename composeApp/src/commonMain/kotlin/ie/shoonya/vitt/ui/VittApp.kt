@@ -147,6 +147,8 @@ fun VittApp(
     openAddTick: Int = 0,
     /** Where the sheet stands, for Settings. Off when the app runs local-only. */
     syncStatus: SyncStatus = SyncStatus.Off,
+    /** The last rewrite of the spreadsheet's readable tab. Surfaced in Settings. */
+    derivedTabs: ie.shoonya.vitt.sheets.DerivedTabs.Outcome? = null,
     sheetActions: SheetActions = SheetActions({ ie.shoonya.vitt.auth.AuthResult.Cancelled }, {}, {}),
     /**
      * Bumped when a sync brought events in from another device, so the
@@ -1037,6 +1039,7 @@ fun VittApp(
                         localRevision++
                     },
                     syncStatus = syncStatus,
+                    derivedTabs = derivedTabs,
                     sheetActions = sheetActions,
                     now = now,
                     gamificationEnabled = habitOn,

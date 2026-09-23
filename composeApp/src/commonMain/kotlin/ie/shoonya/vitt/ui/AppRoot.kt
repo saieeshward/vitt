@@ -61,6 +61,7 @@ fun AppRoot(
                 VerifyScreen(services, autoRun = autoRun)
             } else {
                 val syncStatus by services.sync.status.collectAsState()
+                val derivedTabs by services.derivedTabs.collectAsState()
                 // Text handed in from a share or a Shortcut, waiting to be
                 // confirmed. Collected here because VittApp is recreated on a
                 // theme change and the offer must survive that.
@@ -82,11 +83,13 @@ fun AppRoot(
                     onCaptureConsumed = { services.captureConsumed() },
                     openAddTick = openAdd,
                     syncStatus = syncStatus,
+                    derivedTabs = derivedTabs,
                     sheetActions = remember(services) {
                         SheetActions(
                             connect = { services.connectGoogle() },
                             disconnect = { services.disconnectGoogle() },
                             syncNow = { services.sync.syncNow() },
+                            overwriteSheet = { services.overwriteDerivedTabs() },
                         )
                     },
                     remoteRevision = remoteRevision,

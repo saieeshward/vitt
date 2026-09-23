@@ -20,6 +20,8 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.semantics
 import ie.shoonya.vitt.auth.AuthResult
 import ie.shoonya.vitt.sheets.SheetsError
+import ie.shoonya.vitt.sheets.DerivedTabs
+import ie.shoonya.vitt.sheets.SheetDrift
 import ie.shoonya.vitt.sync.SyncStatus
 import ie.shoonya.vitt.ui.theme.Vitt
 import kotlinx.coroutines.launch
@@ -29,6 +31,8 @@ class SheetActions(
     val connect: suspend () -> AuthResult,
     val disconnect: suspend () -> Unit,
     val syncNow: suspend () -> Unit,
+    /** The user answering drift with "keep the app's version". Never automatic. */
+    val overwriteSheet: suspend () -> Unit = {},
 )
 
 /**
@@ -45,6 +49,8 @@ fun SheetSection(
     actions: SheetActions,
     /** Wall-clock now, for "a moment ago" wording. */
     now: () -> Long,
+    /** What the last rewrite of the readable tab did, or null before the first. */
+    derived: DerivedTabs.Outcome? = null,
 ) {
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
@@ -112,11 +118,67 @@ fun SheetSection(
                 style = Vitt.type.label,
                 color = Vitt.colors.inkFaint,
             )
+
+            // Only when there is something to say. A line reporting that a tab
+            // was rewritten successfully is a line about plumbing, and this
+            // screen does not report plumbing.
+            (derived as? DerivedTabs.Outcome.Held)?.let { held ->
+                Text(
+                    held.verdict.sentence(),
+                    style = Vitt.type.body,
+                    color = Vitt.colors.ink,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
+                Text(
+                    // Said plainly, because the choice is not obvious and the
+                    // app is not going to make it. Both sides are kept until
+                    // somebody decides.
+                    "Your spreadsheet and this phone disagree, so VITT has left " +
+                        "the Transactions tab alone. Nothing is lost either way.",
+                    style = Vitt.type.label,
+                    color = Vitt.colors.inkMuted,
+                )
+                if (held.verdict is SheetDrift.Verdict.Drifted) {
+                    TextButton(
+                        enabled = !busy,
+                        onClick = {
+                            busy = true
+                            scope.launch { actions.overwriteSheet(); busy = false }
+                        },
+                    ) { Text("Replace the tab with this phone's version") }
+                }
+            }
         }
     }
 
     note?.let {
         Text(it, style = Vitt.type.label, color = Vitt.colors.destructive)
+    }
+}
+
+/**
+ * What the held refresh found, in one sentence somebody can act on.
+ *
+ * Named and counted, because "the sheet has changed" tells a person nothing
+ * about whether it matters. One change is worth quoting; several are worth
+ * counting, since a list of forty would be a screen of its own and this is a
+ * row in Settings.
+ */
+private fun SheetDrift.Verdict.sentence(): String = when (this) {
+    is SheetDrift.Verdict.Clean -> ""
+    is SheetDrift.Verdict.Unusable -> "The Transactions tab is not the shape VITT wrote: $why."
+    is SheetDrift.Verdict.Drifted -> {
+        val first = changes.first()
+        if (changes.size == 1) {
+            when (first) {
+                is SheetDrift.Change.Edited ->
+                    "${first.column} was changed to \"${first.now}\" in your spreadsheet."
+                is SheetDrift.Change.Added -> "A row was added to your spreadsheet."
+                is SheetDrift.Change.Removed -> "A row was deleted from your spreadsheet."
+            }
+        } else {
+            "${changes.size} things were changed in your spreadsheet."
+        }
     }
 }
 
