@@ -10,33 +10,35 @@ let pet = pickPet(PETS);
 
 /* ── Loader: today's pet drawn in, rect by rect ───────────────────────── */
 
+// Full screen only on the first page of a visit, and never waiting on the 3D
+// scene: a loader on a page like this is time taken from every reader, so it
+// lasts as long as the drawing does and not a frame more. Any other load, the
+// pet draws itself in at the foot of the page while the content is already up.
 const loader = $('#loader');
-const loaderCtx = $('canvas', loader).getContext('2d');
-$('p', loader).innerHTML = `<b>${pet.name}</b> is walking with you today.`;
+let firstOfVisit = true;
+try { firstOfVisit = !sessionStorage.getItem('vitt-seen'); sessionStorage.setItem('vitt-seen', '1'); } catch {}
 
-const drawn = new Promise(resolve => {
-  const rects = pet.poses.front;
-  if (reduced) { drawPet(loaderCtx, rects); return resolve(); }
-  const start = performance.now(), length = 620;
-  (function frame(now) {
-    const t = clamp((now - start) / length);
-    drawPet(loaderCtx, rects, { upTo: Math.ceil(rects.length * t) });
-    if (t < 1) requestAnimationFrame(frame); else resolve();
-  })(start);
-});
+function drawIn(ctx, rects, length) {
+  return new Promise(resolve => {
+    if (reduced) { drawPet(ctx, rects); return resolve(); }
+    const start = performance.now();
+    (function frame(now) {
+      const t = clamp((now - start) / length);
+      drawPet(ctx, rects, { upTo: Math.ceil(rects.length * t) });
+      if (t < 1) requestAnimationFrame(frame); else resolve();
+    })(start);
+  });
+}
 
-// Ready means the page and its 3D scene are, or 2.5s have passed: the pet is
-// never a wall in front of content that is already there.
-let sceneReady;
-const scenePromise = new Promise(r => (sceneReady = r));
-const ready = Promise.race([
-  Promise.all([new Promise(r => (document.readyState === 'complete' ? r() : addEventListener('load', r, { once: true }))), scenePromise]),
-  new Promise(r => setTimeout(r, 2500)),
-]);
-Promise.all([drawn, ready]).then(() => {
-  loader.classList.add('done');
-  say(`Hi. I'm ${pet.name}.`, 2600);
-});
+let introduced = Promise.resolve();
+if (firstOfVisit) {
+  $('p', loader).innerHTML = `<b>${pet.name}</b> is walking with you today.`;
+  const domReady = new Promise(r => (document.readyState === 'loading' ? addEventListener('DOMContentLoaded', r, { once: true }) : r()));
+  introduced = Promise.all([drawIn($('canvas', loader).getContext('2d'), pet.poses.front, 560), domReady])
+    .then(() => loader.classList.add('done'));
+} else {
+  loader.remove();
+}
 
 /* ── The walker ───────────────────────────────────────────────────────── */
 
@@ -121,7 +123,9 @@ addEventListener('scroll', setTarget, { passive: true });
 addEventListener('resize', setTarget);
 setTarget();
 x = targetX;
-render(performance.now());
+if (firstOfVisit) render(performance.now());
+else drawIn(walkerCtx, pet.poses.stand, 480).then(() => render(performance.now()));
+introduced.then(() => say(`Hi. I'm ${pet.name}.`, 2600));
 
 /* ── Hero: the scroll scrubs the coin scene and steps the chapters ───── */
 
@@ -164,11 +168,11 @@ import('./coins.js')
       coins.setProgress(reduced ? 1 : heroProgress());
     }
   })
-  .catch(() => {})
-  .finally(() => sceneReady());
+  .catch(() => {});
 
 /* ── Scrollytelling: the step in the middle of the screen drives the phone ── */
 
+const narrow = matchMedia('(max-width: 860px)');
 const shots = $$('.phone-rail img');
 const steps = $$('.step');
 const stepObserver = new IntersectionObserver(entries => {
@@ -177,11 +181,36 @@ const stepObserver = new IntersectionObserver(entries => {
     const s = e.target;
     steps.forEach(x => x.classList.toggle('on', x === s));
     shots.forEach(img => img.classList.toggle('on', img.dataset.shot === s.dataset.shot));
-    say(s.dataset.say);
+    dots.forEach(d => d.classList.toggle('on', d.dataset.shot === s.dataset.shot));
+    // Beside the phone on a wide screen she has room to talk; on a narrow
+    // one each step is a screenshot under her, so she keeps quiet.
+    if (!narrow.matches) say(s.dataset.say);
     setPose('content');
   }
 }, { rootMargin: '-45% 0px -45% 0px' });
 steps.forEach(s => stepObserver.observe(s));
+
+// Where the reader is in the six: a dot per step beside the phone.
+const rail = $('.phone-rail');
+const dotsWrap = document.createElement('div');
+dotsWrap.className = 'rail-dots';
+dotsWrap.setAttribute('aria-hidden', 'true');
+const dots = steps.map((s, i) => {
+  const d = document.createElement('i');
+  d.dataset.shot = s.dataset.shot;
+  if (i === 0) d.className = 'on';
+  dotsWrap.append(d);
+  return d;
+});
+$('.phone', rail)?.append(dotsWrap);
+
+// Out of the way of any screenshot in the middle of a narrow screen.
+const onScreen = new Set();
+const asideObserver = new IntersectionObserver(entries => {
+  for (const e of entries) e.isIntersecting ? onScreen.add(e.target) : onScreen.delete(e.target);
+  walker.classList.toggle('aside', onScreen.size > 0 && narrow.matches);
+}, { rootMargin: '-25% 0px -10% 0px' });
+$$('.inline-phone').forEach(el => asideObserver.observe(el));
 
 /* ── Sections the pet has something to say about ─────────────────────── */
 

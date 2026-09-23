@@ -106,8 +106,12 @@ export function createCoins(canvas, { still = false } = {}) {
       // Interleaved, so the three currencies take turns: each coin still
       // finds its own stack however the drops are shuffled together.
       const order = k * STACKS.length + i;
-      const total = PER_STACK * STACKS.length;
-      coins.push({ mesh: m, stack: i, x, k, t0: 0.04 + (order / total) * 0.58, spin: (order % 5) - 2 });
+      // The first two rows are already in when the page opens, so the first
+      // screen shows the idea before anyone scrolls. None is caught mid-air
+      // there: a still of a euro over the rupee stack would say the opposite.
+      const pre = STACKS.length * 2;
+      const t0 = order < pre ? -1 : 0.02 + ((order - pre) / (PER_STACK * STACKS.length - pre)) * 0.56;
+      coins.push({ mesh: m, stack: i, x, k, t0, spin: (order % 5) - 2 });
       scene.add(m);
     }
   });
@@ -142,7 +146,7 @@ export function createCoins(canvas, { still = false } = {}) {
   const spawn = new THREE.Vector3(0, 6.2, 0);
 
   function place(p) {
-    const wx = wide ? 3.3 : 0, wy = 0;
+    const wx = wide ? 3.7 : 0, wy = 0;
     world.position.set(wx, wy, 0);
     for (const c of coins) {
       const t = THREE.MathUtils.clamp((p - c.t0) / 0.1, 0, 1);

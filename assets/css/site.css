@@ -110,7 +110,7 @@ a { color: inherit; }
 
 /* ── Hero: a pinned stage the scroll scrubs ─────────────────────── */
 
-#hero { position: relative; height: 340svh; }
+#hero { position: relative; height: 240svh; }
 #hero .stage {
   position: sticky; top: 0; height: 100svh; overflow: hidden;
   display: grid; align-items: center;
@@ -124,18 +124,24 @@ a { color: inherit; }
 .hero-copy { position: relative; z-index: 2; pointer-events: none; }
 .hero-copy .wrap { display: grid; }
 .chapter {
-  grid-area: 1 / 1; max-width: 34rem;
+  grid-area: 1 / 1; max-width: 38rem;
   opacity: 0; transform: translateY(14px);
   transition: opacity 500ms ease, transform 600ms cubic-bezier(.2, .8, .2, 1);
 }
 .chapter.on { opacity: 1; transform: none; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.chapter.on .hero-actions { pointer-events: auto; }
+@media (max-width: 560px) {
+  .hero-actions { gap: 10px; margin-top: 24px; }
+  .hero-actions .btn { height: 44px; padding: 0 16px; font-size: 15px; }
+}
 .eyebrow {
   display: inline-flex; align-items: center; gap: 8px; margin: 0 0 18px;
   font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted);
 }
 .eyebrow i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 h1, h2, h3 { font-weight: 650; letter-spacing: -0.025em; line-height: 1.06; margin: 0; text-wrap: balance; }
-h1 { font-size: clamp(40px, 7vw, 76px); }
+h1 { font-size: clamp(40px, 5.4vw, 68px); }
 h2 { font-size: clamp(32px, 5vw, 54px); }
 h3 { font-size: 22px; letter-spacing: -0.01em; line-height: 1.25; }
 .lede { font-size: clamp(17px, 2vw, 20px); color: var(--ink-muted); margin: 20px 0 0; max-width: 32rem; text-wrap: pretty; }
@@ -171,7 +177,7 @@ section { position: relative; }
 .tell .steps { padding-bottom: 20vh; }
 .step {
   min-height: 78vh; display: grid; align-content: center;
-  opacity: 0.28; transition: opacity 400ms ease;
+  opacity: 0.55; transition: opacity 400ms ease;
 }
 .step.on { opacity: 1; }
 .step h3 { font-size: clamp(26px, 3.2vw, 36px); letter-spacing: -0.02em; }
@@ -186,7 +192,15 @@ section { position: relative; }
   height: min(80svh, 780px); width: auto; max-width: 100%;
 }
 
+.rail-dots {
+  position: absolute; right: -26px; top: 50%; translate: 0 -50%;
+  display: grid; gap: 10px;
+}
+.rail-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-faint); opacity: 0.35; transition: opacity 250ms ease, transform 250ms ease; }
+.rail-dots i.on { opacity: 1; background: var(--accent); transform: scale(1.3); }
+
 .phone {
+  position: relative;
   width: min(100%, 360px); margin-inline: auto; aspect-ratio: 1206 / 2622;
   border-radius: 46px; padding: 10px; background: #0F0D14;
   box-shadow: var(--shadow), inset 0 0 0 1.5px rgba(255, 255, 255, 0.08);
@@ -314,9 +328,13 @@ footer a:hover { color: var(--ink); }
   background: rgba(36, 31, 51, 0.12); filter: blur(2px);
 }
 @media (max-width: 560px) {
-  #walker, #walker canvas { width: 72px; height: 60px; }
-  #walker .bubble { bottom: 66px; font-size: 13px; }
+  #walker, #walker canvas { width: 56px; height: 47px; }
+  #walker .bubble { bottom: 54px; font-size: 13px; }
+  #walker .shadow { left: 10px; right: 10px; }
 }
+#walker { transition: opacity 250ms ease; }
+#walker.aside { opacity: 0; }
+#walker.aside canvas { pointer-events: none; }
 @media print { #walker, #loader, .nav { display: none; } }
 
 /* ── Reduced motion: no pin, no scrub, nothing drifting ─────────── */
