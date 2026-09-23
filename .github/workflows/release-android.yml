@@ -1,0 +1,128 @@
+name: Release Android
+
+# Tag-driven, because a release is a decision and a push to main is not.
+#
+#   git tag v1.0.0 && git push origin v1.0.0
+#
+# workflow_dispatch is here so the whole path can be rehearsed before a tag
+# exists, which is worth doing at least once while nothing is at stake.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      track:
+        description: 'Play track to publish to'
+        required: true
+        default: internal
+        type: choice
+        options: [internal, alpha, beta, production]
+
+# Never cancel a release in progress. The CI workflow cancels superseded runs
+# because a stale answer is worthless there; here a half-finished upload is
+# worse than a slow one.
+concurrency:
+  group: release-android
+  cancel-in-progress: false
+
+jobs:
+  bundle:
+    name: Signed bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-37.0'
+
+      # Are we signing, or only proving the build?
+      #
+      # Secrets cannot be used in a job-level `if`, so the presence check has to
+      # become an output first. This lets the workflow be committed and run
+      # before a keystore exists: it produces an unsigned bundle and says so,
+      # rather than failing on a secret nobody has created yet.
+      - name: Check for signing material
+        id: signing
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret. Building unsigned; this bundle cannot be uploaded to Play."
+          fi
+
+      # The keystore is the one credential in this project that cannot be
+      # replaced: Play binds a listing to it, so losing it means never updating
+      # that listing again. It lives in secrets, is written to a path git
+      # ignores, and is removed in a step that runs even if the build fails.
+      - name: Materialise the keystore
+        if: steps.signing.outputs.available == 'true'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > upload.jks
+          # The build already reads this file when it exists and stays unsigned
+          # when it does not, so CI has nothing to teach Gradle about signing.
+          cat > keystore.properties <<EOF
+          storeFile=upload.jks
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: Build the bundle
+        run: ./gradlew :androidApp:bundleRelease
+
+      # Runs on failure too. A private key left on a runner outlives the job
+      # that needed it.
+      - name: Shred the keystore
+        if: always()
+        run: rm -f upload.jks keystore.properties
+
+      - name: Keep the bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitt-release-aab
+          path: androidApp/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+
+      # Publishing is a separate decision from building, so it is a separate
+      # gate. Without the service-account secret the job stops here having
+      # produced a bundle you can upload by hand, which is the right first
+      # release anyway: Play wants the first one uploaded through the console.
+      - name: Check for a Play service account
+        id: play
+        env:
+          SA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$SA" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No PLAY_SERVICE_ACCOUNT_JSON secret. The bundle is attached to this run; upload it in the Play Console."
+          fi
+
+      - name: Upload to Play
+        if: steps.signing.outputs.available == 'true' && steps.play.outputs.available == 'true'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ie.shoonya.vitt
+          releaseFiles: androidApp/build/outputs/bundle/release/*.aab
+          # Defaults to internal on a tag push: the narrowest audience that
+          # still proves the upload worked. Widening it is a console decision.
+          track: ${{ github.event.inputs.track || 'internal' }}
+          status: ${{ github.event.inputs.track == 'production' && 'draft' || 'completed' }}

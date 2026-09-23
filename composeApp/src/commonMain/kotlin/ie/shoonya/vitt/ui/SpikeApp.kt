@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,11 +33,11 @@ fun SpikeApp() {
                 modifier = Modifier.fillMaxSize().padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text("Spike 2 — amount entry", style = MaterialTheme.typography.titleMedium)
+                Text("Spike 2: amount entry", style = MaterialTheme.typography.titleMedium)
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf(Currency.EUR, Currency.INR, Currency.JPY).forEach { c ->
-                        FilterChip(
+                        VittChip(
                             selected = entry.currency == c,
                             onClick = { entry = entry.withCurrency(c) },
                             label = { Text(c.code) },

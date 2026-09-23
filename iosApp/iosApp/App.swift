@@ -22,6 +22,14 @@ struct VITTApp: App {
                 // keyboard avoidance. Ignoring *all* safe areas draws content
                 // under the Dynamic Island and the home indicator.
                 .ignoresSafeArea(.keyboard)
+                // The widget's "Log a spend" button. Without this the button
+                // opened the app and did nothing, which is the one thing the
+                // widget exists to do.
+                .onOpenURL { url in
+                    if url.scheme == "vitt" && url.host == "add" {
+                        IosCapture.shared.openAdd()
+                    }
+                }
         }
     }
 }

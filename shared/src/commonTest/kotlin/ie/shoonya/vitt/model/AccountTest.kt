@@ -181,6 +181,24 @@ class AccountTest {
     }
 
     @Test
+    fun `changing the kind reframes a negative balance without moving it`() {
+        val r = repo()
+        r.openAccount("a1", "Visa", Currency.EUR, kind = AccountKind.CURRENT)
+        r.record("t1", Money(-12_000, Currency.EUR), day = 20_000, accountId = "a1")
+
+        // Entered as a current account, so the debt reads as an overdraft.
+        assertEquals(false, r.accountBalances().single().owed)
+
+        r.setAccountKind("a1", AccountKind.CREDIT)
+
+        val b = r.accountBalances().single()
+        assertEquals(AccountKind.CREDIT, b.account.kind)
+        assertTrue(b.owed)
+        // The correction changes the wording, never the arithmetic.
+        assertEquals(-12_000L, b.balance.minor)
+    }
+
+    @Test
     fun `a rename and an archive from two devices both win`() {
         val r = repo()
         r.openAccount("a1", "AIB", Currency.EUR)
@@ -274,5 +292,30 @@ class AccountTest {
         AccountKind.entries.forEach {
             assertEquals(it, AccountKind.ofCode(it.code))
         }
+    }
+
+    @Test
+    fun `correcting the opening balance shifts every later balance with it`() {
+        // First-run deliberately does not ask for an opening balance, so the
+        // figure is often absent and always a guess. Correcting it has to move
+        // the whole account rather than needing an entry that never happened.
+        val r = repo()
+        r.openAccount("a1", "AIB", Currency.EUR)
+        r.record("t1", Money(-1250, Currency.EUR), day = 20_000, accountId = "a1")
+        assertEquals(-1250L, r.accountBalances().single().balance.minor)
+
+        r.setAccountOpening("a1", Money(200_000, Currency.EUR))
+
+        assertEquals(198_750L, r.accountBalances().single().balance.minor)
+        assertEquals(200_000L, r.accounts().single().opening.minor)
+    }
+
+    @Test
+    fun `an opening balance can be corrected more than once`() {
+        val r = repo()
+        r.openAccount("a1", "AIB", Currency.EUR, opening = Money(100, Currency.EUR))
+        r.setAccountOpening("a1", Money(500, Currency.EUR))
+        r.setAccountOpening("a1", Money(0, Currency.EUR))
+        assertEquals(0L, r.accounts().single().opening.minor)
     }
 }

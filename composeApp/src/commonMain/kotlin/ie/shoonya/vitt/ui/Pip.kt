@@ -1,269 +1,778 @@
 package ie.shoonya.vitt.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import ie.shoonya.vitt.model.Nudge
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import ie.shoonya.vitt.ui.platform.prefersReducedMotion
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.foundation.layout.offset
+import kotlin.random.Random
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import ie.shoonya.vitt.ui.platform.prefersReducedMotion
 import ie.shoonya.vitt.ui.theme.Vitt
+import kotlin.math.floor
+import kotlin.math.sin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
- * Pip — a piggy bank seen face-on, with one coin slot per currency.
+ * The companion, living wherever the user put her.
  *
- * Face-on, not in profile: the design's character is a round front-facing blob
- * with two ears, two eyes, blush and a centred snout. A side view reads as a
- * farm animal rather than a companion, which is what an earlier attempt here got
- * wrong.
+ * An overlay rather than a row in the layout, which is what lets her be
+ * anywhere and is also why she is layout-safe: nothing in a `Box` overlay can
+ * remeasure the list underneath it, which was the original hazard
+ * `docs/pip-motion.md` warned about. It also gives back the 60dp the fixed
+ * strip used to reserve on the home screen.
  *
- * The slots along the top carry the product's one hard rule without a word of
- * explanation: coins go in through their own slot and never pour between them.
- * Add a currency and Pip gets another slot, tinted that currency's colour.
+ * **She is placed, then she lives there.** The drop point is not a position but
+ * a *home*: she patrols a band around it, so moving her moves her territory.
+ * The band above the tab bar is now simply the default home rather than a
+ * special case.
  *
- * Drawn rather than shipped as artwork — a vector Pip costs no asset pipeline
- * and recolours per currency for free.
+ * This deliberately relaxes one design rule. The wander artboard's rule is
+ * "never over your numbers or your buttons", which exists to stop *the app*
+ * putting a pet in the user's way — and a pet the user dragged onto their
+ * balance is not the app doing anything. What stays forbidden is the tab bar
+ * and the Add button, because that is the daily path and nothing may block it.
  *
- * **Pip reacts only to whether you recorded, never to how much you spent.**
- * Reacting to spending would make the character an instrument of judgement.
+ * Horizontal patrol only. A pet walks on a surface, and letting her drift
+ * vertically would carry her onto figures the user did not put her on.
  */
 @Composable
-fun Pip(
-    /**
-     * Days recorded in the window. Deepens Pip's colour; nothing else.
-     *
-     * Pass zero when the habit layer is off. Pip stays on the screen either way,
-     * because the coin slots are how the app explains that currencies never
-     * convert — but with the layer off nothing about Pip may respond to what the
-     * user did.
-     */
+fun CompanionLayer(
     daysRecorded: Int,
-    /** One slot per currency, in assignment order. */
     currencyCount: Int,
+    animal: CompanionAnimal = CompanionAnimal.DEFAULT,
+    mood: Mood? = null,
+    /**
+     * Where she lives, as a fraction of the screen in each axis.
+     *
+     * Normalised rather than in pixels so it survives a different screen size
+     * and means the same thing on a phone and a tablet.
+     */
+    home: Offset,
+    /** Called once on drop, with the new normalised home. */
+    onHomeChange: (Offset) -> Unit,
+    /**
+     * Bumped on every touch anywhere in the app.
+     *
+     * Keying the wander effect on this is the whole stop-on-touch mechanism: a
+     * new value cancels the running walk, so she halts exactly where she stood
+     * rather than finishing the step or snapping home.
+     */
+    interactionTick: Int = 0,
+    /**
+     * The thing she should go and stand by, or null to wander.
+     *
+     * She points, and that is all. See [ie.shoonya.vitt.model.Nudges] for why
+     * this is the shape of the mechanic: position is an attention cue that
+     * carries no verdict, and a face that did would break §5.6.
+     */
+    nudge: Nudge? = null,
+    /** Where the nudge's target is on screen, in root coordinates. Null if it is not laid out. */
+    nudgeTarget: Rect? = null,
+    /** She was tapped while pointing at something. */
+    onNudgeTap: (Nudge) -> Unit = {},
+    /** She gave up waiting. The caller decides when to ask again. */
+    onNudgeExpired: (Nudge) -> Unit = {},
+    /**
+     * What she is expressing, and therefore where she goes.
+     *
+     * Null keeps the old neutral behaviour. See
+     * [ie.shoonya.vitt.model.CompanionFace]: the face and the destination are
+     * two halves of one message, and she stands beside the thing she means.
+     */
+    intent: ie.shoonya.vitt.model.CompanionFace? = null,
+    /**
+     * Where the intent's subject is on screen, or null to settle at home.
+     *
+     * Home is the honest answer to a quiet screen. An animal that wanders at
+     * random is decoration, and decoration over a screen of numbers is noise.
+     */
+    intentTarget: Rect? = null,
+    /** Height of the tab bar, which she may never be dropped onto. */
+    forbiddenBottom: Dp = 92.dp,
+    pixelSize: Dp = 2.dp,
     modifier: Modifier = Modifier,
+) {
+    val still = prefersReducedMotion()
+    val density = LocalDensity.current
+    val step = with(density) { pixelSize.toPx() }
+    val cell = floor(step).coerceAtLeast(1f)
+
+    // Where this layer sits in the root, so a target's root bounds can be
+    // turned into a place to walk to inside it.
+    var layerOrigin by remember { mutableStateOf(Offset.Zero) }
+
+    BoxWithConstraints(
+        modifier = modifier.fillMaxSize()
+            .onGloballyPositioned { layerOrigin = it.boundsInRoot().topLeft },
+    ) {
+        val boxW = with(density) { maxWidth.toPx() }
+        val boxH = with(density) { maxHeight.toPx() }
+        val petW = CompanionSprites.WIDTH * cell
+        val petH = CompanionSprites.HEIGHT * cell
+        val bottomPx = with(density) { forbiddenBottom.toPx() }
+        val edge = with(density) { 8.dp.toPx() }
+
+        // The placeable region: on screen, clear of the tab bar and the Add
+        // button inside it, and not half off an edge.
+        val minX = edge
+        val maxX = (boxW - petW - edge).coerceAtLeast(minX)
+        val minY = edge
+        val maxY = (boxH - bottomPx - petH).coerceAtLeast(minY)
+
+        // Where home sits in pixels. Home is where she rests between bouts,
+        // not a cage: the whole screen is hers to cross, which is what makes
+        // her a creature in the app rather than a decoration on the tab bar.
+        val homeX = (minX + home.x * (maxX - minX)).coerceIn(minX, maxX)
+        val homeY = (minY + home.y * (maxY - minY)).coerceIn(minY, maxY)
+
+        // Her position, as an offset from home.
+        val walkedX = remember { Animatable(0f) }
+        val walkedY = remember { Animatable(0f) }
+        var pose by remember { mutableStateOf(CompanionPose.STAND) }
+        var facingLeft by remember { mutableStateOf(true) }
+        var act by remember { mutableStateOf(IdleAct.NONE) }
+
+        // Drag state. While she is held, the patrol is suspended and she simply
+        // follows the finger.
+        var dragging by remember { mutableStateOf(false) }
+        var dragX by remember { mutableStateOf(0f) }
+        var dragY by remember { mutableStateOf(0f) }
+
+        val fullWidth = (maxX - minX).coerceAtLeast(1f)
+
+        /**
+         * One straight leg at a given pace. Eased at both ends, because an
+         * animal accelerates and slows; a constant-speed slide is what makes
+         * a sprite read as being *carried* across the screen.
+         */
+        suspend fun leg(tx: Float, ty: Float, pace: Float, easing: androidx.compose.animation.core.Easing) {
+            val hereX = homeX + walkedX.value
+            val hereY = homeY + walkedY.value
+            val travel = kotlin.math.sqrt((tx - hereX) * (tx - hereX) + (ty - hereY) * (ty - hereY))
+            // Climbing the screen is slower than crossing it: it reads as
+            // depth, and it keeps a long vertical trip from looking like a lift.
+            val slope = if (travel > 0f) kotlin.math.abs(ty - hereY) / travel else 0f
+            val millis = ((travel / fullWidth) * FULL_WIDTH_MILLIS * pace * (1f + 0.6f * slope))
+                .toInt().coerceAtLeast(320)
+            kotlinx.coroutines.coroutineScope {
+                launch { walkedX.animateTo(tx - homeX, tween(millis, easing = easing)) }
+                launch { walkedY.animateTo(ty - homeY, tween(millis, easing = easing)) }
+            }
+        }
+
+        /**
+         * Walks to a point the way something with legs does: turns first,
+         * takes a slightly bent path in a few legs rather than a ruler line,
+         * at a pace of its own, and now and then stops halfway to sniff at
+         * nothing before carrying on.
+         */
+        suspend fun walkTo(x: Float, y: Float) {
+            val tx = x.coerceIn(minX, maxX)
+            val ty = y.coerceIn(minY, maxY)
+            val startX = homeX + walkedX.value
+            val startY = homeY + walkedY.value
+            val dx = tx - startX
+            val dy = ty - startY
+            val travel = kotlin.math.sqrt(dx * dx + dy * dy)
+            if (travel < 1f) return
+
+            // Turn to face the way she is going, and take a beat before the
+            // first step. A sprite that flips and moves in the same frame
+            // looks reversed rather than turned.
+            val turning = (tx < startX) != facingLeft
+            facingLeft = tx < startX
+            if (turning) delay(160L + Random.nextLong(160))
+            pose = CompanionPose.WALK
+
+            // Amble or trot, decided per trip, not per step.
+            val pace = 0.8f + Random.nextFloat() * 0.6f
+
+            // Waypoints bowed off the straight line, more for a longer trip.
+            val legs = if (travel > petW * 3f) 2 + Random.nextInt(2) else 1
+            val nx = -dy / travel
+            val ny = dx / travel
+            val bow = (travel * 0.18f).coerceAtMost(petH * 1.5f) * (if (Random.nextBoolean()) 1f else -1f)
+            for (i in 1..legs) {
+                val t = i.toFloat() / legs
+                // sin(pi t) is zero at both ends, so the path leaves the start
+                // and arrives at the target exactly, and bows in between.
+                val arc = sin(t * 3.14159265f) * bow
+                val px = if (i == legs) tx else (startX + dx * t + nx * arc).coerceIn(minX, maxX)
+                val py = if (i == legs) ty else (startY + dy * t + ny * arc).coerceIn(minY, maxY)
+                val easing = when {
+                    legs == 1 -> androidx.compose.animation.core.FastOutSlowInEasing
+                    i == 1 -> androidx.compose.animation.core.FastOutLinearInEasing
+                    i == legs -> androidx.compose.animation.core.LinearOutSlowInEasing
+                    else -> LinearEasing
+                }
+                leg(px, py, pace, easing)
+                // A pause mid-trip, sometimes: she noticed something.
+                if (i < legs && Random.nextInt(4) == 0) {
+                    pose = CompanionPose.STAND
+                    act = IdleAct.SNIFF
+                    delay(500L + Random.nextLong(700))
+                    act = IdleAct.NONE
+                    pose = CompanionPose.WALK
+                }
+            }
+        }
+
+        // Small things, at irregular moments, while she is standing. The
+        // breath and the blink run on fixed clocks and a fixed clock is what a
+        // paused GIF has too: after ten seconds the eye has learnt the period
+        // and she reads as a loop. These are drawn from a pool at random gaps,
+        // so nothing about her rest repeats, and each one is a thing an animal
+        // actually does when it is waiting for nothing in particular.
+        LaunchedEffect(still, dragging) {
+            act = IdleAct.NONE
+            if (still || dragging) return@LaunchedEffect
+            while (true) {
+                delay(2_200L + Random.nextLong(5_500))
+                if (pose != CompanionPose.STAND) continue
+                when (Random.nextInt(10)) {
+                    0, 1 -> { act = IdleAct.SETTLE; delay(2_800L + Random.nextLong(3_000)) }
+                    2, 3 -> { act = IdleAct.EAR; delay(180); act = IdleAct.NONE; delay(140); act = IdleAct.EAR; delay(180) }
+                    4 -> { facingLeft = !facingLeft; delay(60) }
+                    5, 6 -> { act = IdleAct.LOOK_UP; delay(900L + Random.nextLong(900)) }
+                    7 -> { act = IdleAct.SNIFF; repeat(3) { delay(160); act = IdleAct.NONE; delay(120); act = IdleAct.SNIFF }; delay(160) }
+                    8 -> { act = IdleAct.STRETCH; delay(700) }
+                    else -> { act = IdleAct.BLINK; delay(110); act = IdleAct.NONE; delay(90); act = IdleAct.BLINK; delay(110) }
+                }
+                act = IdleAct.NONE
+            }
+        }
+
+        // Where to stand to be beside the target: centred under it, just
+        // below its bottom edge, and clamped to the screen — so a tab at the
+        // very bottom puts her on her row above it, and a card mid-list puts
+        // her at its foot.
+        val nudgeSpot: Offset? = nudgeTarget?.let { r ->
+            Offset(
+                (r.center.x - layerOrigin.x - petW / 2f).coerceIn(minX, maxX),
+                (r.bottom - layerOrigin.y + edge).coerceIn(minY, maxY),
+            )
+        }
+        // The same conversion for her own intent: a control's bounds in root
+        // coordinates become a standing spot on her row.
+        val intentSpot: Offset? = intentTarget?.let { r ->
+            Offset(
+                (r.center.x - layerOrigin.x - petW / 2f).coerceIn(minX, maxX),
+                (r.bottom - layerOrigin.y + edge).coerceIn(minY, maxY),
+            )
+        }
+        val pointing = nudge != null && nudgeSpot != null
+
+        // Her offsets are measured from home, so when home moves under her
+        // (she was dropped somewhere) they must go back to zero or she is
+        // drawn at the new home plus the old walk — off in a corner nobody
+        // put her. A touch or a nudge re-entering this effect keeps them.
+        var placedAt by remember { mutableStateOf(Offset(homeX, homeY)) }
+
+        LaunchedEffect(still, interactionTick, dragging, homeX, homeY, nudge, nudgeSpot, intent, intentSpot) {
+            if (placedAt != Offset(homeX, homeY)) {
+                placedAt = Offset(homeX, homeY)
+                walkedX.snapTo(0f)
+                walkedY.snapTo(0f)
+            }
+            if (still || dragging) {
+                pose = CompanionPose.STAND
+                return@LaunchedEffect
+            }
+            if (nudge != null && nudgeSpot != null) {
+                // Beckon. Walk to the thing, turn to face the user, and hold
+                // there with the odd glance back at it, for as long as the
+                // design's patience allows. Then let it go: she gave up, not
+                // the user, and the caller decides when she may try again.
+                walkTo(nudgeSpot.x, nudgeSpot.y)
+                var waited = 0L
+                while (waited < BECKON_FOR_MILLIS) {
+                    pose = CompanionPose.FRONT
+                    delay(2_200); waited += 2_200
+                    pose = CompanionPose.STAND
+                    facingLeft = (nudgeTarget?.center?.x ?: 0f) - layerOrigin.x < homeX + walkedX.value + petW / 2f
+                    delay(1_100); waited += 1_100
+                }
+                onNudgeExpired(nudge)
+                return@LaunchedEffect
+            }
+            // A new home resets the walk: this effect is keyed on it, and
+            // re-entering is what clears the distance from the old one. After
+            // a nudge or a bout she is somewhere else, and the pause before
+            // the next bout is taken where she stands rather than snapping.
+            pose = CompanionPose.STAND
+            delay(SETTLE_BEFORE_WANDER)
+
+            // Intent, when there is any. She walks to the subject of her own
+            // face and holds there: position is the message, so an errand with
+            // no subject would dilute the one that has a subject.
+            if (intent != null) {
+                val resting = intent.pose()
+                intentSpot?.let { walkTo(it.x, it.y) }
+                    ?: walkTo(homeX, homeY)
+                // Turned to the user for a beat on arrival, so the arrival
+                // reads as arriving somewhere rather than stopping.
+                pose = CompanionPose.FRONT
+                delay(900)
+                pose = resting
+                // Then stay. A quiet screen is allowed to be quiet, and an app
+                // willing to be still can be trusted when it moves.
+                return@LaunchedEffect
+            }
+            while (true) {
+                // A bout: two to four errands across the screen, anywhere the
+                // layout allows. Each leg has to be long enough to read as
+                // going somewhere, never a shuffle on the spot.
+                repeat(2 + Random.nextInt(3)) {
+                    val hereX = homeX + walkedX.value
+                    val hereY = homeY + walkedY.value
+                    // Somewhere a pet would wander: mostly a modest distance
+                    // in roughly the direction she is already facing, with the
+                    // occasional long trip across the screen. Never a shuffle
+                    // on the spot, never a full-screen dash every time.
+                    var tx: Float
+                    var ty: Float
+                    var tries = 0
+                    do {
+                        val far = Random.nextInt(4) == 0
+                        val reach = if (far) fullWidth else petW * (2f + Random.nextFloat() * 4f)
+                        val ahead = if (facingLeft) -1f else 1f
+                        // Two thirds of trips carry on the way she faces.
+                        val dir = if (Random.nextInt(3) == 0) -ahead else ahead
+                        tx = hereX + dir * reach * (0.4f + Random.nextFloat() * 0.6f)
+                        ty = hereY + (Random.nextFloat() - 0.5f) * reach * 0.9f
+                        // Off the edge means turn around, not stand at the wall.
+                        if (tx < minX || tx > maxX) tx = hereX - dir * reach * 0.6f
+                        tx = tx.coerceIn(minX, maxX)
+                        ty = ty.coerceIn(minY, maxY)
+                        tries++
+                    } while (
+                        tries < 8 &&
+                        kotlin.math.abs(tx - hereX) + kotlin.math.abs(ty - hereY) < petW * 1.5f
+                    )
+                    walkTo(tx, ty)
+                    // Mostly she just stops. The turn to face you is the rare
+                    // one, because at this size the front view is a coin and
+                    // holding it makes her a badge rather than an animal.
+                    pose = if (Random.nextFloat() < 0.2f) CompanionPose.FRONT else CompanionPose.STAND
+                    delay(1_400L + Random.nextLong(3_200))
+                }
+                // Home for the long rest, roughly every other bout. Coming
+                // back is what makes the place she was given mean something.
+                if (Random.nextBoolean()) walkTo(homeX, homeY)
+                pose = CompanionPose.STAND
+                delay(REST_BETWEEN_TRIPS + Random.nextLong(12_000))
+            }
+        }
+
+        // Snapped to whole grid pixels: a fractional translation resamples the
+        // sprite and grows seams down the body on exactly the frames she moves.
+        val restingX = if (dragging) dragX else homeX + walkedX.value
+        val restingY = if (dragging) dragY else homeY + walkedY.value
+        val x = kotlin.math.round(restingX / cell) * cell
+        val y = kotlin.math.round(restingY / cell) * cell
+
+        Box(
+            modifier = Modifier
+                .graphicsLayer {
+                    translationX = x
+                    translationY = y
+                    // A small lift while held, which is the whole affordance:
+                    // it is how someone finds out she can be moved at all,
+                    // without a tutorial telling them.
+                    scaleX = if (dragging) 1.15f else 1f
+                    scaleY = if (dragging) 1.15f else 1f
+                }
+                .width(pixelSize * CompanionSprites.WIDTH)
+                .height(pixelSize * CompanionSprites.HEIGHT)
+                // Only while pointing is she a control. The rest of the time
+                // she is decoration, and a screen reader stopping on a pig
+                // with nothing to say would be noise.
+                .then(
+                    if (pointing) {
+                        Modifier.semantics {
+                            role = Role.Button
+                            contentDescription = nudge!!.label
+                            onClick { onNudgeTap(nudge); true }
+                        }
+                    } else {
+                        Modifier
+                    },
+                )
+                // A tap, detected by hand rather than with detectTapGestures:
+                // that helper consumes the down event, and the long-press drag
+                // below waits on an *unconsumed* down, so the two together
+                // meant she could no longer be picked up at all. This one
+                // watches without consuming and fires only on a quick,
+                // still release, which is the one case the drag never wants.
+                .pointerInput(nudge, pointing) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        val up = waitForUpOrCancellation() ?: return@awaitEachGesture
+                        val held = up.uptimeMillis - down.uptimeMillis
+                        if (pointing && held < viewConfiguration.longPressTimeoutMillis) {
+                            onNudgeTap(nudge!!)
+                        }
+                    }
+                }
+                .pointerInput(homeX, homeY, minX, maxX, minY, maxY) {
+                    detectDragGesturesAfterLongPress(
+                        onDragStart = {
+                            dragX = homeX + walkedX.value
+                            dragY = homeY + walkedY.value
+                            dragging = true
+                        },
+                        onDrag = { _, delta ->
+                            dragX = (dragX + delta.x).coerceIn(minX, maxX)
+                            dragY = (dragY + delta.y).coerceIn(minY, maxY)
+                        },
+                        onDragEnd = {
+                            dragging = false
+                            // Back to normalised, so the stored home means the
+                            // same thing on a screen of another size.
+                            val nx = if (maxX > minX) (dragX - minX) / (maxX - minX) else 0f
+                            val ny = if (maxY > minY) (dragY - minY) / (maxY - minY) else 1f
+                            onHomeChange(Offset(nx.coerceIn(0f, 1f), ny.coerceIn(0f, 1f)))
+                        },
+                        onDragCancel = { dragging = false },
+                    )
+                },
+        ) {
+            CompanionPet(
+                daysRecorded = daysRecorded,
+                currencyCount = currencyCount,
+                animal = animal,
+                mood = mood,
+                pixelSize = pixelSize,
+                facingLeft = facingLeft,
+                walking = pose == CompanionPose.WALK && !dragging,
+                pose = if (dragging) CompanionPose.FRONT else pose,
+                still = still || dragging,
+                act = act,
+            )
+        }
+    }
+}
+
+/**
+ * A thing she does while standing. Each resolves to whole-pixel offsets in
+ * [idleOffsets], the way every other motion in the rig does.
+ */
+enum class IdleAct { NONE, SETTLE, EAR, LOOK_UP, SNIFF, STRETCH, BLINK }
+
+/** Her default home: the band above the tab bar, at the left, as the design had it. */
+val DEFAULT_COMPANION_HOME = Offset(0.06f, 1f)
+
+/**
+ * How long crossing the whole strip takes, which sets her walking speed.
+ *
+ * Derived from 14a's "22-second patrol": a lap is two traverses plus the pauses
+ * at each end, so one traverse is about seven seconds. Expressed as a speed
+ * rather than a duration because she no longer always walks the full width.
+ */
+private const val FULL_WIDTH_MILLIS = 7_000f
+private const val REST_BETWEEN_TRIPS = 34_000L
+private const val SETTLE_BEFORE_WANDER = 14_000L
+
+/**
+ * How long she stands by a thing before giving up. Long enough to be seen on
+ * a normal visit, short enough that she is never *stationed* there: a pet that
+ * lives on the review queue is a badge, and §5.5 has no badges.
+ */
+private const val BECKON_FOR_MILLIS = 20_000L
+
+/**
+ * The animal, drawn from its pixel grid with every part on its own clock.
+ *
+ * Transcribed from the design's rig, and the timings are its numbers rather
+ * than invented ones. The walk runs on a single 0.5s cycle with five different
+ * curves on it; the idle runs five clocks at once:
+ *
+ * | Part | Idle | Walk (0.5s cycle) |
+ * |---|---|---|
+ * | body | breath 1.6s, weight shift 9s | up a pixel on the off-beats |
+ * | head | the same breath, delayed 0.2s | up a pixel on the quarter-beats |
+ * | ear  | twitch 5.3s | out a pixel mid-cycle |
+ * | eye  | blink 4.1s | blink 4.7s |
+ * | leg  | still | round the four-step cycle |
+ *
+ * The head's 0.2s lag behind the body is the detail that makes it read as one
+ * animal breathing rather than two shapes pulsing, and it is not a thing anyone
+ * guesses — it came out of the design file.
+ *
+ * **Every motion is a whole pixel, and stepped.** The rig is authored
+ * `steps(1, end)` throughout, so nothing interpolates: a pixel grid moved by a
+ * fraction shimmers along every edge, and a rotation of a four-pixel ear at this
+ * scale is less than one pixel, so the design's 7° ear and 9° tail rotations are
+ * expressed here as the one-pixel translations they actually resolve to.
+ */
+@Composable
+internal fun CompanionPet(
+    daysRecorded: Int,
+    currencyCount: Int,
+    animal: CompanionAnimal,
+    mood: Mood?,
+    pixelSize: Dp,
+    facingLeft: Boolean = false,
+    walking: Boolean = false,
+    pose: CompanionPose = CompanionPose.STAND,
+    still: Boolean = false,
+    act: IdleAct = IdleAct.NONE,
 ) {
     val colors = Vitt.colors
     val warmth = daysRecorded.coerceIn(0, 30) / 30f
-    // Motion is the whole of what this setting governs here. Pip's colour still
-    // deepens with the streak, because that is state rather than movement.
-    val still = prefersReducedMotion()
+    val transition = rememberInfiniteTransition(label = "pet")
 
-    // A slow blink is the only motion. It reads as alive without reacting to
-    // anything the user did, which is the line this character must not cross.
-    val transition = rememberInfiniteTransition(label = "pip")
-    val eyeScale by if (still) {
-        // Eyes open, not shut: a blink frozen mid-cycle would look like a
-        // character asleep, which §5 forbids reading as neglect.
-        remember { mutableStateOf(1f) }
-    } else transition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 5_500
-                1f at 0
-                1f at 5_060
-                0.1f at 5_280
-                1f at 5_500
-            },
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "blink",
+    // The design's clocks, each independent. Coprime enough that the
+    // combination does not visibly resolve.
+    val breath by transition.phase(if (still) 0 else 1_600, "breath")
+    val headBreath by transition.phase(if (still) 0 else 1_600, "headBreath", delayMillis = 200)
+    val blink by transition.phase(if (still) 0 else if (walking) 4_700 else 4_100, "blink")
+    val ear by transition.phase(if (still) 0 else 5_300, "ear")
+    val shift by transition.phase(if (still) 0 else 9_000, "weightShift")
+    val stride by transition.phase(if (!walking || still) 0 else 500, "stride")
+
+    val step = with(LocalDensity.current) { pixelSize.toPx() }
+
+    Canvas(
+        modifier = Modifier
+            .width(pixelSize * CompanionSprites.WIDTH)
+            .height(pixelSize * CompanionSprites.HEIGHT),
+    ) {
+        drawPet(
+            animal = animal,
+            pose = pose,
+            pixel = step,
+            facingLeft = facingLeft,
+            offsets = if (walking) walkOffsets(stride) else idleOffsets(breath, headBreath, ear, shift, act),
+            eyesShut = !still && (blink > 0.95f || act == IdleAct.BLINK),
+            currencyCount = currencyCount,
+            currencyColour = { colors.currency(it) },
+            // Pale toward the ground at a cold streak, full colour at a warm
+            // one. Never below the animal's own hue, only nearer the paper —
+            // and capped well short of the 0.45 an earlier pass used, which
+            // washed a warm pink into something barely on the page.
+            quiet = (1f - warmth) * 0.26f,
+            ground = colors.ground,
+            rest = (mood ?: Mood.NEUTRAL).rest,
+        )
+    }
+}
+
+/**
+ * Where each rig part sits this frame, in whole sprite pixels.
+ *
+ * Offsets are **local**: [drawPet] adds each part's ancestors, so `head` here is
+ * the head's motion relative to the body, not its position on screen.
+ */
+private data class RigOffsets(
+    val bodyX: Int = 0,
+    val bodyY: Int = 0,
+    val headX: Int = 0,
+    val headY: Int = 0,
+    val earX: Int = 0,
+    val legX: Int = 0,
+    val legY: Int = 0,
+)
+
+/** The 0.5s walk cycle: `wlegA`, `wbody`, `whead` and `wear` from the design. */
+private fun walkOffsets(p: Float): RigOffsets {
+    val quarter = (p * 4f).toInt().coerceIn(0, 3)
+    return RigOffsets(
+        // wbody: up on the off-beats.
+        bodyY = if (quarter == 1 || quarter == 3) -1 else 0,
+        // whead: up on the quarter-beats, which puts it out of phase with the
+        // body — the head bobs against the shoulders rather than with them.
+        headY = if (quarter == 1 || quarter == 3) -1 else 0,
+        earX = if (quarter == 1 || quarter == 2) 1 else 0,
+        // wlegA: (-1,0) → (0,-1) → (1,0) → (0,0).
+        legX = when (quarter) { 0 -> -1; 2 -> 1; else -> 0 },
+        legY = if (quarter == 1) -1 else 0,
     )
+}
 
-    // A slow bob. The design animates Pip at 3.2s, and without it the home
-    // screen reads as a still illustration rather than a companion.
-    val bob by if (still) {
-        remember { mutableStateOf(0f) }
-    } else transition.animateFloat(
+/** The standing rig: `idlebreath`, `weightshift` and `eartwitchpx`. */
+private fun idleOffsets(
+    breath: Float,
+    headBreath: Float,
+    ear: Float,
+    shift: Float,
+    act: IdleAct = IdleAct.NONE,
+): RigOffsets {
+    val settled = act == IdleAct.SETTLE
+    return RigOffsets(
+        // weightshift: she leans onto one side for roughly half of a 9s cycle,
+        // which is most of what stops a standing animal reading as a paused GIF.
+        bodyX = if (shift > 0.52f && shift < 0.94f) 1 else 0,
+        // Settling drops the body a pixel onto the legs and stills the breath's
+        // lift, which is what makes it read as sitting rather than as a glitch.
+        bodyY = when {
+            settled -> 1
+            breath > 0.5f -> -1
+            else -> 0
+        },
+        // The same breath, a fifth of a second later. Two shapes pulsing together
+        // read as a pulse; offset, they read as one animal breathing.
+        headY = when (act) {
+            IdleAct.LOOK_UP -> -2
+            IdleAct.STRETCH -> -1
+            IdleAct.SNIFF -> 1
+            IdleAct.SETTLE -> if (headBreath > 0.5f) 0 else 1
+            else -> if (headBreath > 0.5f) -1 else 0
+        },
+        headX = if (act == IdleAct.SNIFF || act == IdleAct.STRETCH) 1 else 0,
+        earX = if (act == IdleAct.EAR || (ear > 0.80f && ear < 0.90f)) 1 else 0,
+        // Settled, the legs tuck: they lose the pixel the body gained.
+        legY = if (settled) -1 else 0,
+    )
+}
+
+@Composable
+private fun androidx.compose.animation.core.InfiniteTransition.phase(
+    millis: Int,
+    label: String,
+    delayMillis: Int = 0,
+) = if (millis <= 0) {
+    remember { mutableStateOf(0f) }
+} else {
+    animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = androidx.compose.animation.core.tween(1_600),
-            repeatMode = RepeatMode.Reverse,
+            animation = tween(millis, delayMillis = delayMillis, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
         ),
-        label = "bob",
+        label = label,
     )
-
-    Canvas(modifier = modifier.offset(y = (-5).dp * bob)) {
-        // Pale and asleep at zero, deepening with the streak — the same hue
-        // throughout, only more awake.
-        val body = colors.pip
-        val fill = Color(
-            red = body.red + (1f - body.red) * (1f - warmth) * 0.5f,
-            green = body.green + (1f - body.green) * (1f - warmth) * 0.5f,
-            blue = body.blue + (1f - body.blue) * (1f - warmth) * 0.5f,
-            alpha = 1f,
-        )
-        val slots = if (currencyCount <= 0) {
-            listOf(colors.inkFaint.copy(alpha = 0.4f))
-        } else {
-            (0 until currencyCount).map { colors.currency(it) }
-        }
-        drawPip(fill, slots, eyeScale)
-    }
 }
 
 /** The dark plum the design uses for features, rather than black. */
 private val Feature = Color(0xFF46283B)
 
-private fun DrawScope.drawPip(fill: Color, slotColors: List<Color>, eyeScale: Float) {
-    // The body is slightly wider than tall, sized to leave margin on all sides.
-    val bodyW = minOf(size.width * 0.52f, size.height * 0.92f)
-    val bodyH = bodyW * 0.88f
-    val cx = size.width / 2f
-    val cy = size.height * 0.52f
-    val left = cx - bodyW / 2f
-    val top = cy - bodyH / 2f
+private fun DrawScope.drawPet(
+    animal: CompanionAnimal,
+    pose: CompanionPose,
+    pixel: Float,
+    facingLeft: Boolean,
+    offsets: RigOffsets,
+    eyesShut: Boolean,
+    currencyCount: Int,
+    currencyColour: (Int) -> Color,
+    quiet: Float,
+    ground: Color,
+    rest: Int,
+) {
+    val scale = floor(pixel).coerceAtLeast(1f)
+    val spriteH = CompanionSprites.HEIGHT * scale
+    val originY = floor(size.height - spriteH) + rest * scale
 
-    val snoutFill = fill.mix(Feature, 0.10f)
-    val blush = fill.mix(Feature, 0.16f)
+    CompanionSprites.sprite(animal, pose).forEach { px ->
+        // A currency marker is only drawn when the user actually has that
+        // currency. The design authors two or three of them per animal, so an
+        // unowned one has to disappear rather than sit there in a colour that
+        // means nothing.
+        if (px.currency >= 0 && px.currency >= currencyCount) return@forEach
+        // Eyes shut is a substitution, not a squash: a grid cannot scale an eye
+        // to 30% without inventing pixels, so the eye rects are simply skipped
+        // and the lid is the head colour already behind them.
+        if (eyesShut && px.part == 'y') return@forEach
 
-    // Ears: rounded, splayed outward. Drawn before the body so their bases tuck
-    // underneath rather than sitting on top as flaps.
-    val earW = bodyW * 0.25f
-    val earH = bodyH * 0.30f
-    listOf(-1f, 1f).forEach { side ->
-        val earCx = cx + side * bodyW * 0.31f
-        val earCy = top + earH * 0.16f
-        rotate(degrees = side * 20f, pivot = Offset(earCx, earCy)) {
-            drawRoundRect(
-                color = fill,
-                topLeft = Offset(earCx - earW / 2f, earCy - earH / 2f),
-                size = Size(earW, earH),
-                cornerRadius = CornerRadius(earW * 0.5f, earH * 0.42f),
-            )
+        val colour = when {
+            px.currency >= 0 -> currencyColour(px.currency)
+            // Features never fade. The streak ramp is meant to make her paler
+            // when the streak is cold, which the design does want ("Day 0 —
+            // pale, asleep"), but running it over the eyes as well turned a
+            // near-black pupil into a grey smudge and cost her a face. Fur
+             // fades; eyes and mouth do not.
+            px.part == 'y' || px.part == 'm' -> Color(px.argb)
+            else -> Color(px.argb).mix(ground, quiet)
         }
-    }
 
-    // Legs, peeking below the body.
-    val legW = bodyW * 0.19f
-    val legH = bodyH * 0.14f
-    listOf(-1f, 1f).forEach { side ->
-        drawRoundRect(
-            color = fill.mix(Feature, 0.06f),
-            topLeft = Offset(cx + side * bodyW * 0.24f - legW / 2f, top + bodyH * 0.92f),
-            size = Size(legW, legH),
-            cornerRadius = CornerRadius(legW * 0.4f, legH * 0.8f),
-        )
-    }
-
-    // Tail: a broken ring to the side, matching the design's quarter-arc.
-    val tailR = bodyH * 0.10f
-    drawCircle(
-        color = fill,
-        radius = tailR,
-        center = Offset(left + bodyW + tailR * 0.5f, top + bodyH * 0.36f),
-        style = Stroke(width = bodyH * 0.035f),
-    )
-
-    // Body.
-    drawRoundRect(
-        color = fill,
-        topLeft = Offset(left, top),
-        size = Size(bodyW, bodyH),
-        cornerRadius = CornerRadius(bodyW * 0.46f, bodyH * 0.50f),
-    )
-
-    // Cheeks, widening the face at eye level.
-    val cheekW = bodyW * 0.28f
-    val cheekH = bodyH * 0.32f
-    listOf(-1f, 1f).forEach { side ->
-        drawOval(
-            color = fill,
-            topLeft = Offset(cx + side * bodyW * 0.44f - cheekW / 2f, top + bodyH * 0.40f),
-            size = Size(cheekW, cheekH),
-        )
-    }
-
-    // Eyes, blinking on the same slow cycle.
-    val eyeW = bodyW * 0.11f
-    val eyeH = bodyH * 0.15f * eyeScale.coerceAtLeast(0.06f)
-    listOf(-1f, 1f).forEach { side ->
-        drawRoundRect(
-            color = Feature,
-            topLeft = Offset(
-                cx + side * bodyW * 0.22f - eyeW / 2f,
-                top + bodyH * 0.34f - eyeH / 2f,
-            ),
-            size = Size(eyeW, eyeH),
-            cornerRadius = CornerRadius(eyeW / 2f, eyeH / 2f),
-        )
-    }
-
-    // Blush.
-    val blushW = bodyW * 0.16f
-    val blushH = bodyH * 0.09f
-    listOf(-1f, 1f).forEach { side ->
-        drawOval(
-            color = blush,
-            topLeft = Offset(cx + side * bodyW * 0.36f - blushW / 2f, top + bodyH * 0.48f),
-            size = Size(blushW, blushH),
-        )
-    }
-
-    // Snout, centred, with two nostrils.
-    val snoutW = bodyW * 0.37f
-    val snoutH = bodyH * 0.27f
-    val snoutX = cx - snoutW / 2f
-    val snoutY = top + bodyH * 0.52f
-    drawOval(
-        color = snoutFill,
-        topLeft = Offset(snoutX, snoutY),
-        size = Size(snoutW, snoutH),
-    )
-    val nostrilW = snoutW * 0.14f
-    val nostrilH = snoutH * 0.36f
-    listOf(-1f, 1f).forEach { side ->
-        drawOval(
-            color = Feature.copy(alpha = 0.5f),
-            topLeft = Offset(
-                cx + side * snoutW * 0.20f - nostrilW / 2f,
-                snoutY + snoutH * 0.5f - nostrilH / 2f,
-            ),
-            size = Size(nostrilW, nostrilH),
-        )
-    }
-
-    // The coin slots: a small row along the top, one per currency, each ringed
-    // so it reads as an opening rather than a painted dot.
-    if (slotColors.isEmpty()) return
-    val slotW = bodyW * 0.055f
-    val slotH = slotW * 1.7f
-    val gap = slotW * 0.85f
-    val totalW = slotColors.size * slotW + (slotColors.size - 1) * gap
-    var x = cx - totalW / 2f
-    val slotY = top + bodyH * 0.05f
-
-    slotColors.forEach { colour ->
-        drawRoundRect(
-            color = Feature.copy(alpha = 0.16f),
-            topLeft = Offset(x - slotW * 0.22f, slotY - slotW * 0.22f),
-            size = Size(slotW * 1.44f, slotH + slotW * 0.44f),
-            cornerRadius = CornerRadius(slotW, slotW),
-        )
-        drawRoundRect(
+        val (dx, dy) = offsets.forPart(px.part)
+        // Mirrored about the sprite box, width included, or a rect flips to the
+        // wrong side of its own left edge.
+        val gx = if (facingLeft) px.x + dx else CompanionSprites.WIDTH - px.x - px.w - dx
+        drawRect(
             color = colour,
-            topLeft = Offset(x, slotY),
-            size = Size(slotW, slotH),
-            cornerRadius = CornerRadius(slotW / 2f, slotW / 2f),
+            topLeft = Offset(gx * scale, originY + (px.y + dy) * scale),
+            size = Size(px.w * scale, px.h * scale),
         )
-        x += slotW + gap
     }
+}
+
+/**
+ * A part's offset, with the inheritance that actually holds up on screen.
+ *
+ * **Horizontally, everything inherits the body.** The idle weight shift has to
+ * move the whole animal or she tears in half when she leans.
+ *
+ * **Vertically, `head` and `leg` are siblings of `body`, not children.** This is
+ * the correction to a bug that was plainly visible in the simulator and not at
+ * all visible in the code: the walk's body and head curves are the same shape,
+ * so nesting them added up to a two-pixel head lift against a one-pixel body,
+ * and her head came off. Sibling vertical offsets also give the idle rig what it
+ * needs, since there the head runs the same breath 0.2s later — one pixel of
+ * compression at the neck, which is what breathing looks like on a grid.
+ *
+ * `mouth`, `ear` and `eye` really are children of `head`, and that part matters:
+ * the head lifts on the quarter-beats while the mouth has no walk curve of its
+ * own, so without inheritance the snout would stay behind every other frame.
+ */
+private fun RigOffsets.forPart(part: Char): Pair<Int, Int> = when (part) {
+    'b' -> bodyX to bodyY
+    // Legs ride the body vertically, and add their own step on top.
+    //
+    // They used to be planted, on the reasoning that legs carrying the body's
+    // lift is a hop rather than a step. That was wrong on screen: the legs sit
+    // strictly *below* the body with no overlapping rows, so every time the
+    // body breathed upward it tore a one-pixel gap at the waist and she came
+    // apart. The head can afford an independent lift because head and body
+    // rects overlap heavily — a relative shift there just moves the overlap.
+    // The waist has no such slack.
+    'l' -> bodyX + legX to bodyY + legY
+    'h' -> bodyX + headX to headY
+    'y', 'm' -> bodyX + headX to headY
+    'e' -> bodyX + headX + earX to headY
+    else -> 0 to 0
 }
 
 /** Blends toward [other] by [amount], for shading derived from one hue. */
@@ -273,3 +782,65 @@ private fun Color.mix(other: Color, amount: Float) = Color(
     blue = blue + (other.blue - blue) * amount,
     alpha = alpha,
 )
+
+/** Toward white, for a highlight that keeps the hue. */
+private fun Color.lighten(amount: Float) = Color(
+    red = red + (1f - red) * amount,
+    green = green + (1f - green) * amount,
+    blue = blue + (1f - blue) * amount,
+    alpha = alpha,
+)
+
+/**
+ * The resting mood, from how many budgets are on track.
+ *
+ * Three states and no sad one. §5.2 suppresses a score below 40% coverage rather
+ * than showing a low one, and this inherits that: the worst available state is
+ * [CALM], which is quieter rather than unhappy.
+ */
+enum class Mood(val rest: Int) {
+    /** Most budgets on track. */
+    BRIGHT(rest = -1),
+
+    /** Nothing to say yet, or a mixed month. The default. */
+    NEUTRAL(rest = 0),
+
+    /** Little on track. Still and quiet, never sad. */
+    CALM(rest = 0),
+    ;
+
+    companion object {
+        /**
+         * Mood from the count of healthy envelopes.
+         *
+         * Null below two budgets, because a mood derived from one envelope is a
+         * mood derived from one number, and §5.2's coverage gate exists to stop
+         * the app making a claim it cannot support.
+         */
+        fun of(onTrack: Int, total: Int): Mood? {
+            if (total < 2) return null
+            val share = onTrack.toFloat() / total.toFloat()
+            return when {
+                share >= 0.66f -> BRIGHT
+                share >= 0.34f -> NEUTRAL
+                else -> CALM
+            }
+        }
+    }
+}
+
+/**
+ * The face that goes with each state.
+ *
+ * A straight mapping, because the sprite table already names the six faces for
+ * the triggers they were drawn for. `CompanionFace` decides *which* is true;
+ * this only says which pixels draw it.
+ */
+fun ie.shoonya.vitt.model.CompanionFace.pose(): CompanionPose = when (this) {
+    ie.shoonya.vitt.model.CompanionFace.SLEEPY -> CompanionPose.SLEEPY
+    ie.shoonya.vitt.model.CompanionFace.GLAD -> CompanionPose.GLAD
+    ie.shoonya.vitt.model.CompanionFace.PECKISH -> CompanionPose.PECKISH
+    ie.shoonya.vitt.model.CompanionFace.CAREFUL -> CompanionPose.CAREFUL
+    ie.shoonya.vitt.model.CompanionFace.EXPECT -> CompanionPose.EXPECT
+    ie.shoonya.vitt.model.CompanionFace.CONTENT -> CompanionPose.CONTENT
+}

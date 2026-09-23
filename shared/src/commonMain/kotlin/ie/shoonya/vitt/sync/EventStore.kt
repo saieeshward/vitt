@@ -30,6 +30,45 @@ class EventStore(
     private val state = db.syncStateQueries
 
     /**
+     * Called after a local change has been committed and queued.
+     *
+     * The sync scheduler hangs off this rather than off the repository, because
+     * every local write — a transaction, a budget, a theme choice — ends here,
+     * and a trigger placed any higher would miss whichever entry point was
+     * added last. Fired outside the transaction, so a listener that syncs
+     * cannot lengthen the write lock.
+     */
+    var onLocalWrite: (() -> Unit)? = null
+
+    /**
+     * Folds, memoised per entity type until that type is written to.
+     *
+     * A screen asks the repository a dozen questions per redraw and nearly
+     * all of them begin with "fold every transaction". At eighteen months of
+     * data that fold is tens of milliseconds on a phone, and a dozen of them
+     * on every theme change was the pause the user felt. Each fold is now
+     * computed once per write to its entity type; a theme choice invalidates
+     * the choices fold and nothing else.
+     *
+     * Copy-on-write: the map is replaced whole, never mutated, so a sync
+     * writing on another thread and a screen reading on this one each see a
+     * consistent map. The worst case is one stale read, and the write that
+     * made it stale also bumps the screen's revision, which reads again.
+     */
+    private var folds: Map<String, CachedFold> = emptyMap()
+
+    private class CachedFold(val version: Long, val value: Map<EventLog.EntityKey, EventLog.Entity>)
+
+    private var versions: Map<String, Long> = emptyMap()
+
+    private fun touched(entity: String) {
+        versions = versions + (entity to (versions[entity] ?: 0L) + 1)
+    }
+
+    /** How many times this entity type has been written to since open. For cache keys. */
+    fun versionOf(entity: String): Long = versions[entity] ?: 0L
+
+    /**
      * Records a locally-made change and queues it for the sheet.
      *
      * Returns false if this HLC was already present, which makes replay safe:
@@ -52,7 +91,7 @@ class EventStore(
         // never leave a clock that has forgotten a timestamp it already issued.
         rememberClock(event.hlc)
         inserted
-    }
+    }.also { if (it) { touched(event.entity); onLocalWrite?.invoke() } }
 
     /**
      * Records events that arrived from the sheet.
@@ -78,7 +117,7 @@ class EventStore(
                 field_ = event.field,
                 value_ = event.value.encode(),
             )
-            if (events.changes().executeAsOne() > 0) new++
+            if (events.changes().executeAsOne() > 0) { new++; touched(event.entity) }
         }
         new
     }
@@ -132,7 +171,7 @@ class EventStore(
             outbox.enqueue(hlc = event.hlc.encode(), created_at = nowMillis)
         }
         victims.size
-    }
+    }.also { touched(event.entity); onLocalWrite?.invoke() }
 
     /**
      * Mints a timestamp for a local change.
@@ -177,6 +216,34 @@ class EventStore(
     fun maxHlc(): Hlc? = events.maxHlc().executeAsOne().max?.let { Hlc.decode(it) }
 
     fun fold(): Map<EventLog.EntityKey, EventLog.Entity> = EventLog.fold(allEvents())
+
+    /**
+     * Folds one entity type only.
+     *
+     * Prefer this to [fold] wherever the caller wants a single kind of thing.
+     * `fold()` materialises every event ever written, so using it to answer
+     * "which accounts exist" makes that question cost the size of the whole
+     * ledger — and recording a transaction asks it, which made bulk import
+     * quadratic. The index leads on `entity`, so this is a range scan.
+     */
+    fun foldOf(entity: String): Map<EventLog.EntityKey, EventLog.Entity> {
+        val version = versionOf(entity)
+        folds[entity]?.let { if (it.version == version) return it.value }
+        val fresh = EventLog.fold(events.selectByEntity(entity).executeAsList().map { it.toEvent() })
+        folds = folds + (entity to CachedFold(version, fresh))
+        return fresh
+    }
+
+    /**
+     * Folds a single entity, by indexed lookup.
+     *
+     * For the case that only needs one row — validating that a named account
+     * takes the currency being recorded into it.
+     */
+    fun foldEntity(entity: String, entityId: String): Map<EventLog.EntityKey, EventLog.Entity> =
+        EventLog.fold(
+            events.selectForEntity(entity, entityId).executeAsList().map { it.toEvent() },
+        )
 
     // ---- outbox --------------------------------------------------------------
 

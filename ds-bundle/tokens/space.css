@@ -1,0 +1,20 @@
+/*
+ * Spacing and radii. Dense lists are a stated goal, not an accident.
+ *
+ * The radii come from the design's own classes: cards are noticeably rounder
+ * than a default guess, which is most of why a 14px-radius pass read as
+ * generic.
+ */
+:root {
+  --vitt-space-hair: 2px;
+  --vitt-space-tight: 6px;
+  --vitt-space-snug: 8px;
+  --vitt-space-base: 12px;
+  --vitt-space-loose: 16px;
+  --vitt-space-section: 24px;
+
+  --vitt-radius-card: 20px;
+  --vitt-radius-key: 16px;
+  --vitt-radius-tile: 18px;
+  --vitt-radius-pill: 10px;
+}

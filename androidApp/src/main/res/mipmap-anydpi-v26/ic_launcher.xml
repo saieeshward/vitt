@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Two layers, because a launcher masks the foreground to whatever shape it
+  likes and parallaxes it against the background. The mark is drawn inside the
+  safe zone by `tools/icon/make_icon.py` for that reason.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>

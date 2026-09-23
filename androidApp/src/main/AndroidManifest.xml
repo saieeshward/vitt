@@ -3,9 +3,20 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!--
+      The daily reminder, and nothing else. Notifications are posted, never
+      read: PLAN.md §0 rules out notification reading as a Play Sensitive
+      Permissions violation, and no listener permission is requested anywhere.
+    -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- So the reminder survives a restart rather than silently stopping. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:allowBackup="false"
         android:label="VITT"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.VITT">
         <activity
@@ -19,6 +30,26 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!--
+              The share sheet. PLAN.md §6 calls this the workhorse: long-press a
+              bank alert, Share, and the text arrives here. The app never reads a
+              notification itself, which Play's Sensitive Permissions policy
+              forbids and names notification listening as the target of; the user
+              hands the text over deliberately, one gesture.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
+            <!-- Selected text anywhere, via the text-selection toolbar. -->
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
             <!-- Google redirects here after consent. singleTask above means the
                  redirect reaches the existing Activity through onNewIntent
                  rather than starting a second copy of the app. -->
@@ -29,5 +60,48 @@
                 <data android:scheme="com.googleusercontent.apps.1009164273104-9vueslno0lnaug94cl848pcesb2j1rnf" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name="ie.shoonya.vitt.notify.ReminderReceiver"
+            android:exported="false" />
+
+        <!-- Alarms do not survive a reboot, so the reminder is rescheduled. -->
+        <receiver
+            android:name="ie.shoonya.vitt.notify.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+          Exported, because the launcher is what binds it. The custom action is
+          sent with an explicit package so no other app can drive it.
+        -->
+        <receiver
+            android:name="ie.shoonya.vitt.VittWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="ie.shoonya.vitt.WIDGET_UPDATED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info" />
+        </receiver>
+
+        <!-- The same snapshot, led by the running total. Both can be placed. -->
+        <receiver
+            android:name="ie.shoonya.vitt.VittSpentWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="ie.shoonya.vitt.WIDGET_UPDATED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_spent" />
+        </receiver>
+
     </application>
 </manifest>

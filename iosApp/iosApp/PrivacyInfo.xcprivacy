@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  Apple has enforced this file at upload since May 2024 (PLAN §7.1).
+
+	  VITT has no server and no analytics, so nothing here is collected and
+	  nothing is tracked. The one declaration is for file timestamps: the
+	  local SQLite database and the CSV export in the temp directory are
+	  read and written inside the app's own container, which is reason
+	  C617.1. Adding any crash reporter or analytics SDK invalidates this
+	  file and the "Data Not Collected" privacy card together.
+	-->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
+		<!--
+		  The widget reads the figure out of an App Group, which is
+		  NSUserDefaults and therefore a required-reason API. CA92.1 is the
+		  app-group case where the group contains this app and its own
+		  extension, which is exactly this one. Undeclared, the upload is
+		  rejected before a human ever sees the app.
+		-->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

@@ -5,19 +5,25 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import ie.shoonya.vitt.time.Civil
-import ie.shoonya.vitt.time.periodLabel
-import ie.shoonya.vitt.time.periodPhrase
 import ie.shoonya.vitt.time.Day
 import ie.shoonya.vitt.time.Period
 import ie.shoonya.vitt.time.Week
 import ie.shoonya.vitt.time.Year
 import ie.shoonya.vitt.time.YearMonth
+import ie.shoonya.vitt.time.periodLabel
+import ie.shoonya.vitt.time.periodPhrase
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -60,13 +66,22 @@ fun PeriodControl(
                 TextButton(
                     onClick = { older?.let(onChange) },
                     enabled = older != null,
-                ) { Text("‹", style = Vitt.type.title) }
+                    // A screen reader gets nothing usable from "\u2039".
+                    modifier = Modifier.semantics { contentDescription = "Earlier" },
+                ) {
+                    // Decorative: the button is named above, and without this the
+                    // glyph is announced after the name.
+                    Text("\u2039", style = Vitt.type.title, modifier = Modifier.clearAndSetSemantics {})
+                }
             }
 
             Row(
                 modifier = Modifier
-                    .clickable(onClick = onPickGrain)
-                    .padding(horizontal = Vitt.space.tight, vertical = Vitt.space.hair),
+                    .clickable(onClick = onPickGrain, onClickLabel = "Change period")
+                    .padding(horizontal = Vitt.space.tight, vertical = Vitt.space.hair)
+                    // Merges the label and the chevron into one node, so it does
+                    // not read as the period followed by a stray "\u2304".
+                    .semantics(mergeDescendants = true) { role = Role.Button },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
@@ -79,6 +94,8 @@ fun PeriodControl(
                     "  ⌄",
                     style = Vitt.type.label,
                     color = Vitt.colors.inkMuted,
+                    // Else the period reads as "September, ⌄".
+                    modifier = Modifier.clearAndSetSemantics {},
                 )
             }
 
@@ -86,7 +103,10 @@ fun PeriodControl(
                 TextButton(
                     onClick = { newer?.let(onChange) },
                     enabled = newer != null,
-                ) { Text("›", style = Vitt.type.title) }
+                    modifier = Modifier.semantics { contentDescription = "Later" },
+                ) {
+                    Text("\u203a", style = Vitt.type.title, modifier = Modifier.clearAndSetSemantics {})
+                }
             }
         }
 
@@ -132,7 +152,7 @@ fun GrainSheet(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onPick(candidate) }
+                    .selectable(selected = selected, role = Role.RadioButton, onClick = { onPick(candidate) })
                     .padding(vertical = Vitt.space.base),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,

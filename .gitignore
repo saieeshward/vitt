@@ -50,3 +50,23 @@ Thumbs.db
 iosApp/Local.xcconfig
 iosApp/VITT.xcodeproj/
 iosApp/build/
+
+# Design handoff exports. Large binaries, re-exportable from Claude Design at
+# any time, and the extracted content is what matters rather than the archive.
+*-handoff.zip
+
+# Xcode derived data from the simulator build loop.
+iosApp/build-rel/
+tools/__pycache__/
+iosApp/build-device/
+
+# Ephemeral worktrees from agent runs. These were committed as orphan
+# gitlinks with no .gitmodules, which fails git on every fresh checkout.
+.claude/worktrees/
+
+# Scratch derived data from entitlement experiments.
+iosApp/build-*/
+
+# Playwright MCP scratch output — snapshots and console logs from ad-hoc
+# browser checks. Never part of the build.
+.playwright-mcp/

@@ -1,0 +1,52 @@
+/*
+ * The type scale. One rule shapes it: ONE LOUD NUMBER PER SCREEN.
+ *
+ * --vitt-text-money-hero is the only large size in the system; everything else
+ * sits at 10-17px. Hierarchy comes from size and space, not weight, so there is
+ * deliberately no bold body style to reach for.
+ *
+ * Tabular figures are not cosmetic. Proportional digits make a column of
+ * amounts ragged and make the keypad display shift sideways as each digit is
+ * typed, which is the most-used screen in the app.
+ */
+:root {
+  --vitt-font-body: Inter, system-ui, -apple-system, sans-serif;
+  --vitt-tabular: "tnum" 1;
+
+  /* The single large figure a screen is allowed. Tabular. */
+  --vitt-text-money-hero: 34px;
+  --vitt-text-money-hero-weight: 600;
+  --vitt-text-money-hero-tracking: -0.035em;
+
+  /* Amounts in lists. Tabular, so columns align down the page. */
+  --vitt-text-money: 15px;
+  --vitt-text-money-weight: 600;
+  --vitt-text-money-tracking: -0.033em;
+
+  /* Screen-leading headings. */
+  --vitt-text-display: 30px;
+  --vitt-text-display-weight: 700;
+  --vitt-text-display-tracking: -0.035em;
+  --vitt-text-display-leading: 34px;
+
+  --vitt-text-title: 17px;
+  --vitt-text-title-weight: 600;
+
+  --vitt-text-body: 15px;
+  --vitt-text-body-weight: 400;
+  --vitt-text-body-leading: 22px;
+
+  --vitt-text-label: 12px;
+  --vitt-text-label-weight: 400;
+
+  /* Uppercase, tracked. Section headers and provenance. */
+  --vitt-text-caption: 10px;
+  --vitt-text-caption-weight: 500;
+  --vitt-text-caption-tracking: 0.1em;
+}
+
+/* Any element showing an amount. */
+.vitt-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: var(--vitt-tabular);
+}

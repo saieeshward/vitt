@@ -5,6 +5,7 @@ swipe and a click is a tap. Coordinates are given in *points within the device
 screen*, which this script maps onto the Simulator window — so a caller can work
 from a screenshot's own coordinate space instead of the host desktop's.
 """
+import os
 import subprocess
 import sys
 import time
@@ -23,14 +24,44 @@ def screen_frame():
 
     The Simulator exposes the screen as the one AXGroup whose size matches the
     device's point dimensions.
+
+    The window is chosen by device name rather than by index. Simulator keeps a
+    window per device it has shown, including devices that are no longer booted,
+    so `window 1` is whichever one happened to open first — which silently sent
+    every tap to somebody else's simulator for an entire session before this was
+    noticed. The screenshot came from `simctl io <udid>` and was right, the taps
+    went through the window and were wrong, and nothing in either output said so.
     """
+    name = device_name()
     out = subprocess.check_output([
         "osascript", "-e",
-        'tell application "System Events" to tell process "Simulator" to tell window 1 '
+        'tell application "System Events" to tell process "Simulator" '
+        f'to tell (first window whose name starts with "{name}") '
         'to get {position, size} of (first UI element whose role is "AXGroup")',
     ], text=True).strip()
     x, y, w, h = [int(v) for v in out.split(", ")]
     return x, y, w, h
+
+
+def device_name():
+    """The booted device's name, which is also its window's title prefix.
+
+    `SIM_DEVICE` overrides, and is required when more than one device is booted:
+    guessing between them is how taps end up in the wrong app.
+    """
+    forced = os.environ.get("SIM_DEVICE")
+    if forced:
+        return forced
+    out = subprocess.check_output(["xcrun", "simctl", "list", "devices"], text=True)
+    booted = [ln.strip().split(" (")[0] for ln in out.splitlines() if "(Booted)" in ln]
+    if not booted:
+        sys.exit("no booted simulator; boot one first")
+    if len(booted) > 1:
+        sys.exit(
+            "several devices are booted: " + ", ".join(booted) +
+            "\nset SIM_DEVICE to the one you mean"
+        )
+    return booted[0]
 
 
 def to_host(px, py, shot_w, shot_h):
@@ -53,14 +84,17 @@ def move(x, y):
         None, Quartz.kCGEventMouseMoved, (x, y), Quartz.kCGMouseButtonLeft))
 
 
-def drag(x1, y1, x2, y2, steps=28, hold=0.004):
+def drag(x1, y1, x2, y2, steps=28, hold=0.004, press=0.05):
     """Press, move in small increments, release. Increments matter: a single jump
-    reads as a flick with no travel and Compose ignores it."""
+    reads as a flick with no travel and Compose ignores it.
+
+    `press` is how long the finger rests before it moves. The default is a
+    swipe; 0.8s is a long-press drag, which is how the companion is picked up."""
     move(x1, y1)
     time.sleep(0.05)
     post(Quartz.CGEventCreateMouseEvent(
         None, Quartz.kCGEventLeftMouseDown, (x1, y1), Quartz.kCGMouseButtonLeft))
-    time.sleep(0.05)
+    time.sleep(press)
     for i in range(1, steps + 1):
         x = x1 + (x2 - x1) * i / steps
         y = y1 + (y2 - y1) * i / steps
@@ -106,6 +140,11 @@ if __name__ == "__main__":
         x1, y1 = to_host(px1, py1, *SHOT)
         x2, y2 = to_host(px2, py2, *SHOT)
         drag(x1, y1, x2, y2)
+    elif cmd == "longdrag":
+        px1, py1, px2, py2 = [float(v) for v in sys.argv[2:6]]
+        x1, y1 = to_host(px1, py1, *SHOT)
+        x2, y2 = to_host(px2, py2, *SHOT)
+        drag(x1, y1, x2, y2, steps=40, hold=0.02, press=0.8)
     elif cmd == "type":
         subprocess.run([
             "osascript", "-e",

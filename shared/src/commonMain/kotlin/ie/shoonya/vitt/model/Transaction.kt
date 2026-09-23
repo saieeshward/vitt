@@ -9,6 +9,7 @@ import ie.shoonya.vitt.sync.Event
 import ie.shoonya.vitt.sync.EventLog
 import ie.shoonya.vitt.sync.Hlc
 import ie.shoonya.vitt.sync.TaggedValue
+import ie.shoonya.vitt.text.takeChars
 
 /**
  * A transaction, as the app displays it.
@@ -51,10 +52,45 @@ data class Transaction(
      * the same value must not sum to double.
      */
     val settled: Money,
+    /**
+     * A few words the person typed, when the amount alone would not remind
+     * them: "Birthday dinner", "Deposit back". Free text, never parsed, never a
+     * categorisation signal; that is the merchant's job.
+     */
+    val note: String?,
     val deleted: Boolean,
+    /**
+     * True when this row came in from a file rather than from a person.
+     *
+     * The habit count is the only thing that reads it, and it reads it to stay
+     * honest: a bank export carries a month of days with it, and counting those
+     * as days the person turned up would hand out a thirty-day streak for one
+     * tap. §5 asks the companion to reward presence, and an import is precisely
+     * the absence of presence. Everything else — budgets, categories, reports,
+     * balances — treats an imported row exactly like any other, because as a
+     * record of money it is exactly like any other.
+     *
+     * Absent on every row written before this field existed, which reads as
+     * false: those rows were all hand-logged, so false is also correct.
+     */
+    val imported: Boolean = false,
 ) {
     /** What the budget and the categories see: your share, not what you fronted. */
     val share: Money get() = amount
+
+    /**
+     * Whether this row counts in spent and received at all.
+     *
+     * The sign is the authority for direction; the category only decides
+     * whether the row counts. A row a CSV import labelled "transfer" is the
+     * user's own money changing pockets and moves neither total. Every sum in
+     * the app goes through [isSpend] and [isIncome] so there is exactly one
+     * place this rule lives.
+     */
+    val movesMoney: Boolean get() = !deleted && categoryOrNull?.movesMoney != false
+
+    val isSpend: Boolean get() = movesMoney && amount.isOutflow
+    val isIncome: Boolean get() = movesMoney && amount.isInflow
 
     val isSplit: Boolean get() = totalPaid != null
 
@@ -126,6 +162,16 @@ data class Transaction(
         const val FIELD_DAY = "day"
         const val FIELD_TOTAL_PAID = "total_paid"
         const val FIELD_SETTLED = "settled"
+        const val FIELD_NOTE = "note"
+
+        /**
+         * Written only when true, so a hand-logged row costs no extra event.
+         * The common case is the daily one and it should stay the cheap one.
+         */
+        const val FIELD_IMPORTED = "imported"
+
+        /** UTF-16 units. A note is a reminder, not a diary entry. */
+        const val MAX_NOTE = 80
 
         /**
          * Split participants are one field each, not one field holding a list.
@@ -166,6 +212,8 @@ data class Transaction(
             accountId: String?,
             totalPaid: Money?,
             splitWith: Set<String> = emptySet(),
+            note: String? = null,
+            imported: Boolean = false,
             issue: () -> Hlc,
         ): List<Event> = buildList {
             fun put(field: String, value: TaggedValue) =
@@ -174,12 +222,16 @@ data class Transaction(
             put(FIELD_AMOUNT, TaggedValue.Num(amount.minor))
             put(FIELD_CURRENCY, TaggedValue.Str(amount.currency.code))
             put(FIELD_DAY, TaggedValue.Num(day.toLong()))
-            merchant?.let { put(FIELD_MERCHANT, TaggedValue.Str(it)) }
+            // A blank merchant is no merchant. Written as "" it would fold to
+            // an empty title on the Activity row and hide the note behind it.
+            merchant?.takeIf { it.isNotBlank() }?.let { put(FIELD_MERCHANT, TaggedValue.Str(it)) }
             category?.let { put(FIELD_CATEGORY, TaggedValue.Str(it)) }
             categorySource?.let { put(FIELD_CATEGORY_SOURCE, TaggedValue.Str(it.code)) }
             accountId?.let { put(FIELD_ACCOUNT, TaggedValue.Str(it)) }
             totalPaid?.let { put(FIELD_TOTAL_PAID, TaggedValue.Num(it.minor)) }
             splitWith.forEach { put(splitKey(it), TaggedValue.Bool(true)) }
+            note?.trim()?.takeIf { it.isNotEmpty() }?.let { put(FIELD_NOTE, TaggedValue.Str(it.takeChars(MAX_NOTE))) }
+            if (imported) put(FIELD_IMPORTED, TaggedValue.Bool(true))
         }
 
         /**
@@ -194,16 +246,22 @@ data class Transaction(
             val currency = (entity.fields[FIELD_CURRENCY] as? TaggedValue.Str)
                 ?.value?.let { Currency.ofCode(it) } ?: return null
             val minor = (entity.fields[FIELD_AMOUNT] as? TaggedValue.Num)?.value ?: return null
+            // A row with no day would land in January 1970 and a zero row would
+            // count as a recorded day while moving nothing. Both can only come
+            // from a hand-edited or half-written sheet row, and neither is a
+            // transaction: they disappear from the list rather than distort it.
+            if (minor == 0L) return null
+            val day = (entity.fields[FIELD_DAY] as? TaggedValue.Num)?.value ?: return null
 
             return Transaction(
                 id = key.entityId,
                 amount = Money(minor, currency),
-                merchant = (entity.fields[FIELD_MERCHANT] as? TaggedValue.Str)?.value,
+                merchant = (entity.fields[FIELD_MERCHANT] as? TaggedValue.Str)?.value?.takeIf { it.isNotBlank() },
                 category = (entity.fields[FIELD_CATEGORY] as? TaggedValue.Str)?.value,
                 categorySource = (entity.fields[FIELD_CATEGORY_SOURCE] as? TaggedValue.Str)
                     ?.value?.let { CategorySource.ofCode(it) },
                 accountId = (entity.fields[FIELD_ACCOUNT] as? TaggedValue.Str)?.value,
-                day = ((entity.fields[FIELD_DAY] as? TaggedValue.Num)?.value ?: 0L).toInt(),
+                day = day.toInt(),
                 totalPaid = (entity.fields[FIELD_TOTAL_PAID] as? TaggedValue.Num)
                     ?.let { Money(it.value, currency) },
                 splitWith = entity.fields
@@ -216,7 +274,9 @@ data class Transaction(
                     (entity.fields[FIELD_SETTLED] as? TaggedValue.Num)?.value ?: 0L,
                     currency,
                 ),
+                note = (entity.fields[FIELD_NOTE] as? TaggedValue.Str)?.value?.takeIf { it.isNotBlank() },
                 deleted = entity.deleted,
+                imported = (entity.fields[FIELD_IMPORTED] as? TaggedValue.Bool)?.value == true,
             )
         }
     }

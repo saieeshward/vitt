@@ -167,6 +167,42 @@ class LedgerRepositoryTest {
         val r = LedgerRepository(store) { 1_000L }
         assertEquals(0, r.transactions().size)
     }
+
+    @Test
+    fun `a note set after recording reads back`() {
+        val r = repo()
+        r.record("t1", Money(-1_250, Currency.EUR), day = 20_000, merchant = "Tesco")
+        assertNull(r.transactions().single().note)
+
+        r.setNote("t1", "  Birthday cake  ")
+        assertEquals("Birthday cake", r.transactions().single().note)
+    }
+
+    @Test
+    fun `a blank note clears the old one`() {
+        val r = repo()
+        r.record("t1", Money(-1_250, Currency.EUR), day = 20_000, note = "Deposit back")
+        assertEquals("Deposit back", r.transactions().single().note)
+
+        r.setNote("t1", "   ")
+        assertNull(r.transactions().single().note)
+
+        r.setNote("t1", "Again")
+        r.setNote("t1", null)
+        assertNull(r.transactions().single().note)
+    }
+
+    @Test
+    fun `a note survives categorising the entry`() {
+        // The category and the note are separate fields, so one write must
+        // never disturb the other: a correction should not cost the reminder.
+        val r = repo()
+        r.record("t1", Money(-1_250, Currency.EUR), day = 20_000, merchant = "Tesco", note = "Party food")
+        r.categorise("t1", ie.shoonya.vitt.capture.Category.DINING, applyToPast = true)
+        val t = r.transactions().single()
+        assertEquals("Party food", t.note)
+        assertEquals("dining", t.category)
+    }
 }
 
 class CurrencyOrderTest {
@@ -205,5 +241,60 @@ class CurrencyOrderTest {
         assertEquals(before, r.ledgers().single { it.currency == Currency.EUR }.index)
         assertEquals(1, r.ledgers().single { it.currency == Currency.INR }.index)
         assertEquals(2, r.ledgers().single { it.currency == Currency.GBP }.index)
+    }
+
+    @Test
+    fun `a row labelled transfer never counts as income or spend`() {
+        val r = repo()
+        r.record("t1", Money(200_000, Currency.EUR), day = 20_000, category = "transfer")
+        r.record("t2", Money(-5_000, Currency.EUR), day = 20_000, category = "transfer")
+        r.record("t3", Money(-3_000, Currency.EUR), day = 20_000, category = "dining")
+        val eur = r.ledgers().single { it.currency == Currency.EUR }
+        assertEquals(0L, eur.received.minor, "moving your own money is not income")
+        assertEquals(3_000L, eur.spent.minor, "and not spending either")
+    }
+
+    @Test
+    fun `a blank merchant reads back as none so the note can title the row`() {
+        val r = repo()
+        r.record("n1", Money(-2_550, Currency.EUR), day = 20_000, merchant = "   ", note = "Team lunch")
+        val t = r.transactions().single()
+        assertNull(t.merchant)
+        assertNull(t.merchantLabel)
+        assertEquals("Team lunch", t.note)
+    }
+
+    @Test
+    fun `a zero amount is refused before it reaches the log`() {
+        val r = repo()
+        assertFailsWith<IllegalArgumentException> {
+            r.record("z1", Money(0, Currency.EUR), day = 20_000)
+        }
+        assertTrue(r.transactions().isEmpty())
+    }
+
+    @Test
+    fun `the add screen never offers transfer as a category`() {
+        val r = repo()
+        assertTrue(r.frequentCategories(20_000, spending = false).none { it == ie.shoonya.vitt.capture.Category.TRANSFER })
+        assertTrue(r.frequentCategories(20_000, spending = true).none { it == ie.shoonya.vitt.capture.Category.TRANSFER })
+    }
+
+    @Test
+    fun `a row with no day or a zero amount is not a transaction`() {
+        var t = 1_000L
+        val store = EventStore.open(testDriver(), node) { t++ }
+        val r = LedgerRepository(store) { t }
+        fun put(id: String, field: String, value: ie.shoonya.vitt.sync.TaggedValue) =
+            store.append(ie.shoonya.vitt.sync.Event(store.issue(), Transaction.ENTITY, id, field, value), nowMillis = t)
+        // Hand-edited row: amount and currency but the day cell was wiped.
+        put("noday", Transaction.FIELD_AMOUNT, ie.shoonya.vitt.sync.TaggedValue.Num(-500))
+        put("noday", Transaction.FIELD_CURRENCY, ie.shoonya.vitt.sync.TaggedValue.Str("EUR"))
+        // Zero row written by an older build.
+        put("zero", Transaction.FIELD_AMOUNT, ie.shoonya.vitt.sync.TaggedValue.Num(0))
+        put("zero", Transaction.FIELD_CURRENCY, ie.shoonya.vitt.sync.TaggedValue.Str("EUR"))
+        put("zero", Transaction.FIELD_DAY, ie.shoonya.vitt.sync.TaggedValue.Num(20_000))
+        assertTrue(r.transactions().isEmpty(), "neither can be shown as a transaction")
+        assertEquals(0, r.recordedDays(20_000).size, "and neither counts as a recorded day")
     }
 }

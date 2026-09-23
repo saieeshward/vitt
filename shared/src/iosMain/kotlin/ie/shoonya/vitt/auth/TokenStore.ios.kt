@@ -27,7 +27,7 @@ import platform.Security.SecItemAdd
 import platform.Security.SecItemCopyMatching
 import platform.Security.SecItemDelete
 import platform.Security.kSecAttrAccessible
-import platform.Security.kSecAttrAccessibleAfterFirstUnlock
+import platform.Security.kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
 import platform.Security.kSecAttrAccount
 import platform.Security.kSecAttrService
 import platform.Security.kSecClass
@@ -75,7 +75,10 @@ class KeychainTokenStore(private val service: String = "ie.shoonya.vitt.oauth") 
             // AfterFirstUnlock, not WhenUnlocked: background sync can run while
             // the phone is locked, and WhenUnlocked would make the token
             // unreadable exactly then. Still requires one unlock since boot.
-            CFDictionaryAddValue(it, kSecAttrAccessible, kSecAttrAccessibleAfterFirstUnlock)
+            // ThisDeviceOnly, so the refresh token never rides an encrypted
+            // backup onto another phone: a grant is for this device, and a
+            // restored one would silently share it.
+            CFDictionaryAddValue(it, kSecAttrAccessible, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
         }
         val status = SecItemAdd(query, null)
         CFRelease(query)

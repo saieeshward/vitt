@@ -1,0 +1,187 @@
+name: CI
+
+# Pull requests and main only. A feature branch pushed ten times a day does not
+# need ten macOS runs; the PR is where the gate belongs.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    # Documentation and the clan file cannot break a build, and the macOS job
+    # bills at ten times the Linux rate on a private repository. A run that can
+    # only ever come back green is a run worth not starting.
+    paths-ignore:
+      - '**.md'
+      - 'vitt.clan'
+      - 'screenshots/**'
+      - 'docs/**'
+  workflow_dispatch:
+
+# A second push to the same branch cancels the first. Without this, a run you
+# have already superseded keeps burning minutes to tell you about code you have
+# replaced.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Everything that does not need a Mac, which is most of it. The whole sync
+  # engine, the money rules and the parsers are plain Kotlin in :shared.
+  checks:
+    name: Tests and Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # Caches ~/.gradle between runs and keys it off the build files. A cold
+      # Gradle download is most of a short job's wall time.
+      - uses: gradle/actions/setup-gradle@v4
+
+      # compileSdk 37 is newer than the image's preinstalled SDK.
+      #
+      # Two things have to be spelled out here. The action's default package
+      # list still names the obsolete `tools` package, which sdkmanager no
+      # longer serves and which fails the whole step. And the platform is
+      # `android-37.0`, not `android-37`: platforms from API 36 on carry a minor
+      # version, so the id no longer matches the `compileSdk` number that names
+      # it in gradle/libs.versions.toml.
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-37.0'
+
+      # The guard that catches what only breaks on iOS. Kotlin/Native rejects a
+      # comma inside a backticked test name where the JVM accepts it, so
+      # :shared:jvmTest can pass while the iOS target fails to compile. Running
+      # it here means a Linux job catches a Native-only break for free.
+      - name: Test-name guard
+        run: ./gradlew :shared:checkTestNames
+
+      - name: Shared tests
+        run: ./gradlew :shared:jvmTest
+
+      # R8 runs in release, so this is also how the shrinker rules get exercised.
+      # An absent keystore leaves the build unsigned rather than failing, which
+      # is deliberate: CI must not need a private key to prove the code builds.
+      # The bundle too, not just the APKs: an AAB is what Play actually takes,
+      # and it is built by a different task than the one CI was proving.
+      - name: Android debug, release and bundle
+        run: ./gradlew :androidApp:assembleDebug :androidApp:assembleRelease :androidApp:bundleRelease
+
+      - name: Keep the test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: shared/build/reports/tests/
+
+  # The Mac half. Separate because macOS runners bill at ten times the Linux
+  # rate on private repositories and are free on public ones, so this is the job
+  # whose cost depends on a decision made outside this file.
+  ios:
+    name: iOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # The Kotlin/Native toolchain and its LLVM live in ~/.konan, which
+      # setup-gradle does not cover: it caches Gradle User Home. Without this
+      # every run re-downloads the whole compiler before building a line, which
+      # is minutes at ten times the Linux rate.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
+
+      # allTests is jvmTest plus the iOS targets. It is the only run that proves
+      # the suite compiles for Kotlin/Native, which is the failure the test-name
+      # guard exists to predict.
+      - name: All tests including iOS targets
+        run: ./gradlew :shared:allTests
+
+      # The Xcode project is generated, not committed, so CI regenerates it the
+      # same way a developer does after changing project.yml.
+      # project.yml names Local.xcconfig for both configurations, and that file
+      # is gitignored because it carries a developer's own DEVELOPMENT_TEAM.
+      # Absent, xcodegen fails spec validation before it generates anything.
+      # CI does what a developer does on first checkout, minus the team id,
+      # which nothing here needs: the build is unsigned.
+      - name: Generate the Xcode project
+        run: |
+          brew install xcodegen
+          cd iosApp
+          [ -f Local.xcconfig ] || echo 'DEVELOPMENT_TEAM =' > Local.xcconfig
+          xcodegen generate
+
+      # Release only where it earns its keep.
+      #
+      # Measured over 23 runs: the macOS job was 171 wall minutes but 1,707
+      # billed, which is 93% of the whole bill from 58% of the time, purely
+      # because of the ten times multiplier. Linking the *release* Kotlin
+      # framework is the bulk of that job, and it is a full LLVM optimisation
+      # of the entire Compose graph.
+      #
+      # It still has to happen: a release build once linked the debug framework
+      # and would have shipped that way. But it has to happen before a merge,
+      # not on every commit of a branch somebody is iterating on. PRs link
+      # Debug, main links Release.
+      - name: Pick the configuration
+        id: conf
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "value=Release" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=Debug" >> "$GITHUB_OUTPUT"
+          fi
+
+      # No signing. CODE_SIGNING_ALLOWED=NO builds the app without a certificate,
+      # which is all CI needs: it proves the code compiles and links against the
+      # Kotlin framework. Signing belongs to release, not to every commit.
+      #
+      # `generic/platform=iOS Simulator` rather than a device by name. A named
+      # destination has to exist on the runner, and the image ships whatever
+      # simulators it ships: `iPhone 16 Pro` was simply absent, and pinning any
+      # other name only moves the expiry date. Nothing is run here, so no
+      # concrete device is needed to compile and link.
+      - name: Build for the simulator
+        run: |
+          cd iosApp
+          xcodebuild -project VITT.xcodeproj -scheme VITT \
+            -sdk iphonesimulator -configuration ${{ steps.conf.outputs.value }} \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+
+  # Store rules change under a shipped app, so this reads as a reminder rather
+  # than a gate. It never fails the build; it annotates the run.
+  compliance:
+    name: Store compliance (advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Placeholder and privacy drift
+        run: |
+          echo "Checks that catch the mistakes that get an app rejected."
+          # A privacy policy URL that is still a placeholder means the listing
+          # cannot be submitted, and it is easy to forget once it is written.
+          if grep -rq "{{POLICY_URL}}\|{{SUPPORT_URL}}" docs/ 2>/dev/null; then
+            echo "::warning::Submission placeholders are still unfilled (docs/submission-placeholders.md)"
+          fi
+          # Data Not Collected is only true while no SDK phones home. If one is
+          # ever added, the privacy manifest and the App Store privacy card both
+          # become false on the same day.
+          if grep -rqiE "firebase|crashlytics|sentry|amplitude|mixpanel" gradle/libs.versions.toml; then
+            echo "::error::An analytics or crash SDK was added. PrivacyInfo.xcprivacy and the App Store privacy card both say Data Not Collected."
+            exit 1
+          fi

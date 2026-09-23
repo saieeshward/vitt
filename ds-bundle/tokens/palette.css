@@ -1,0 +1,34 @@
+/*
+ * The fixed palette. Two rules govern every value here.
+ *
+ * 1. A currency is a colour. The six hues are assigned in order from a fixed
+ *    set, so EUR is the same green for every user, and adding a fourth currency
+ *    never recolours the first three. These are NOT themeable.
+ * 2. Money is never coloured by sentiment. There is no red-for-overspent.
+ *    Budget health runs accent-to-neutral, because a red ledger is a verdict.
+ *    The single red in the product is a destructive confirmation.
+ */
+:root {
+  /* Currency hues, in assignment order. Light ground. */
+  --vitt-currency-1: #35B98A; /* green */
+  --vitt-currency-2: #E39A12; /* amber */
+  --vitt-currency-3: #4C9DF7; /* blue */
+  --vitt-currency-4: #EE6E9C; /* pink */
+  --vitt-currency-5: #6B5BFF; /* violet */
+  --vitt-currency-6: #17A2A2; /* teal */
+
+  /* The same hues lifted for a dark ground. */
+  --vitt-currency-1-dark: #5EE0AC;
+  --vitt-currency-2-dark: #FFC94D;
+  --vitt-currency-3-dark: #78BBFF;
+  --vitt-currency-4-dark: #D95C88;
+  --vitt-currency-5-dark: #9C8DFF;
+  --vitt-currency-6-dark: #4FD1D1;
+
+  /* Destructive confirmation only. Never a balance, never a budget state. */
+  --vitt-destructive: #D0453B;
+
+  /* The companion's own colour per theme; each animal also carries its own. */
+  --vitt-pip-light: #EE6E9C;
+  --vitt-pip-dark: #D95C88;
+}

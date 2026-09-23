@@ -16,7 +16,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import ie.shoonya.vitt.ui.Pip
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import ie.shoonya.vitt.ui.CompanionAnimal
+import ie.shoonya.vitt.ui.CompanionPet
+import ie.shoonya.vitt.ui.CompanionPose
+import ie.shoonya.vitt.ui.pose
 import ie.shoonya.vitt.ui.theme.Vitt
 
 /**
@@ -29,22 +39,80 @@ import ie.shoonya.vitt.ui.theme.Vitt
 @Composable
 fun HabitScreen(
     daysRecorded: Int,
+    /** The actual days, so the dots can sit on the calendar rather than fill from the left. */
+    recordedDays: Set<Int>,
+    longestRun: Int,
+    today: Int,
     windowDays: Int,
     currencyCount: Int,
+    animal: CompanionAnimal?,
+    /**
+     * What she is expressing, from the same state the wander strip uses.
+     *
+     * `design-identity.md` calls Habit "the one place gamification is loud",
+     * and until now she stood here with a neutral face while six drawn
+     * expressions went unused. This is the screen she should be most readable
+     * on, because it is the only one that is about her at all.
+     */
+    face: ie.shoonya.vitt.model.CompanionFace? = null,
+    /** The last day each currency was recorded in. A fact about recency, not a score. */
+    lastRecorded: Map<ie.shoonya.vitt.money.Currency, Int>,
+    /** Marks today as a day with nothing to record. Null once today is already recorded. */
+    onNothingToday: (() -> Unit)?,
+    /** The last few months, oldest first. */
+    months: List<ie.shoonya.vitt.model.MonthCoverage>,
+    currencyIndex: (ie.shoonya.vitt.money.Currency) -> Int,
+    onDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.fillMaxWidth().padding(Vitt.space.loose),
+        modifier = modifier.fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(Vitt.space.loose)
+            .padding(bottom = Vitt.space.section * 2),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("Habit", style = Vitt.type.title, color = Vitt.colors.ink, modifier = Modifier.fillMaxWidth())
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Habit", style = Vitt.type.title, color = Vitt.colors.ink)
+            androidx.compose.material3.TextButton(onClick = onDone) { Text("Done") }
+        }
 
-        Pip(
-            daysRecorded = daysRecorded,
-            currencyCount = currencyCount,
-            modifier = Modifier.fillMaxWidth().height(180.dp),
-        )
+        // Drawn largest here, because `design-identity.md` calls Habit "the one
+        // place gamification is loud" while the daily screens stay quiet. Still,
+        // not wandering: the strip is where she walks.
+        //
+        // Absent entirely when the user picked no pet. The tab still works: the
+        // count and the dots are the habit, and the animal was never the data.
+        // Flips to the glad face the moment a day is marked, then settles back.
+        // The button is the only action on this screen, so her reacting to it
+        // is what closes the loop: you did a thing, something noticed.
+        var justMarked by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+        androidx.compose.runtime.LaunchedEffect(justMarked) {
+            if (justMarked) {
+                kotlinx.coroutines.delay(2_600)
+                justMarked = false
+            }
+        }
+
+        animal?.let {
+            CompanionPet(
+                daysRecorded = daysRecorded,
+                currencyCount = currencyCount,
+                animal = it,
+                mood = null,
+                pose = when {
+                    justMarked -> CompanionPose.GLAD
+                    face != null -> face.pose()
+                    else -> CompanionPose.STAND
+                },
+                pixelSize = 5.dp,
+            )
+        }
 
         Text(
             "$daysRecorded of the last $windowDays days recorded",
@@ -55,15 +123,107 @@ fun HabitScreen(
 
         // A rolling count, not a streak that resets to zero. There is no loss
         // event to dread, so a missed day costs nothing to come back from.
-        DayDots(daysRecorded = daysRecorded, windowDays = windowDays)
+        DayDots(recordedDays = recordedDays, today = today, windowDays = windowDays)
+
+        // §5.4: keep "longest" prominent. It is the figure a lapse cannot take
+        // away, and stating it beside the rolling count is what makes a gap
+        // read as a gap rather than a loss.
+        if (longestRun > 1) {
+            Text(
+                "Longest run $longestRun days",
+                style = Vitt.type.label,
+                color = Vitt.colors.inkMuted,
+                textAlign = TextAlign.Center,
+            )
+        }
+
+        // Days with no spending are the reason this button exists. A blank day
+        // and a forgotten day look the same, and §5.2 forbids reading the blank
+        // as bad, so the user can say which it was. It records attention, not
+        // money: no amount, no currency, nothing a budget sees.
+        if (onNothingToday != null) {
+            androidx.compose.material3.OutlinedButton(
+                onClick = { justMarked = true; onNothingToday() },
+            ) {
+                Text("Nothing spent today")
+            }
+            Text(
+                "Counts as a day you looked. No budget is touched.",
+                style = Vitt.type.label,
+                color = Vitt.colors.inkFaint,
+                textAlign = TextAlign.Center,
+            )
+        }
+
+        // Recency per currency, not days per currency. Counting days for each
+        // would punish the currency you only spend on holiday, and there is
+        // no habit to keep with a currency you have no reason to use today.
+        if (lastRecorded.size > 1) {
+            Text("Last entry", style = Vitt.type.caption, color = Vitt.colors.inkMuted, modifier = Modifier.fillMaxWidth().padding(top = Vitt.space.snug))
+            lastRecorded.entries.sortedByDescending { it.value }.forEach { (currency, day) ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = Vitt.space.hair),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(Modifier.size(8.dp).clip(CircleShape).background(Vitt.colors.currency(currencyIndex(currency))))
+                    Text("  ${currency.code}", style = Vitt.type.body, color = Vitt.colors.ink, modifier = Modifier.weight(1f))
+                    Text(
+                        when (val ago = today - day) {
+                            0 -> "today"
+                            1 -> "yesterday"
+                            in 2..60 -> "$ago days ago"
+                            else -> "a while ago"
+                        },
+                        style = Vitt.type.label,
+                        color = Vitt.colors.inkMuted,
+                    )
+                }
+            }
+        }
+
+        // Six months of coverage as hairlines, one per month. The current
+        // month is measured against the days it has had, so it never reads as
+        // the emptiest for being the youngest (§5.2).
+        if (months.any { it.recorded > 0 }) {
+            Text("Months", style = Vitt.type.caption, color = Vitt.colors.inkMuted, modifier = Modifier.fillMaxWidth().padding(top = Vitt.space.snug))
+            months.forEach { m ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = Vitt.space.hair),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        ie.shoonya.vitt.time.monthLabel(m.month, ie.shoonya.vitt.time.Civil.fromDays(today).first),
+                        style = Vitt.type.label,
+                        color = Vitt.colors.inkMuted,
+                        modifier = Modifier.width(64.dp),
+                    )
+                    androidx.compose.foundation.layout.Box(
+                        Modifier.weight(1f).height(3.dp).clip(CircleShape)
+                            .background(Vitt.colors.inkFaint.copy(alpha = 0.18f)),
+                    ) {
+                        val share = if (m.elapsed == 0) 0f else m.recorded.toFloat() / m.elapsed
+                        if (share > 0f) {
+                            androidx.compose.foundation.layout.Box(
+                                Modifier.fillMaxWidth(share.coerceIn(0.02f, 1f)).height(3.dp)
+                                    .clip(CircleShape).background(Vitt.colors.accent),
+                            )
+                        }
+                    }
+                    Text(
+                        "  ${m.recorded} of ${m.elapsed}",
+                        style = Vitt.type.caption,
+                        color = Vitt.colors.inkMuted,
+                    )
+                }
+            }
+        }
 
         Text(
             when {
                 daysRecorded == 0 -> "Pip is asleep. Log something and they'll wake up."
                 currencyCount > 1 ->
-                    "One slot per currency. Coins go in through their own slot and " +
-                        "never move between them."
-                else -> "Pip deepens as you keep recording. Nothing here reacts to what you spend."
+                    "One slot per currency. Coins never move between them."
+                else -> "Pip deepens as you keep recording, never with what you spend."
             },
             style = Vitt.type.label,
             color = Vitt.colors.inkMuted,
@@ -72,15 +232,25 @@ fun HabitScreen(
     }
 }
 
+/**
+ * One dot per day of the window, oldest on the left and today on the right,
+ * filled where something was recorded.
+ *
+ * On the calendar rather than packed from the left, because a packed row
+ * shows a score and this shows a shape: a run, a gap, a return. The shape is
+ * the honest thing and it is also the thing that is not a streak counter.
+ */
 @Composable
-private fun DayDots(daysRecorded: Int, windowDays: Int) {
+private fun DayDots(recordedDays: Set<Int>, today: Int, windowDays: Int) {
     val colors = Vitt.colors
+    val span = minOf(windowDays, 30)
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
     ) {
-        repeat(minOf(windowDays, 30)) { i ->
-            val filled = i < daysRecorded
+        repeat(span) { i ->
+            val day = today - (span - 1 - i)
+            val filled = day in recordedDays
             Box(
                 Modifier.size(if (filled) 7.dp else 5.dp)
                     .clip(CircleShape)

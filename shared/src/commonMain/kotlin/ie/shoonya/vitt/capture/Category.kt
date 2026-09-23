@@ -43,6 +43,25 @@ enum class Category(val code: String, val label: String) {
     /** Categories a person picks for spending, in the order they are shown. */
     val isSpending: Boolean get() = this != INCOME && this != TRANSFER
 
+    /**
+     * Whether a person can choose this on the add screen.
+     *
+     * TRANSFER is an import label and nothing else: a real move between two
+     * of the user's accounts is a Transfer, recorded on its own screen with
+     * both legs. Offering it as an income category let "moved €2,000 from
+     * savings" read as €2,000 earned, and the month's verdict flipped to Up.
+     */
+    val isPickable: Boolean get() = this != TRANSFER
+
+    /**
+     * Whether a row with this category counts in spent and received.
+     *
+     * A row a CSV import labelled "transfer" parks in Activity until it is
+     * reconciled, but it is the user's own money changing pockets and must
+     * never move the in-and-out figures.
+     */
+    val movesMoney: Boolean get() = this != TRANSFER
+
     companion object {
         /**
          * Resolves a stored code, tolerating older and hand-typed spellings.

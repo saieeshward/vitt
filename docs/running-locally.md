@@ -36,6 +36,44 @@ xcrun simctl install booted "$(find build/Build/Products -name VITT.app | head -
 xcrun simctl launch booted ie.shoonya.vitt
 ```
 
+Launch variables (`VITT_SEED=1` for the sample month, `VITT_STRESS=1` for
+eighteen months across six currencies) reach the app only with simctl's
+child-environment prefix; a bare `VITT_SEED=1 xcrun simctl launch …` is
+silently ignored and the app opens empty:
+
+```bash
+SIMCTL_CHILD_VITT_STRESS=1 xcrun simctl launch booted ie.shoonya.vitt
+```
+
+Both seeders are no-ops once the database has any transaction, so a different
+data set needs `xcrun simctl uninstall booted ie.shoonya.vitt` first.
+
+To check what VoiceOver would read on the current screen without a device, dump
+the Simulator's accessibility tree (role, frame in device points, label, value):
+
+```bash
+python3 tools/axtree.py --grep 'amount|decimal'   # --all for every node, no flag for interactive only
+```
+
+Both `axtree.py` and `sim.py` find the Simulator window by **device name**, and
+stop with a message when more than one device is booted:
+
+```bash
+SIM_DEVICE='iPhone 17 Pro' python3 tools/axtree.py
+```
+
+Set it whenever you have a second simulator running. Simulator keeps a window per
+device it has ever shown, including shut-down ones, so the scripts used to take
+whichever window opened first. `simctl io <udid>` screenshots the right device
+regardless, so the symptom is a screenshot and a tree that disagree, and taps
+that land in another app without either tool saying anything.
+
+The terminal needs Accessibility permission (System Settings > Privacy &
+Security); the script says so when it is missing. It waits up to eight seconds
+for the app to publish its tree, because the screen reads as empty for a moment
+after every relaunch. `tools/sim.py tap X Y` taps in screenshot pixels, which is
+three times the points `axtree.py` prints on the iPhone 17 Pro.
+
 ## iOS device
 
 Needs an Apple ID signed in to Xcode; see the Phase 0 checklist. Then open

@@ -16,6 +16,9 @@ settings:
     # than committing a team id.
     CODE_SIGN_STYLE: Automatic
     ENABLE_USER_SCRIPT_SANDBOXING: NO
+    # Without this the asset catalogue ships but nothing points at it, and the
+    # build has no icon while looking as though it does.
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
 targets:
   VITT:
@@ -27,12 +30,15 @@ targets:
       path: iosApp/Info.plist
       properties:
         CFBundleDisplayName: VITT
-        CFBundleShortVersionString: "0.1.0"
+        CFBundleShortVersionString: "1.0.0"
         # Compose Multiplatform refuses to start without this: without it iOS
         # caps the app at 60fps on ProMotion displays, and CMP treats a silently
         # halved frame rate as a misconfiguration rather than a default.
         CADisableMinimumFrameDurationOnPhone: true
         CFBundleVersion: "1"
+        # Only HTTPS to Google's APIs, which is exempt encryption. Without this
+        # key App Store Connect stops every upload to ask the question.
+        ITSAppUsesNonExemptEncryption: false
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
@@ -40,16 +46,25 @@ targets:
         # this registration iOS has nowhere to deliver the callback and the
         # sign-in sheet simply never closes.
         CFBundleURLTypes:
+          # The widget's "Log a spend" button. Its own scheme rather than a
+          # Universal Link, because a widget tap must not need the network.
+          - CFBundleURLName: vitt
+            CFBundleURLSchemes:
+              - vitt
           - CFBundleURLName: google-oauth
             CFBundleURLSchemes:
               - com.googleusercontent.apps.1009164273104-9vueslno0lnaug94cl848pcesb2j1rnf
+    dependencies:
+      - target: VittWidget
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ie.shoonya.vitt
+        CODE_SIGN_ENTITLEMENTS: iosApp/VITT.entitlements
         # The Kotlin framework is produced by Gradle into composeApp/build.
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
-          - $(SRCROOT)/../composeApp/build/bin/$(KOTLIN_TARGET)/debugFramework
+          - $(SRCROOT)/../composeApp/build/bin/$(KOTLIN_TARGET)/$(KOTLIN_FRAMEWORK)Framework
         OTHER_LDFLAGS:
           - $(inherited)
           - -framework
@@ -60,6 +75,21 @@ targets:
         # Selects the right Kotlin output directory for device vs simulator.
         KOTLIN_TARGET[sdk=iphonesimulator*]: iosSimulatorArm64
         KOTLIN_TARGET[sdk=iphoneos*]: iosArm64
+        # The Kotlin framework only builds for arm64 simulators: there is no
+        # iosX64 target in composeApp. Saying so explicitly makes a stray
+        # x86_64 build fail with that sentence instead of several hundred
+        # "ignoring file ... required architecture x86_64" linker warnings
+        # followed by an unexplained link failure, which is how this was found.
+        ARCHS[sdk=iphonesimulator*]: arm64
+      configs:
+        # Which Kotlin framework each app configuration links. Release used to
+        # inherit the hardcoded debug path, so a Release build of the app linked
+        # the DEBUG Kotlin framework: unoptimised, much larger, and what a store
+        # submission would have shipped. Debug builds never revealed it.
+        Debug:
+          KOTLIN_FRAMEWORK: debug
+        Release:
+          KOTLIN_FRAMEWORK: release
     preBuildScripts:
       - name: Build Kotlin framework
         basedOnDependencyAnalysis: false
@@ -70,4 +100,34 @@ targets:
           else
             TARGET=IosArm64
           fi
-          ./gradlew :composeApp:linkDebugFramework$TARGET
+          # Must match FRAMEWORK_SEARCH_PATHS above, or the app links a
+          # framework this script never built.
+          if [ "$CONFIGURATION" = "Release" ]; then
+            KOTLIN_CONF=Release
+          else
+            KOTLIN_CONF=Debug
+          fi
+          ./gradlew :composeApp:link${KOTLIN_CONF}Framework$TARGET
+
+  # The home screen widget. A separate process with its own container, which is
+  # why it reads a published snapshot out of the App Group rather than the
+  # database: it cannot see the app's storage at all.
+  VittWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: VittWidget
+    info:
+      path: VittWidget/Info.plist
+      properties:
+        CFBundleDisplayName: VITT
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ie.shoonya.vitt.widget
+        CODE_SIGN_ENTITLEMENTS: VittWidget/VittWidget.entitlements
+        # WidgetKit needs this and the app does not, so it is set here rather
+        # than raising the whole project's floor from iOS 15.
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"

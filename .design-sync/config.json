@@ -1,0 +1,7 @@
+{
+  "shape": "tokens-only",
+  "readmeHeader": ".design-sync/conventions.md",
+  "note": "VITT has no JS component library; this sync ships tokens only. See NOTES.md.",
+  "projectId": "3e9db09e-95b8-4ea3-a818-75c24026a245",
+  "projectName": "VITT Design Tokens"
+}

@@ -96,6 +96,51 @@ do it. **[code]** automatable.
 - **Google's sideloading developer verification** (2026–27) may require registering
   package names and signing keys for APKs distributed outside Play.
 
+## Added by the compliance audit — 2026-09-17
+
+Found by running the app-store-compliance playbook against the repo. Code items
+are done; the rest need the maintainer.
+
+- [x] **[code]** `PrivacyInfo.xcprivacy` in the iOS bundle (file-timestamp
+      reason C617.1 only; nothing collected, nothing tracked).
+- [x] **[code]** `ITSAppUsesNonExemptEncryption: false` in `Info.plist`, so
+      uploads do not stall on the export question.
+- [x] **[code]** Review notes drafted at [review-notes.md](review-notes.md).
+- [x] **[code]** Listing copy, keywords, screenshot plan, privacy-card answers
+      and the age-rating answers written at
+      [app-store-listing.md](app-store-listing.md).
+- [x] **[code]** Every remaining blank collected into one fill-in sheet at
+      [submission-placeholders.md](submission-placeholders.md). Nothing in it
+      can be automated: each needs an account, a purchase, a domain or a
+      decision.
+- [x] **[code]** Version set to `1.0.0` build `1` on both platforms. A `0.x`
+      version reads as pre-release and invites an Apple 2.2 rejection.
+- [x] **[code]** The sample-data seeders and the `VerifyScreen` harness no
+      longer exist in a release build. They were reachable by launch variable
+      (iOS) and intent extra (Android), which is a hidden feature under Apple
+      2.5.1; the gate is now `Platform.isDebugBinary` and `BuildConfig.DEBUG`.
+- [x] **[code]** The privacy policy draft re-checked line by line against the
+      app. It described a "delete local data" button, a "delete spreadsheet"
+      button and a parser-diagnostics upload, none of which exist. A privacy
+      statement that overstates the app is the single most common rejection
+      cause on both stores, so the text now says only what the app does.
+- [ ] **[you] Register the Play package name `ie.shoonya.vitt` in Play Console
+      by 30 Sep 2026** if a Play release is planned. Android developer
+      verification applies globally from that date; unregistered packages risk
+      removal.
+- [ ] **[you]** Publish the privacy policy at a URL, then paste it into
+      `Links.PRIVACY_POLICY` in `shared/.../config/Links.kt`. The Settings
+      "Privacy policy" button appears the moment it is non-empty. Apple 5.1.1(i)
+      wants it reachable in the app. `Links.SUPPORT` works the same way.
+- [x] **[code]** Release builds compile on both platforms: Android R8 release
+      APK (1.8 MB unsigned) and the iOS Release configuration linking the
+      release Kotlin framework.
+- [x] **[code]** Refresh token stored ThisDeviceOnly in the iOS Keychain, so
+      an encrypted backup restored onto another phone does not carry the grant.
+- [ ] **[you]** Decide on the two 4.2 depth items still missing from PLAN §7.2's
+      list: recurring transactions and a home-screen widget. Budgets, charts and
+      CSV export are in.
+
 ## Added during Phase 1 — iOS device builds
 
 - [ ] **[you] Sign in to Xcode with your Apple ID.** Xcode → Settings → Accounts

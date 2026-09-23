@@ -14,6 +14,7 @@ import ie.shoonya.vitt.sync.EventStore
 import ie.shoonya.vitt.time.Period
 import ie.shoonya.vitt.time.YearMonth
 import ie.shoonya.vitt.sync.TaggedValue
+import ie.shoonya.vitt.text.takeChars
 
 /**
  * Reads the app's state out of the event log, and records new transactions into
@@ -43,7 +44,13 @@ class LedgerRepository(
         accountId: String? = null,
         totalPaid: Money? = null,
         splitWith: Set<String> = emptySet(),
+        note: String? = null,
+        /** True only for a row read out of a file. See [Transaction.imported]. */
+        imported: Boolean = false,
     ) {
+        // The sheet is append-only, so a zero row can never be taken back. The
+        // keypad refuses it too; this is for every other caller.
+        require(amount.minor != 0L) { "a zero transaction records nothing" }
         require(totalPaid == null || totalPaid.currency == amount.currency) {
             "a split cannot cross currencies"
         }
@@ -54,7 +61,14 @@ class LedgerRepository(
         // still be in flight from another device, and refusing would lose the
         // transaction outright. Only a *known* mismatch is a caller bug.
         if (accountId != null) {
-            val account = accounts(includeArchived = true).firstOrNull { it.id == accountId }
+            // Indexed lookup of this one account, not a fold of every event
+            // ever written. Recording used to ask "what accounts exist" by
+            // reading the whole log, which made the cost of adding a row grow
+            // with the ledger and a bulk CSV import quadratic: measured at
+            // 4.5ms per row at 250 rows and 13.5ms per row at 1,000.
+            val account = store.foldEntity(Account.ENTITY, accountId)
+                .firstNotNullOfOrNull { (key, entity) -> Account.from(key, entity) }
+                ?.takeUnless { it.deleted }
             require(account == null || account.currency == amount.currency) {
                 "a transaction cannot be recorded into an account of another currency"
             }
@@ -81,10 +95,45 @@ class LedgerRepository(
             accountId = accountId,
             totalPaid = totalPaid,
             splitWith = splitWith,
+            note = note,
+            imported = imported,
             issue = store::issue,
         )
         val at = now()
         events.forEach { store.append(it, at) }
+    }
+
+    /**
+     * The categories this person actually uses, most used first.
+     *
+     * For the add screen's first row of chips. The locked taxonomy has fourteen
+     * entries and most people live in five of them, so the row shows those and
+     * folds the rest behind "More". Recency-weighted only by the window: a
+     * category used once last week and one used daily two months ago count the
+     * same, which keeps the row stable from one day to the next rather than
+     * reshuffling under the thumb.
+     */
+    fun frequentCategories(
+        today: Int,
+        spending: Boolean = true,
+        window: Int = 90,
+        limit: Int = 6,
+    ): List<Category> {
+        val counts = transactions()
+            .asSequence()
+            .filter { it.day > today - window && it.day <= today }
+            // The sign decides which list a row informs, so an income row that
+            // was mis-filed under Dining does not vote for Dining on the
+            // spending row.
+            .filter { if (spending) it.isSpend else it.isIncome }
+            .mapNotNull { it.categoryOrNull }
+            .filter { it.isPickable && it.isSpending == spending }
+            .groupingBy { it }
+            .eachCount()
+        val offered = Category.entries.filter { it.isPickable && it.isSpending == spending }
+        // Ties and the unused tail fall back to taxonomy order, so the row is
+        // deterministic with no history at all.
+        return offered.sortedByDescending { counts[it] ?: 0 }.take(limit)
     }
 
     /**
@@ -103,6 +152,28 @@ class LedgerRepository(
                 id,
                 Transaction.FIELD_SETTLED,
                 TaggedValue.Num(received.minor),
+            ),
+            now(),
+        )
+    }
+
+    /**
+     * Sets or clears the note on an entry that already exists.
+     *
+     * A blank note is written as `""` rather than skipped: LWW has no way to
+     * unset a field except by writing over it, and [Transaction.from] already
+     * reads blank as none. Trimmed and capped like [Transaction.events] so the
+     * two write paths cannot disagree about what a note is.
+     */
+    fun setNote(id: String, note: String?) {
+        val value = note?.trim()?.takeChars(Transaction.MAX_NOTE) ?: ""
+        store.append(
+            Event(
+                store.issue(),
+                Transaction.ENTITY,
+                id,
+                Transaction.FIELD_NOTE,
+                TaggedValue.Str(value),
             ),
             now(),
         )
@@ -213,6 +284,32 @@ class LedgerRepository(
         putAccountField(id, Account.FIELD_NAME, TaggedValue.Str(name))
 
     /**
+     * Changes what kind of account this is.
+     *
+     * Unlike the currency, the kind carries no arithmetic: it decides whether a
+     * negative balance reads as "owed" or as "overdrawn", and nothing else. A
+     * card entered as a current account is a correction, not a re-denomination,
+     * so there is no reason to refuse it.
+     */
+    fun setAccountKind(id: String, kind: AccountKind) =
+        putAccountField(id, Account.FIELD_KIND, TaggedValue.Str(kind.code))
+
+    /**
+     * Corrects the balance the account started from.
+     *
+     * Tracking had to begin somewhere, and the figure entered at setup — or
+     * skipped entirely, because first-run deliberately does not ask — is a
+     * guess that deserves fixing later. Every balance is opening plus the
+     * transactions since, so this shifts them all by the difference at once
+     * rather than needing a correcting entry that never really happened.
+     *
+     * The currency is not a parameter: it is fixed at creation, and an opening
+     * balance in a different one would silently re-denominate the account.
+     */
+    fun setAccountOpening(id: String, opening: Money) =
+        putAccountField(id, Account.FIELD_OPENING, TaggedValue.Num(opening.minor))
+
+    /**
      * Archives or unarchives an account.
      *
      * Not a delete: the account leaves the pickers but its transactions stay in
@@ -226,7 +323,7 @@ class LedgerRepository(
     }
 
     /** Every live account, in creation order, archived ones last. */
-    fun accounts(includeArchived: Boolean = false): List<Account> = store.fold()
+    fun accounts(includeArchived: Boolean = false): List<Account> = store.foldOf(Account.ENTITY)
         .mapNotNull { (key, entity) -> Account.from(key, entity) }
         .filterNot { it.deleted }
         .filter { includeArchived || !it.archived }
@@ -278,7 +375,7 @@ class LedgerRepository(
     /**
      * Every rule the user has taught, keyed by normalised merchant.
      */
-    fun categoryRules(): Map<String, Category> = store.fold()
+    fun categoryRules(): Map<String, Category> = store.foldOf(CategoryRule.ENTITY)
         .mapNotNull { (key, entity) -> CategoryRule.from(key, entity) }
         .filterNot { it.deleted }
         .associate { it.merchantKey to it.category }
@@ -401,7 +498,7 @@ class LedgerRepository(
     }
 
     /** Every preference the user has explicitly set. */
-    fun preferences(): Map<String, Boolean> = store.fold()
+    fun preferences(): Map<String, Boolean> = store.foldOf(Preference.ENTITY)
         .mapNotNull { (key, entity) -> Preference.from(key, entity) }
         .filterNot { it.deleted }
         .associate { it.key to it.enabled }
@@ -419,13 +516,46 @@ class LedgerRepository(
     fun setGamificationEnabled(enabled: Boolean) =
         setPreference(Preference.GAMIFICATION, enabled)
 
+    /**
+     * Every named choice the user has explicitly made.
+     *
+     * Values are returned exactly as stored, including one this build does not
+     * recognise. See [Choice] for why that is deliberate.
+     */
+    fun choices(): Map<String, String> = store.foldOf(Choice.ENTITY)
+        .mapNotNull { (key, entity) -> Choice.from(key, entity) }
+        .filterNot { it.deleted }
+        .associate { it.key to it.value }
+
+    /** One choice, or null when the user has not made it. Null means the default. */
+    fun choice(key: String): String? = choices()[key]
+
+    fun setChoice(key: String, value: String) {
+        val at = now()
+        Choice.events(key, value, store::issue).forEach { store.append(it, at) }
+    }
+
+    /** Forgets a choice, so it falls back to the default on every device. */
+    fun clearChoice(key: String) {
+        store.append(
+            Event(
+                store.issue(),
+                Choice.ENTITY,
+                key,
+                EventLog.TOMBSTONE_FIELD,
+                TaggedValue.Bool(true),
+            ),
+            now(),
+        )
+    }
+
     fun setPreference(key: String, enabled: Boolean) {
         val at = now()
         Preference.events(key, enabled, store::issue).forEach { store.append(it, at) }
     }
 
     /** Every live transaction, newest first. */
-    fun transactions(): List<Transaction> = store.fold()
+    fun transactions(): List<Transaction> = store.foldOf(Transaction.ENTITY)
         .mapNotNull { (key, entity) -> Transaction.from(key, entity) }
         .filterNot { it.deleted }
         .sortedWith(compareByDescending<Transaction> { it.day }.thenByDescending { it.id })
@@ -463,9 +593,9 @@ class LedgerRepository(
             Ledger(
                 currency = currency,
                 index = index,
-                spent = forCurrency.filter { it.amount.isOutflow }
+                spent = forCurrency.filter { it.isSpend }
                     .fold(Money(0, currency)) { acc, t -> acc + t.amount.abs() },
-                received = forCurrency.filter { it.amount.isInflow }
+                received = forCurrency.filter { it.isIncome }
                     .fold(Money(0, currency)) { acc, t -> acc + t.amount },
                 // Only at month grain. A monthly limit spread over a week is an
                 // invented number, and wrong in a predictable direction: rent
@@ -506,7 +636,7 @@ class LedgerRepository(
     }
 
     /** Every live budget, by currency. */
-    fun budgets(): Map<Currency, Budget> = store.fold()
+    fun budgets(): Map<Currency, Budget> = store.foldOf(Budget.ENTITY)
         .mapNotNull { (key, entity) -> Budget.from(key, entity) }
         .filterNot { it.deleted }
         .associateBy { it.currency }
@@ -577,7 +707,7 @@ class LedgerRepository(
     }
 
     /** Every live transfer, newest first. */
-    fun transfers(): List<Transfer> = store.fold()
+    fun transfers(): List<Transfer> = store.foldOf(Transfer.ENTITY)
         .mapNotNull { (key, entity) -> Transfer.from(key, entity) }
         .filterNot { it.deleted }
         .sortedWith(compareByDescending<Transfer> { it.day }.thenByDescending { it.id })
@@ -659,9 +789,112 @@ class LedgerRepository(
      * only habit the app can honestly ask for, and rewarding thrift punishes the
      * month someone flew home for a funeral.
      */
-    fun daysRecorded(today: Int, window: Int = 30): Int =
-        transactions().map { it.day }
-            .filter { it > today - window && it <= today }
-            .distinct()
-            .size
+    fun daysRecorded(today: Int, window: Int = 30): Int = recordedDays(today, window).size
+
+    /**
+     * Which of the last [window] days had anything recorded, as days since the
+     * epoch. A day marked "nothing spent" counts: the habit is *looking*, and
+     * saying there was nothing is looking.
+     */
+    fun recordedDays(today: Int, window: Int = 30): Set<Int> =
+        allRecordedDays().filter { it > today - window && it <= today }.toSet()
+
+    /**
+     * The days this person turned up, which is not the same as the days that
+     * have entries on them.
+     *
+     * Imported rows are left out. A bank export brings a month of dates with it,
+     * and counting them would mean one tap buying a thirty-day run — the
+     * companion would be congratulating somebody for the one thing it exists to
+     * make unnecessary. A day counts when a person recorded on it, or said out
+     * loud that there was nothing to record.
+     *
+     * A day holding both a hand-logged and an imported entry still counts: the
+     * person was there.
+     */
+    private fun allRecordedDays(): Set<Int> =
+        transactions().filterNot { it.imported }.map { it.day }.toSet() + noSpendDays()
+
+    /**
+     * Marks a day as one with nothing to record.
+     *
+     * The answer to "what about days I spend nothing?" A blank day is
+     * indistinguishable from a forgotten one, and §5.2 forbids reading the
+     * blank as bad — so the user can say which it was, in one tap, and the
+     * day counts as observed. It is a record of attention, not of money: no
+     * amount, no currency, nothing a budget sees.
+     */
+    fun markNothingSpent(day: Int) {
+        val at = now()
+        store.append(
+            Event(store.issue(), NoSpend.ENTITY, day.toString(), NoSpend.FIELD_MARKED, TaggedValue.Bool(true)),
+            at,
+        )
+    }
+
+    fun noSpendDays(): Set<Int> = store.foldOf(NoSpend.ENTITY)
+        .filter { (_, entity) -> (entity.fields[NoSpend.FIELD_MARKED] as? TaggedValue.Bool)?.value == true }
+        .keys.mapNotNull { it.entityId.toIntOrNull() }
+        .toSet()
+
+    /** The most recent day each currency was recorded in. A fact, not a score. */
+    fun lastRecordedByCurrency(): Map<Currency, Int> =
+        transactions().groupBy { it.amount.currency }.mapValues { (_, rows) -> rows.maxOf { it.day } }
+
+    /** Days recorded in the window, per currency. Never summed across them. */
+    fun recordedDaysByCurrency(today: Int, window: Int = 30): Map<Currency, Int> =
+        transactions()
+            .filter { it.day > today - window && it.day <= today }
+            .groupBy { it.amount.currency }
+            .mapValues { (_, rows) -> rows.map { it.day }.distinct().size }
+
+    /**
+     * Days recorded in each of the last [months] calendar months, oldest first.
+     *
+     * A month is scored by how many of its days had an entry, out of the days
+     * it has had so far: the current month is not marked down for the days
+     * that have not happened yet (§5.2, non-logging never lowers a score).
+     */
+    fun recordedDaysPerMonth(today: Int, months: Int = 6): List<MonthCoverage> {
+        val days = allRecordedDays()
+        var month = YearMonth.of(today)
+        val out = ArrayDeque<MonthCoverage>()
+        repeat(months) {
+            val last = minOf(month.lastDay, today)
+            val elapsed = (last - month.firstDay + 1).coerceAtLeast(0)
+            val recorded = (month.firstDay..last).count { it in days }
+            out.addFirst(MonthCoverage(month, recorded, elapsed))
+            month = month.previous()
+        }
+        return out.toList()
+    }
+
+    /**
+     * The longest run of consecutive recorded days, ever.
+     *
+     * §5.4: on a break, keep "longest" prominent. It is the one figure a lapse
+     * cannot take away, which is why it is shown rather than a current streak
+     * that would reset to zero and make the return costlier than the lapse.
+     */
+    fun longestRun(): Int {
+        val days = allRecordedDays().sorted()
+        var best = 0
+        var run = 0
+        var previous: Int? = null
+        for (d in days) {
+            run = if (previous != null && d == previous + 1) run + 1 else 1
+            if (run > best) best = run
+            previous = d
+        }
+        return best
+    }
+}
+
+/** How much of one month was recorded on: [recorded] of [elapsed] days. */
+data class MonthCoverage(val month: YearMonth, val recorded: Int, val elapsed: Int)
+
+/** A day the user said had nothing in it. See [LedgerRepository.markNothingSpent]. */
+object NoSpend {
+    const val ENTITY = "nospend"
+    const val FIELD_MARKED = "marked"
 }

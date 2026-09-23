@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Deliberately plain. A widget is redrawn by the launcher from RemoteViews, so
+  everything here has to survive being inflated in another process: no custom
+  views, no Compose, no theme attributes.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/widget_background">
+
+    <TextView
+        android:id="@+id/widget_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="@color/widget_ink_muted"
+        android:text="EUR this month" />
+
+    <TextView
+        android:id="@+id/widget_amount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="@color/widget_ink"
+        android:text="—" />
+
+    <TextView
+        android:id="@+id/widget_note"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textSize="12sp"
+        android:textColor="@color/widget_ink_muted"
+        android:text="" />
+
+    <!--
+      The whole point of the widget. Logging has to be reachable without
+      opening the app: a manual tracker dies of friction debt, and three taps
+      from a locked phone is where people stop.
+    -->
+    <TextView
+        android:id="@+id/widget_add"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:textColor="@color/widget_on_accent"
+        android:background="@drawable/widget_button"
+        android:text="+  Log a spend" />
+
+</LinearLayout>

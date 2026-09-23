@@ -1,11 +1,12 @@
 # Privacy policy
 
-**Draft — not yet published. Placeholders marked `<…>` must be filled before this
-goes live. Have it reviewed if you are unsure; it is a binding public statement
-and both app stores check it against your declared data practices.**
+**Draft — not yet published. Every `{{PLACEHOLDER}}` below must be filled before
+this goes live; `docs/submission-placeholders.md` lists them all in one place.
+Have it reviewed if you are unsure. It is a binding public statement and both app
+stores check it against your declared data practices.**
 
 *Applies to the VITT mobile app for Android and iOS.
-Last updated: `<DATE>`. Contact: `<PRIVACY_EMAIL>`.*
+Last updated: {{POLICY_LAST_UPDATED}}. Contact: {{PRIVACY_EMAIL}}.*
 
 ## The short version
 
@@ -68,23 +69,29 @@ Revoking access does not delete your spreadsheet; it remains yours.
 
 ## Optional features that transmit data
 
-These are **off unless you turn them on**, and each is described where you enable
-it:
+There is exactly one, and it is **off unless you turn it on**:
 
 - **Google Drive sync** — sends your transaction data to your own Google Sheet.
-- **Parser diagnostics** — if enabled, sends anonymised transaction *text* that
-  VITT failed to parse, with amounts and account numbers removed, so import rules
-  can be improved. No amounts, no balances, no account identifiers, no user
-  identifier. Off by default.
+  Nothing reaches us, because there is no us to reach: the request goes from your
+  phone to Google.
+
+VITT has no diagnostics, telemetry or crash-reporting upload of any kind. If one
+is ever added, this section and the store privacy declarations change together
+or not at all.
 
 ## Retention and deletion
 
-We hold no data, so we have nothing to retain or delete.
+We hold no data, so we have nothing to retain or delete. There is no VITT account
+to delete either, because none is ever created.
 
-- **Device data:** uninstalling VITT deletes it, as does Settings → Delete local
-  data.
-- **Spreadsheet data:** delete the file in Google Drive, or use Settings → Delete
-  spreadsheet.
+- **Device data:** uninstalling VITT deletes it, along with the stored Google
+  token. Nothing survives the uninstall.
+- **Google access:** Settings → Disconnect revokes the token with Google and
+  erases it from the phone.
+- **Spreadsheet data:** the spreadsheet is a file in your own Drive. Delete it
+  there, at [drive.google.com](https://drive.google.com), like any other file.
+  VITT cannot delete it for you: the `drive.file` scope lets it write the file,
+  not remove it from your Drive.
 
 ## Children
 
@@ -97,7 +104,7 @@ GDPR, the Irish Data Protection Act, and comparable laws grant rights of access,
 rectification, erasure, and portability against a data controller. **For your
 financial data in VITT, you are the controller** — the data is on your device and
 in your Drive. Access it by opening the app or the spreadsheet; export it via
-Settings → Export; erase it as described above. No request to us is needed, and we
+Reports → Export everything as CSV; erase it as described above. No request to us is needed, and we
 could not fulfil one, as we hold nothing.
 
 For the optional parser diagnostics, we act as controller for anonymised text
@@ -108,8 +115,8 @@ stop further submissions.
 ## Changes
 
 Material changes will be noted in the app's release notes and in this document's
-revision history. The current version always lives at `<POLICY_URL>`.
+revision history. The current version always lives at {{POLICY_URL}}.
 
 ## Contact
 
-`<PRIVACY_EMAIL>`
+{{PRIVACY_EMAIL}}

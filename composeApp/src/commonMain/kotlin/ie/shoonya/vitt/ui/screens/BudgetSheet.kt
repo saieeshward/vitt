@@ -70,8 +70,7 @@ fun BudgetSheet(
         }
 
         Text(
-            "What you mean to spend in ${currency.code} each month. Only ${currency.code} " +
-                "counts towards it — VITT will not convert another currency to check.",
+            "What you mean to spend each month. Only ${currency.code} counts towards it.",
             style = Vitt.type.label,
             color = Vitt.colors.inkMuted,
         )

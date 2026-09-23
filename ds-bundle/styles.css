@@ -1,0 +1,16 @@
+/*
+ * VITT design tokens.
+ *
+ * Everything a rendered design receives comes through this file's @import
+ * closure, so the token files below are imported here rather than linked
+ * separately.
+ *
+ * Generated from the app's own Kotlin source (composeApp/.../ui/theme/), which
+ * is the only definition of these values. VITT has no JSON token pipeline and
+ * no second consumer: tokens are Kotlin values that compile into the app, so
+ * this file is an export of them and never the source.
+ */
+@import "./tokens/palette.css";
+@import "./tokens/themes.css";
+@import "./tokens/type.css";
+@import "./tokens/space.css";
