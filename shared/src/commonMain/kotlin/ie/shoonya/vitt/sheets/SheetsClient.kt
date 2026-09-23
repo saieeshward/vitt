@@ -163,6 +163,48 @@ class SheetsClient(
         }
     }
 
+    /**
+     * Adds a tab, and says so only when it was actually added.
+     *
+     * A tab that already exists comes back as a 400 with `addSheet` naming it,
+     * which is the ordinary case on every run after the first and not an error
+     * worth propagating. Anything else is.
+     *
+     * Not part of [createSpreadsheet] because the yearly summary tabs cannot be:
+     * the years a person will have entries in are not known when the file is
+     * made, and creating a decade of empty tabs up front to avoid one call is
+     * the kind of thing that hits the tab limit for no reason.
+     */
+    suspend fun addTab(spreadsheetId: String, title: String): Boolean =
+        try {
+            request<BatchUpdateResponse> {
+                http.post("$SHEETS_BASE/spreadsheets/$spreadsheetId:batchUpdate") {
+                    auth()
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        BatchUpdateRequest(
+                            listOf(
+                                SheetRequest(
+                                    addSheet = AddSheetRequest(
+                                        SheetProperties(
+                                            title = title,
+                                            gridProperties = GridProperties(frozenRowCount = 1),
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                }
+            }
+            true
+        } catch (e: SheetsError.BadRequest) {
+            // "A sheet with the name ... already exists" — the expected answer
+            // every time but the first. Matched on the title rather than on a
+            // phrase, because the message is not part of any contract.
+            if (title in e.message.orEmpty()) false else throw e
+        }
+
     /** Reads a closed range. Never pass an open range like `A:F` — see below. */
     suspend fun read(spreadsheetId: String, range: String): List<List<String>> =
         request<ValueRangeResponse> {

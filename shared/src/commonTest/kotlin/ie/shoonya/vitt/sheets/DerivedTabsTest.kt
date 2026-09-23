@@ -22,15 +22,23 @@ class DerivedTabsTest {
             return contents
         }
 
+        /** Set to fail the replace for one tab, to prove a bad year is not fatal. */
+        var failFor: String? = null
+
         override suspend fun replace(
             spreadsheetId: String,
             tab: String,
             rows: List<List<Cell>>,
             lastColumn: Char,
         ) {
-            calls += "replace"
+            calls += "replace:$tab"
+            if (tab == failFor) throw IllegalStateException("no")
             written = rows
             this.lastColumn = lastColumn
+        }
+
+        override suspend fun ensureTab(spreadsheetId: String, tab: String) {
+            calls += "ensure:$tab"
         }
     }
 
@@ -67,7 +75,7 @@ class DerivedTabsTest {
         val port = FakePort()
         val outcome = DerivedTabs.refresh(port, "s", listOf(txn()), names)
         assertEquals(DerivedTabs.Outcome.Written(1), outcome)
-        assertEquals(listOf("read", "replace"), port.calls)
+        assertEquals(listOf("read", "replace:Transactions"), port.calls)
     }
 
     @Test
@@ -180,5 +188,81 @@ class DerivedTabsTest {
         val outcome = DerivedTabs.refresh(port, "s", emptyList(), names)
         assertEquals(DerivedTabs.Outcome.Written(0), outcome)
         assertEquals(1, port.written!!.size)
+    }
+}
+
+class SummaryRefreshTest {
+
+    private class FakePort : DerivedTabPort {
+        val calls = mutableListOf<String>()
+        var failFor: String? = null
+        override suspend fun read(spreadsheetId: String, tab: String) = emptyList<List<String>>()
+        override suspend fun replace(
+            spreadsheetId: String,
+            tab: String,
+            rows: List<List<Cell>>,
+            lastColumn: Char,
+        ) {
+            calls += "replace:$tab"
+            if (tab == failFor) throw IllegalStateException("no")
+        }
+        override suspend fun ensureTab(spreadsheetId: String, tab: String) {
+            calls += "ensure:$tab"
+        }
+    }
+
+    private fun txn(id: String, year: Int) = Transaction(
+        id = id,
+        amount = Money(-1250, Currency.EUR),
+        merchant = "Tesco",
+        category = "groceries",
+        categorySource = null,
+        accountId = "a1",
+        day = Civil.toDays(year, 4, 3),
+        totalPaid = null,
+        splitWith = emptySet(),
+        settled = Money(0, Currency.EUR),
+        note = null,
+        deleted = false,
+    )
+
+    @Test
+    fun `a tab is created before it is written`() = runTest {
+        // The years somebody has entries in are not knowable when the file is
+        // made, so the tab cannot have been created up front.
+        val port = FakePort()
+        DerivedTabs.refreshSummaries(port, "s", listOf(txn("a", 2026)))
+        assertEquals(listOf("ensure:Summary_2026", "replace:Summary_2026"), port.calls)
+    }
+
+    @Test
+    fun `one tab per year the ledger touches`() = runTest {
+        val port = FakePort()
+        val written = DerivedTabs.refreshSummaries(
+            port,
+            "s",
+            listOf(txn("a", 2024), txn("b", 2026), txn("c", 2026)),
+        )
+        assertEquals(listOf(2024, 2026), written)
+    }
+
+    @Test
+    fun `a year that fails does not take the others with it`() = runTest {
+        // A stale summary tab is worth less than the four years that wrote fine.
+        val port = FakePort().also { it.failFor = "Summary_2024" }
+        val written = DerivedTabs.refreshSummaries(
+            port,
+            "s",
+            listOf(txn("a", 2024), txn("b", 2026)),
+        )
+        assertEquals(listOf(2026), written)
+    }
+
+    @Test
+    fun `an empty ledger writes no summary tabs at all`() = runTest {
+        // Summary_2026 with nothing in it is a tab somebody has to wonder about.
+        val port = FakePort()
+        assertTrue(DerivedTabs.refreshSummaries(port, "s", emptyList()).isEmpty())
+        assertTrue(port.calls.isEmpty())
     }
 }

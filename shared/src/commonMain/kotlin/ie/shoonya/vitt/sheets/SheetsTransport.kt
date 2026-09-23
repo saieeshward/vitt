@@ -87,6 +87,10 @@ class SheetsTransport(
         ) {
             sheets.replaceValues(spreadsheetId, tab, rows, lastColumn)
         }
+
+        override suspend fun ensureTab(spreadsheetId: String, tab: String) {
+            sheets.addTab(spreadsheetId, tab)
+        }
     }
 
     companion object {

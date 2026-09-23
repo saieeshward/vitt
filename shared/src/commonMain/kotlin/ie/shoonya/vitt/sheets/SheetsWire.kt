@@ -188,3 +188,17 @@ internal fun Cell.toJson(): kotlinx.serialization.json.JsonPrimitive = when (thi
     is Cell.Number -> kotlinx.serialization.json.JsonUnquotedLiteral(plain)
     Cell.Blank -> kotlinx.serialization.json.JsonPrimitive("")
 }
+
+// ---- spreadsheets.batchUpdate ------------------------------------------------
+
+@Serializable
+data class BatchUpdateRequest(val requests: List<SheetRequest>)
+
+@Serializable
+data class SheetRequest(val addSheet: AddSheetRequest? = null)
+
+@Serializable
+data class AddSheetRequest(val properties: SheetProperties)
+
+@Serializable
+data class BatchUpdateResponse(val spreadsheetId: String? = null)

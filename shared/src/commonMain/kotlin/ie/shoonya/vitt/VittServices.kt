@@ -462,12 +462,20 @@ class VittServices(
     private suspend fun refreshDerivedTabs() {
         val id = store.get(ie.shoonya.vitt.sync.EventStore.KEY_SPREADSHEET_ID) ?: return
         val names = ledger.accounts(includeArchived = true).associate { it.id to it.name }
+        val port = ie.shoonya.vitt.sheets.SheetsTransport(sheets()).derived
+        val all = ledger.transactions()
         derivedTabs.value = ie.shoonya.vitt.sheets.DerivedTabs.refresh(
-            port = ie.shoonya.vitt.sheets.SheetsTransport(sheets()).derived,
+            port = port,
             spreadsheetId = id,
-            transactions = ledger.transactions(),
+            transactions = all,
             accountName = names::get,
         )
+        // Regardless of what the Transactions tab did. The summaries are
+        // computed from the same local fold rather than from that tab, so a
+        // held rewrite says nothing about whether these are still correct —
+        // and leaving the dashboard's only source stale because somebody
+        // annotated a transaction row would be the wrong coupling entirely.
+        ie.shoonya.vitt.sheets.DerivedTabs.refreshSummaries(port, id, all)
     }
 
     /**

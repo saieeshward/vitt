@@ -21,6 +21,9 @@ interface DerivedTabPort {
         rows: List<List<Cell>>,
         lastColumn: Char,
     )
+
+    /** Creates the tab if it is not already there. */
+    suspend fun ensureTab(spreadsheetId: String, tab: String)
 }
 
 /**
@@ -87,6 +90,41 @@ object DerivedTabs {
         val shaped = inTheShapeOf(existing, desired)
         port.replace(spreadsheetId, tab, shaped, lastColumn(shaped.first().size))
         return Outcome.Written(shaped.size - 1)
+    }
+
+    /**
+     * Rewrites `Summary_YYYY` for every year the ledger touches.
+     *
+     * No drift check, unlike the Transactions tab, and the difference is
+     * deliberate. That tab is a list of things that happened and a person has
+     * every reason to annotate a row of it; this one is arithmetic, and a
+     * number somebody typed over an aggregate is a number that was always going
+     * to be recomputed. Holding the write would mean one stray keystroke
+     * freezing the dashboard's only source for good.
+     *
+     * Failures are per-year rather than fatal: a summary that could not be
+     * written is a stale tab, and a stale tab is worth less than the four other
+     * years that wrote fine.
+     */
+    suspend fun refreshSummaries(
+        port: DerivedTabPort,
+        spreadsheetId: String,
+        transactions: List<Transaction>,
+    ): List<Int> {
+        val written = mutableListOf<Int>()
+        DerivedSummary.years(transactions).forEach { year ->
+            val tab = DerivedSummary.tabFor(year)
+            try {
+                port.ensureTab(spreadsheetId, tab)
+                val table = DerivedSummary.table(transactions, year)
+                port.replace(spreadsheetId, tab, table, lastColumn(DerivedSummary.COLUMNS.size))
+                written += year
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (_: Throwable) {
+            }
+        }
+        return written
     }
 
     /**
