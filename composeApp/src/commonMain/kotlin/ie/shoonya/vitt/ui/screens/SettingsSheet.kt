@@ -51,6 +51,8 @@ fun SettingsSheet(
     swipeCards: Boolean,
     onSwipeCardsChange: (Boolean) -> Unit,
     syncStatus: SyncStatus,
+    /** The last rewrite of the readable tab, or null before the first. */
+    derivedTabs: ie.shoonya.vitt.sheets.DerivedTabs.Outcome? = null,
     sheetActions: SheetActions,
     now: () -> Long,
     onDone: () -> Unit,
@@ -200,7 +202,12 @@ fun SettingsSheet(
 
         // Last, because it is set up once and then forgotten about. The status
         // line is the one part of it people come back for.
-        SheetSection(status = syncStatus, actions = sheetActions, now = now)
+        SheetSection(
+            status = syncStatus,
+            actions = sheetActions,
+            now = now,
+            derived = derivedTabs,
+        )
 
         // Where the data is, said once, plainly. Both stores want the privacy
         // policy reachable from inside the app; the link appears the moment

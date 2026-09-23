@@ -439,7 +439,63 @@ class VittServices(
         syncer = ::syncer,
         store = store,
         now = now,
+        refreshDerived = ::refreshDerivedTabs,
     ).also { controller -> store.onLocalWrite = { controller.onLocalWrite() } }
+
+    /**
+     * The last refresh's verdict, for the Settings row to speak to.
+     *
+     * Held rather than reported through the sync status because it is not a
+     * sync failure: the events are in the sheet either way, and this is a
+     * question about a tab. `null` until a refresh has run.
+     */
+    val derivedTabs: kotlinx.coroutines.flow.MutableStateFlow<ie.shoonya.vitt.sheets.DerivedTabs.Outcome?> =
+        kotlinx.coroutines.flow.MutableStateFlow(null)
+
+    /**
+     * Rewrites the `Transactions` tab from the local fold.
+     *
+     * Runs after a successful event exchange, so the table it publishes
+     * includes anything another device just sent. It never forces: a tab
+     * somebody has edited is held, and the answer is theirs to give.
+     */
+    private suspend fun refreshDerivedTabs() {
+        val id = store.get(ie.shoonya.vitt.sync.EventStore.KEY_SPREADSHEET_ID) ?: return
+        val names = ledger.accounts(includeArchived = true).associate { it.id to it.name }
+        val port = ie.shoonya.vitt.sheets.SheetsTransport(sheets()).derived
+        val all = ledger.transactions()
+        derivedTabs.value = ie.shoonya.vitt.sheets.DerivedTabs.refresh(
+            port = port,
+            spreadsheetId = id,
+            transactions = all,
+            accountName = names::get,
+            today = today(),
+        )
+        // Regardless of what the Transactions tab did. The summaries are
+        // computed from the same local fold rather than from that tab, so a
+        // held rewrite says nothing about whether these are still correct —
+        // and leaving the dashboard's only source stale because somebody
+        // annotated a transaction row would be the wrong coupling entirely.
+        ie.shoonya.vitt.sheets.DerivedTabs.refreshSummaries(port, id, all)
+    }
+
+    /**
+     * The user answering a held refresh with "keep the app's version".
+     *
+     * The only way past drift, and never automatic — see [ie.shoonya.vitt.sheets.DerivedTabs].
+     */
+    suspend fun overwriteDerivedTabs(): ie.shoonya.vitt.sheets.DerivedTabs.Outcome? {
+        val id = store.get(ie.shoonya.vitt.sync.EventStore.KEY_SPREADSHEET_ID) ?: return null
+        val names = ledger.accounts(includeArchived = true).associate { it.id to it.name }
+        return ie.shoonya.vitt.sheets.DerivedTabs.refresh(
+            port = ie.shoonya.vitt.sheets.SheetsTransport(sheets()).derived,
+            spreadsheetId = id,
+            transactions = ledger.transactions(),
+            accountName = names::get,
+            force = true,
+            today = today(),
+        ).also { derivedTabs.value = it }
+    }
 
     /**
      * Runs the consent flow and, on success, the first sync — which creates the

@@ -18,6 +18,28 @@ data class ValueRange(
     val values: List<List<String>>,
 )
 
+/**
+ * A value range whose cells keep their type.
+ *
+ * Separate from [ValueRange] rather than replacing it, because the two write
+ * different things for different reasons. The `Events` log is strings all the
+ * way down by design — a tagged-string encoding that survives any spreadsheet
+ * without the app trusting how it was stored. A derived tab is the opposite: a
+ * person reads it, and a column of money that is text sums to nothing.
+ *
+ * [JsonUnquotedLiteral] is what makes an exact decimal reach the wire. The
+ * obvious alternative, `JsonPrimitive(Double)`, would put every amount in this
+ * app through a float on the way out of it — after all the care taken to keep
+ * money in integer minor units, and for no gain: the value is already a decimal
+ * string and JSON's number type is textual.
+ */
+@Serializable
+data class TypedValueRange(
+    val range: String? = null,
+    val majorDimension: String = "ROWS",
+    val values: List<List<kotlinx.serialization.json.JsonPrimitive>>,
+)
+
 @Serializable
 data class AppendResponse(
     val spreadsheetId: String? = null,
@@ -138,4 +160,55 @@ data class TokenResponse(
     @SerialName("refresh_token") val refreshToken: String? = null,
     @SerialName("token_type") val tokenType: String = "Bearer",
     val scope: String? = null,
+)
+
+// ---- values.update / values.clear --------------------------------------------
+
+/** `values.clear` takes an empty object and returns the range it emptied. */
+@Serializable
+object EmptyBody
+
+@Serializable
+data class ClearValuesResponse(
+    val spreadsheetId: String? = null,
+    val clearedRange: String? = null,
+)
+
+/**
+ * A [Cell] as it goes onto the wire.
+ *
+ * Text becomes a JSON string and stays inert under `RAW`; a number becomes a
+ * JSON number written verbatim, so `-12.50` reaches the sheet as the value
+ * −12.50 without ever having been a Double. A blank is the empty string, which
+ * is what clears a cell.
+ */
+@OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+internal fun Cell.toJson(): kotlinx.serialization.json.JsonPrimitive = when (this) {
+    is Cell.Text -> kotlinx.serialization.json.JsonPrimitive(value)
+    is Cell.Number -> kotlinx.serialization.json.JsonUnquotedLiteral(plain)
+    Cell.Blank -> kotlinx.serialization.json.JsonPrimitive("")
+}
+
+// ---- spreadsheets.batchUpdate ------------------------------------------------
+
+@Serializable
+data class BatchUpdateRequest(val requests: List<SheetRequest>)
+
+@Serializable
+data class SheetRequest(
+    val addSheet: AddSheetRequest? = null,
+    val duplicateSheet: DuplicateSheetRequest? = null,
+)
+
+@Serializable
+data class AddSheetRequest(val properties: SheetProperties)
+
+@Serializable
+data class BatchUpdateResponse(val spreadsheetId: String? = null)
+
+@Serializable
+data class DuplicateSheetRequest(
+    val sourceSheetId: Int,
+    val newSheetName: String,
+    val insertSheetIndex: Int? = null,
 )
