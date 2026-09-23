@@ -56,6 +56,39 @@ class SheetsTransport(
     override suspend fun ledgerVersion(spreadsheetId: String): String? =
         sheets.fileVersion(spreadsheetId).version
 
+    /**
+     * The derived-tab half of the same transport.
+     *
+     * Implemented here rather than as a second class because it is the same
+     * translation against the same client, and separating it would mean two
+     * objects holding one connection with no boundary between them worth
+     * defending.
+     */
+    val derived: DerivedTabPort = object : DerivedTabPort {
+        override suspend fun read(spreadsheetId: String, tab: String): List<List<String>> {
+            // From row 1, not row 2: the header is the thing being read. Every
+            // other read in this file starts at 2 because the header is known
+            // in advance, and here it is precisely what is not.
+            val page = sheets.readPaged(
+                spreadsheetId = spreadsheetId,
+                tab = tab,
+                columns = "AZ",
+                pageSize = pageSize,
+                startRow = 1,
+            )
+            return page.rows
+        }
+
+        override suspend fun replace(
+            spreadsheetId: String,
+            tab: String,
+            rows: List<List<Cell>>,
+            lastColumn: Char,
+        ) {
+            sheets.replaceValues(spreadsheetId, tab, rows, lastColumn)
+        }
+    }
+
     companion object {
         const val EVENTS_TAB = "Events"
 

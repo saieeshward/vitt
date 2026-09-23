@@ -7,6 +7,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -95,6 +96,72 @@ class SheetsClient(
                 setBody(ValueRange(values = rows))
             }
         }
+
+    /**
+     * Replaces a range with typed values, and clears whatever was below it.
+     *
+     * This is the derived-tab write, and it is a replace rather than an append
+     * because a derived tab *is* the current state rather than a history of it.
+     * The clear is the half that is easy to forget: a month where three rows
+     * were deleted writes a shorter table, and without it the old tail stays on
+     * screen as rows that no longer exist anywhere else.
+     *
+     * Order matters. The write goes first and the clear second, targeting only
+     * what is past the new end: clearing first would leave the tab empty for as
+     * long as the second call takes, and a person looking at it in that window
+     * sees their spreadsheet wiped.
+     *
+     * `RAW`, as everywhere else here. [Cell.Number] is what gets a real number
+     * past it; see [TypedValueRange].
+     */
+    suspend fun replaceValues(
+        spreadsheetId: String,
+        tab: String,
+        rows: List<List<Cell>>,
+        /** The last column of the block being written, e.g. `J`. */
+        lastColumn: Char,
+    ): UpdateValuesResponse {
+        val written: UpdateValuesResponse = request {
+            http.put(
+                "$SHEETS_BASE/spreadsheets/$spreadsheetId/values/" +
+                    encodePathSegment("$tab!A1:$lastColumn${rows.size.coerceAtLeast(1)}")
+            ) {
+                auth()
+                parameter("valueInputOption", "RAW")
+                contentType(ContentType.Application.Json)
+                setBody(TypedValueRange(values = rows.map { row -> row.map(Cell::toJson) }))
+            }
+        }
+        clearBelow(spreadsheetId, tab, firstRow = rows.size + 1, lastColumn = lastColumn)
+        return written
+    }
+
+    /**
+     * Empties everything from [firstRow] down.
+     *
+     * A closed range, like every other read and write here, because an open one
+     * walks to the end of the grid. The bound is generous rather than exact —
+     * clearing rows that are already empty costs nothing, and guessing too low
+     * leaves the stale tail this call exists to remove.
+     */
+    suspend fun clearBelow(
+        spreadsheetId: String,
+        tab: String,
+        firstRow: Int,
+        lastColumn: Char,
+        lastRow: Int = firstRow + CLEAR_SPAN,
+    ) {
+        request<ClearValuesResponse> {
+            http.post(
+                "$SHEETS_BASE/spreadsheets/$spreadsheetId/values/" +
+                    encodePathSegment("$tab!A$firstRow:$lastColumn$lastRow") + ":clear"
+            ) {
+                auth()
+                contentType(ContentType.Application.Json)
+                setBody(EmptyBody)
+            }
+        }
+    }
 
     /** Reads a closed range. Never pass an open range like `A:F` — see below. */
     suspend fun read(spreadsheetId: String, range: String): List<List<String>> =
@@ -225,6 +292,16 @@ class SheetsClient(
 
     companion object {
         const val SHEETS_BASE = "https://sheets.googleapis.com/v4"
+
+        /**
+         * How far past the new last row a replace clears.
+         *
+         * Covers the realistic case — a month's worth of rows deleted at once —
+         * without the cost of clearing to the bottom of the grid. A larger
+         * deletion than this leaves a tail that the next write trims further,
+         * which is worth more than a slow call on every sync.
+         */
+        const val CLEAR_SPAN = 5_000
         const val DRIVE_BASE = "https://www.googleapis.com/drive/v3"
 
         /**

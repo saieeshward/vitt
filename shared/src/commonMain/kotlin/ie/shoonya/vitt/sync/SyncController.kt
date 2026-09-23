@@ -57,6 +57,20 @@ class SyncController(
     private val now: () -> Long,
     /** How long after the last local write a sync starts. */
     private val debounceMillis: Long = 2_000,
+    /**
+     * Rebuilds the human-readable tabs once the event exchange has succeeded.
+     *
+     * A hook rather than a step inside [Syncer] because the two are different
+     * jobs that happen to share a trip to the network. The syncer moves events
+     * and is the part that must be exactly right about idempotency and
+     * ordering; this is a projection of local state onto a tab, and it is
+     * allowed to fail without the sync having failed.
+     *
+     * After, never before. Rendering the fold before the pull has landed would
+     * publish a table that is already out of date, and publish it as the
+     * authoritative-looking one.
+     */
+    private val refreshDerived: suspend () -> Unit = {},
 ) {
     private val _status = MutableStateFlow<SyncStatus>(if (isConnected()) idle(null) else SyncStatus.Off)
     val status: StateFlow<SyncStatus> = _status
@@ -119,6 +133,17 @@ class SyncController(
         if (outcome.pulled > 0) _remoteChanges.value++
         val error = outcome.error
         if (error == null) {
+            // Swallowed deliberately. The events are in the sheet, which is the
+            // thing that must not be lost; a tab that failed to redraw is
+            // redrawn on the next cycle. Reporting this as a sync failure would
+            // put an error in front of somebody whose data is perfectly safe,
+            // and — worse — leave the outbox looking undrained.
+            try {
+                refreshDerived()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (_: Throwable) {
+            }
             lastSyncedAt = now()
             _status.value = idle(lastSyncedAt)
         } else {
