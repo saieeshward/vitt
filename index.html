@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>VITT · money in more than one currency, kept apart</title>
+  <meta name="description" content="VITT is an open-source expense tracker for money that lives in more than one currency. It never converts one into another, has no account and no server, and keeps your data in a Google Sheet you own.">
+  <meta name="theme-color" content="#FFFDF7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#17141F" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="assets/img/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <meta property="og:title" content="VITT">
+  <meta property="og:description" content="Money in more than one currency, kept apart. No account, no server, your own Google Sheet.">
+  <meta property="og:image" content="https://saieeshward.github.io/vitt/assets/img/og.png">
+  <meta property="og:url" content="https://saieeshward.github.io/vitt/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script>document.documentElement.classList.replace('no-js', 'js')</script>
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js" } }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <!-- Today's pet, drawn in while the page gets ready. A different one each visit. -->
+  <div id="loader" aria-hidden="true">
+    <canvas width="24" height="20"></canvas>
+    <p></p>
+  </div>
+
+  <header class="nav" id="nav">
+    <div class="wrap">
+      <a class="brand" href="#top" aria-label="VITT, back to top">
+        <img src="assets/img/icon-256.png" alt="" width="28" height="28">
+        <span>VITT</span>
+      </a>
+      <ul>
+        <li class="hide-sm"><a class="link" href="#how">How it works</a></li>
+        <li class="hide-sm"><a class="link" href="privacy/">Privacy</a></li>
+        <li>
+          <a class="link" href="https://github.com/saieeshward/vitt" aria-label="VITT on GitHub">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.39-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+            <span class="hide-sm">GitHub</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- 1. The rule, in 3D: one stack per currency, coins never cross. -->
+    <section id="hero" aria-labelledby="hero-title">
+      <span id="top"></span>
+      <div class="stage">
+        <canvas id="coins" aria-hidden="true"></canvas>
+        <div id="coins-poster" aria-hidden="true"></div>
+        <div class="hero-copy">
+          <div class="wrap">
+            <div class="chapter on" data-chapter="0">
+              <p class="eyebrow"><span class="dots"><i class="dot-eur"></i><i class="dot-inr"></i><i class="dot-usd"></i></span> Expense tracking for more than one currency</p>
+              <h1 id="hero-title">Money in more than one currency, kept apart.</h1>
+              <p class="lede">VITT is an expense tracker for people whose money lives in euro, rupees and dollars at once. It never converts one into another.</p>
+            </div>
+            <div class="chapter" data-chapter="1">
+              <p class="eyebrow">One stack each</p>
+              <h2>Every currency keeps its own balance.</h2>
+              <p class="lede">Coins go into their own stack and never move between them. No total changes because an exchange rate did, because there is no total to change.</p>
+            </div>
+            <div class="chapter" data-chapter="2">
+              <p class="eyebrow">The one exception</p>
+              <h2>The only rate it records is one you used.</h2>
+              <p class="lede">When you move money across a border, the rate that transfer used is written down as a fact. Nothing else is ever converted.</p>
+            </div>
+          </div>
+        </div>
+        <div class="cue" aria-hidden="true"><span></span>Scroll</div>
+      </div>
+    </section>
+
+    <!-- 2. The daily part, beside a phone that follows along. -->
+    <section id="how" aria-labelledby="how-title">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <p class="eyebrow">How it works</p>
+          <h2 id="how-title">Built for the thirty seconds after you pay.</h2>
+          <p class="lede">Most people stop logging because it takes too long, or because they would rather not see the number. VITT is built around both.</p>
+        </div>
+        <div class="tell">
+          <div class="steps">
+            <article class="step on" data-shot="add" data-say="Two taps. I counted.">
+              <div class="num">01</div>
+              <h3>Two taps to log.</h3>
+              <p>Type the amount and press Save. The account is the one you used last and everything else is optional. Something you log often, like the same coffee at the same price, waits at the top, so a repeat is one tap and Save.</p>
+              <div class="inline-phone"><div class="phone"><div class="screen"><img src="assets/img/add.webp" alt="The Add sheet with a Coffee Angel shortcut and €3.50 typed in" width="720" height="1565" loading="lazy"></div></div></div>
+            </article>
+            <article class="step" data-shot="ledgers" data-say="Euro here. Rupees over there.">
+              <div class="num">02</div>
+              <h3>One card per currency.</h3>
+              <p>Ledgers shows each currency on its own card, with its budget and what came in. Accounts sit underneath, grouped by currency and never summed across them.</p>
+              <div class="inline-phone"><div class="phone"><div class="screen"><img src="assets/img/ledgers.webp" alt="Ledgers, with the euro card showing €1,877.74 against a €1,800 budget" width="720" height="1565" loading="lazy"></div></div></div>
+            </article>
+            <article class="step" data-shot="activity" data-say="It asks before it guesses.">
+              <div class="num">03</div>
+              <h3>Every entry, day by day.</h3>
+              <p>Activity lists everything by day. Categories come from the merchant, and when VITT is unsure it asks rather than guesses. Correct one and it remembers that shop.</p>
+              <div class="inline-phone"><div class="phone"><div class="screen"><img src="assets/img/activity.webp" alt="Activity, entries grouped by day in euro and rupees" width="720" height="1565" loading="lazy"></div></div></div>
+            </article>
+            <article class="step" data-shot="sort" data-say="One tap each. Then the next.">
+              <div class="num">04</div>
+              <h3>Sorting takes one pass.</h3>
+              <p>Entries without a category come up one at a time, with every category beside them. A tap files the entry and shows the next, and the same shop's older entries go with it.</p>
+              <div class="inline-phone"><div class="phone"><div class="screen"><img src="assets/img/sort.webp" alt="The sort sheet showing one entry and every category" width="720" height="1565" loading="lazy"></div></div></div>
+            </article>
+            <article class="step" data-shot="people" data-say="Anya owes you. Politely.">
+              <div class="num">05</div>
+              <h3>Splits that add up.</h3>
+              <p>A bill is shared equally until you type somebody's part, and a part you typed stays where you put it, the way Tricount works. When someone pays you back, it is one tap on their name.</p>
+              <div class="inline-phone"><div class="phone"><div class="screen"><img src="assets/img/people.webp" alt="People, showing what Anya and Dev owe" width="720" height="1565" loading="lazy"></div></div></div>
+            </article>
+            <article class="step" data-shot="story-2" data-say="A month, told back.">
+              <div class="num">06</div>
+              <h3>The month, told back.</h3>
+              <p>Once a month has enough in it, Reports offers it back as a short story: the days you logged, where most of it went, the quiet days. Facts about the month, never a verdict about you.</p>
+              <div class="inline-phone"><div class="phone"><div class="screen"><img src="assets/img/story-2.webp" alt="A page of the month in review: Groceries, 12% of what went out" width="720" height="1565" loading="lazy"></div></div></div>
+            </article>
+          </div>
+          <div class="phone-rail" aria-hidden="true">
+            <div class="phone"><div class="screen">
+              <img class="on" data-shot="add" src="assets/img/add.webp" alt="" width="720" height="1565">
+              <img data-shot="ledgers" src="assets/img/ledgers.webp" alt="" width="720" height="1565" loading="lazy">
+              <img data-shot="activity" src="assets/img/activity.webp" alt="" width="720" height="1565" loading="lazy">
+              <img data-shot="sort" src="assets/img/sort.webp" alt="" width="720" height="1565" loading="lazy">
+              <img data-shot="people" src="assets/img/people.webp" alt="" width="720" height="1565" loading="lazy">
+              <img data-shot="story-2" src="assets/img/story-2.webp" alt="" width="720" height="1565" loading="lazy">
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Where the data lives. -->
+    <section id="sheet" aria-labelledby="sheet-title" data-say="Every row is yours.">
+      <div class="wrap sheet-wrap">
+        <div class="reveal">
+          <p class="eyebrow">Your data</p>
+          <h2 id="sheet-title">A spreadsheet you own. No account, no server.</h2>
+          <p class="lede">Everything lives in a database on your phone and, if you connect Google, in a sheet VITT made in your own Drive. The app only ever adds rows, so two phones or a week offline merge without losing anything. Stop using VITT and every row is still yours.</p>
+        </div>
+        <div class="sheet reveal" aria-label="An example of the Transactions tab in your sheet">
+          <div class="bar"><i></i> VITT · Transactions</div>
+          <div class="scroll">
+            <table>
+              <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Currency</th><th class="amt">Amount</th></tr></thead>
+              <tbody>
+                <tr><td>2026-09-01</td><td>Salary</td><td>Income</td><td><span class="cur"><i class="dot-eur"></i>EUR</span></td><td class="amt">3,410.00</td></tr>
+                <tr><td>2026-09-02</td><td>Tesco</td><td>Groceries</td><td><span class="cur"><i class="dot-eur"></i>EUR</span></td><td class="amt">−68.20</td></tr>
+                <tr><td>2026-09-02</td><td>Coffee Angel</td><td>Dining</td><td><span class="cur"><i class="dot-eur"></i>EUR</span></td><td class="amt">−3.50</td></tr>
+                <tr><td>2026-09-04</td><td>Consulting invoice</td><td>Income</td><td><span class="cur"><i class="dot-inr"></i>INR</span></td><td class="amt">12,000.00</td></tr>
+                <tr><td>2026-09-04</td><td>Swiggy</td><td>Dining</td><td><span class="cur"><i class="dot-inr"></i>INR</span></td><td class="amt">−180.00</td></tr>
+                <tr><td>2026-09-09</td><td>Dinner with Anya</td><td>Dining</td><td><span class="cur"><i class="dot-eur"></i>EUR</span></td><td class="amt">−23.05</td></tr>
+                <tr><td>2026-09-12</td><td>Coffee Angel</td><td>Dining</td><td><span class="cur"><i class="dot-eur"></i>EUR</span></td><td class="amt">−3.50</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. What it will not do. -->
+    <section id="nots" aria-labelledby="nots-title" data-say="Nothing to watch here." data-pose="sleepy">
+      <div class="wrap">
+        <div class="section-head reveal" style="padding-top: 8vh">
+          <p class="eyebrow">What it will not do</p>
+          <h2 id="nots-title">The things it leaves alone are the point.</h2>
+        </div>
+        <div class="nots">
+          <div class="not reveal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="m9 13 2 2 4-4"/></svg>
+            <h3>It cannot see the rest of your Drive.</h3>
+            <p>The only Google permission it asks for is <code>drive.file</code>, which covers the one sheet VITT made or a file you pick. Nothing else in your Drive is visible to it.</p>
+          </div>
+          <div class="not reveal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="3"/><path d="M8 21h8M12 17v4M3 5l18 12"/></svg>
+            <h3>It does not read your texts.</h3>
+            <p>No SMS, no notifications, no bank login. You log an entry, share one in, or import a CSV from your bank. Nothing is scraped behind your back.</p>
+          </div>
+          <div class="not reveal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/><path d="M3 3l18 18"/></svg>
+            <h3>There is no VITT account.</h3>
+            <p>There is nothing to sign up for and no VITT server holding your spending. Connecting Google is optional, and the app works fully without it.</p>
+          </div>
+          <div class="not reveal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+            <h3>No analytics, no ads, no tracking.</h3>
+            <p>No analytics or crash-reporting SDK is in the app, and it never converts your money into one blended number to show you.</p>
+          </div>
+        </div>
+        <p class="reveal" style="margin: -6vh 0 12vh"><a class="text-link" href="privacy/">Read the privacy policy</a></p>
+      </div>
+    </section>
+
+    <!-- 5. The companions. One of them is walking with you. -->
+    <section id="pets-section" aria-labelledby="pets-title" data-say="That's us." data-pose="glad">
+      <div class="wrap">
+        <div class="section-head reveal" style="padding-top: 6vh">
+          <p class="eyebrow">The companion</p>
+          <h2 id="pets-title">Someone to keep you company.</h2>
+          <p class="lede">A small animal walks along the foot of the app and carries one marker per currency. It can be curious about an entry waiting for a category. It is never disappointed in you. Pick one in Settings, or turn it off.</p>
+        </div>
+        <div class="pets" id="pets"></div>
+      </div>
+    </section>
+
+    <!-- 6. Where it stands. -->
+    <section class="closing" id="get" aria-labelledby="get-title" data-say="See you in the app." data-pose="glad">
+      <div class="wrap reveal">
+        <p class="eyebrow">iPhone and Android</p>
+        <h2 id="get-title">Not in the stores yet.</h2>
+        <p class="lede">VITT is open source under Apache-2.0 and close to its first release on the App Store and Google Play. The code, the plan and every decision behind it are on GitHub.</p>
+        <div class="buttons">
+          <a class="btn primary" href="https://github.com/saieeshward/vitt">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.39-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+            View on GitHub
+          </a>
+          <a class="btn ghost" href="https://github.com/saieeshward/vitt/issues">Report a problem</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>VITT · Apache-2.0 · by <a href="https://github.com/saieeshward">@saieeshward</a> and <a href="https://github.com/batunii">Shreyansh Soni</a></span>
+      <nav aria-label="Footer">
+        <a href="privacy/">Privacy</a>
+        <a href="https://github.com/saieeshward/vitt/issues">Support</a>
+        <a href="https://github.com/saieeshward/vitt">Source</a>
+      </nav>
+    </div>
+  </footer>
+
+  <!-- Today's pet, walking the page as you scroll. Decorative; the page reads the same without it. -->
+  <div id="walker" aria-hidden="true">
+    <div class="bubble"></div>
+    <div class="shadow"></div>
+    <canvas width="24" height="20"></canvas>
+  </div>
+
+  <script type="module" src="assets/js/main.js"></script>
+</body>
+</html>
