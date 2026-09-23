@@ -378,11 +378,13 @@ fun VittApp(
     // sheet closes: reaching the sheet from anywhere else must not inherit
     // somebody's earlier intention to split.
     var splitFromPeople by remember { mutableStateOf(false) }
+    /** Why the last Save was refused. Cleared whenever the sheet opens or closes. */
+    var saveError by remember { mutableStateOf<String?>(null) }
     // Skips the initial composition: a counter starting at zero must not open
     // a sheet on every launch.
     LaunchedEffect(openAddTick) {
         if (openAddTick > 0) {
-            capturePrefill = null; splitFromPeople = false
+            capturePrefill = null; splitFromPeople = false; saveError = null
             sheet = Sheet.Add
         }
     }
@@ -755,17 +757,44 @@ fun VittApp(
                         repository.frequentCategories(today, spending = false)
                     },
                     lastAccountId = remember(revision) { repository.choice(Choice.LAST_ACCOUNT) },
+                    error = saveError,
                     onSave = { new ->
                         val id = newId()
-                        repository.record(
-                            id = id,
-                            amount = new.amount,
-                            day = today,
-                            category = new.category?.code,
-                            accountId = new.accountId,
-                            totalPaid = new.totalPaid,
-                            note = new.note,
-                        )
+                        // record() refuses anything it cannot write — a zero, a
+                        // split whose currencies disagree, an account in
+                        // another currency — and it refuses by throwing. The
+                        // sheet is the one place that must never let that go
+                        // past: an uncaught throw here takes the app down with
+                        // the figure still untyped-in, and a caught-and-ignored
+                        // one closes the sheet on a transaction that was never
+                        // written. Both read to the person as "I saved it and
+                        // it is not there", which is the single failure a money
+                        // app does not get to have.
+                        //
+                        // Every one of these is a bug rather than a user error,
+                        // so the wording does not pretend otherwise. What it
+                        // does do is keep the sheet open with the amount in it,
+                        // so nothing has to be typed twice.
+                        val failure = try {
+                            repository.record(
+                                id = id,
+                                amount = new.amount,
+                                day = today,
+                                category = new.category?.code,
+                                accountId = new.accountId,
+                                totalPaid = new.totalPaid,
+                                note = new.note,
+                            )
+                            null
+                        } catch (e: IllegalArgumentException) {
+                            e.message ?: "could not be saved"
+                        }
+                        if (failure != null) {
+                            saveError = "Not saved: $failure. Nothing was lost. " +
+                                "The amount is still here."
+                            return@AddScreen
+                        }
+                        saveError = null
                         // Remembered so the next add starts on the same account.
                         // Only on a change: a choice event per entry would put a
                         // row in the sheet for every coffee.
@@ -778,14 +807,14 @@ fun VittApp(
                         // A split is not finished when it is saved: who was in
                         // on it is still unsaid, and the only place to say it
                         // was a row tap nobody was told about. Open it now.
-                        capturePrefill = null; splitFromPeople = false
+                        capturePrefill = null; splitFromPeople = false; saveError = null
                         // The reward, spent immediately. Nothing accumulates,
                         // so nothing can be lost and there is no streak to
                         // protect by avoiding the app.
                         justSaved = true
                         sheet = if (new.totalPaid != null) Sheet.Split(id) else null
                     },
-                    onCancel = { capturePrefill = null; splitFromPeople = false; sheet = null },
+                    onCancel = { capturePrefill = null; splitFromPeople = false; saveError = null; sheet = null },
                 )
 
                 Sheet.NewAccount -> AccountSheet(

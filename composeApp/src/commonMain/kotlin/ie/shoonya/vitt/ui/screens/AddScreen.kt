@@ -24,6 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
@@ -97,6 +100,15 @@ fun AddScreen(
     startSplit: Boolean = false,
     onSave: (NewEntry) -> Unit,
     onCancel: () -> Unit,
+    /**
+     * Why the last Save did not take, or null.
+     *
+     * The sheet stays open when this is set. An entry that cannot be recorded
+     * has to stay on screen with the figure still in it: the alternative is the
+     * sheet closing on a transaction that was never written, which is the one
+     * failure a money app does not get to have.
+     */
+    error: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val initialAccount = accounts.firstOrNull { it.id == lastAccountId } ?: accounts.firstOrNull()
@@ -394,6 +406,17 @@ fun AddScreen(
                                     style = Vitt.type.label,
                                     maxLines = 1,
                                 )
+                            },
+                        )
+                    }
+
+                    if (error != null) {
+                        Text(
+                            error,
+                            style = Vitt.type.body,
+                            color = Vitt.colors.destructive,
+                            modifier = Modifier.semantics {
+                                liveRegion = LiveRegionMode.Assertive
                             },
                         )
                     }
