@@ -277,6 +277,11 @@ section { position: relative; }
 .closing { text-align: center; padding: 16vh 0 22vh; }
 .closing h2 { max-width: 16ch; margin-inline: auto; }
 .closing .lede { margin-inline: auto; }
+.credits { margin: 18px auto 0; color: var(--ink-muted); font-size: 15px; }
+.credits a { color: var(--ink); font-weight: 560; text-decoration: none; border-bottom: 1px solid var(--hairline); }
+.credits a:hover { border-bottom-color: var(--accent); }
+.credits a.handle { color: var(--ink-faint); font-weight: 400; border-bottom: 0; }
+.credits a.handle:hover { color: var(--accent); }
 .buttons { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 34px; }
 .btn {
   display: inline-flex; align-items: center; gap: 8px; height: 50px; padding: 0 22px; border-radius: 999px;
