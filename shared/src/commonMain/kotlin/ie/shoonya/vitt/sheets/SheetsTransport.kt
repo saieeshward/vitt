@@ -91,6 +91,9 @@ class SheetsTransport(
         override suspend fun ensureTab(spreadsheetId: String, tab: String) {
             sheets.addTab(spreadsheetId, tab)
         }
+
+        override suspend fun archive(spreadsheetId: String, tab: String, asTab: String): Boolean =
+            sheets.archiveTab(spreadsheetId, tab, asTab)
     }
 
     companion object {

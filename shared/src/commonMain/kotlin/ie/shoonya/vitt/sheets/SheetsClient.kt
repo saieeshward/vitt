@@ -205,6 +205,57 @@ class SheetsClient(
             if (title in e.message.orEmpty()) false else throw e
         }
 
+    /**
+     * Copies a tab under a new name, leaving the original where it is.
+     *
+     * The safe half of §2.8's archive-then-replace. A duplicate rather than a
+     * rename, because a rename would move whatever the person has linked to or
+     * charted from that tab, and the point of archiving is that nothing is
+     * lost — including the references.
+     *
+     * Returns false when the source tab is not there, which is not an error:
+     * there is nothing to archive and the caller should carry on and write it
+     * fresh.
+     */
+    suspend fun archiveTab(spreadsheetId: String, tab: String, asTab: String): Boolean {
+        val id = sheetId(spreadsheetId, tab) ?: return false
+        request<BatchUpdateResponse> {
+            http.post("$SHEETS_BASE/spreadsheets/$spreadsheetId:batchUpdate") {
+                auth()
+                contentType(ContentType.Application.Json)
+                setBody(
+                    BatchUpdateRequest(
+                        listOf(
+                            SheetRequest(
+                                duplicateSheet = DuplicateSheetRequest(
+                                    sourceSheetId = id,
+                                    newSheetName = asTab,
+                                )
+                            )
+                        )
+                    )
+                )
+            }
+        }
+        return true
+    }
+
+    /**
+     * The numeric id of a tab, which `duplicateSheet` needs and A1 notation
+     * does not.
+     *
+     * `fields` is narrowed deliberately: the default response to
+     * `spreadsheets.get` carries every cell in the file, which for this is a
+     * megabyte of grid to learn one integer.
+     */
+    suspend fun sheetId(spreadsheetId: String, tab: String): Int? =
+        request<Spreadsheet> {
+            http.get("$SHEETS_BASE/spreadsheets/$spreadsheetId") {
+                auth()
+                parameter("fields", "sheets.properties.title,sheets.properties.sheetId")
+            }
+        }.sheets.firstOrNull { it.properties.title == tab }?.properties?.sheetId
+
     /** Reads a closed range. Never pass an open range like `A:F` — see below. */
     suspend fun read(spreadsheetId: String, range: String): List<List<String>> =
         request<ValueRangeResponse> {

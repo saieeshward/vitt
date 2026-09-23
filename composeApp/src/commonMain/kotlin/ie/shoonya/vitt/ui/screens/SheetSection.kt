@@ -119,6 +119,20 @@ fun SheetSection(
                 color = Vitt.colors.inkFaint,
             )
 
+            // Migration is worth one line, and only one. Somebody's tab was
+            // copied aside and rebuilt without being asked, which is the right
+            // call but not one to make silently: they will find a tab in their
+            // file that they did not create, and they should read why here
+            // rather than wonder.
+            (derived as? DerivedTabs.Outcome.Migrated)?.let { migrated ->
+                Text(
+                    "The Transactions tab was rebuilt. Your old one is still " +
+                        "there, as ${migrated.archivedAs}.",
+                    style = Vitt.type.label,
+                    color = Vitt.colors.inkMuted,
+                )
+            }
+
             // Only when there is something to say. A line reporting that a tab
             // was rewritten successfully is a line about plumbing, and this
             // screen does not report plumbing.

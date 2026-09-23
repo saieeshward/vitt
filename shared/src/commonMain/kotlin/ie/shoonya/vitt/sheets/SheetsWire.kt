@@ -195,10 +195,20 @@ internal fun Cell.toJson(): kotlinx.serialization.json.JsonPrimitive = when (thi
 data class BatchUpdateRequest(val requests: List<SheetRequest>)
 
 @Serializable
-data class SheetRequest(val addSheet: AddSheetRequest? = null)
+data class SheetRequest(
+    val addSheet: AddSheetRequest? = null,
+    val duplicateSheet: DuplicateSheetRequest? = null,
+)
 
 @Serializable
 data class AddSheetRequest(val properties: SheetProperties)
 
 @Serializable
 data class BatchUpdateResponse(val spreadsheetId: String? = null)
+
+@Serializable
+data class DuplicateSheetRequest(
+    val sourceSheetId: Int,
+    val newSheetName: String,
+    val insertSheetIndex: Int? = null,
+)

@@ -40,6 +40,11 @@ class DerivedTabsTest {
         override suspend fun ensureTab(spreadsheetId: String, tab: String) {
             calls += "ensure:$tab"
         }
+
+        override suspend fun archive(spreadsheetId: String, tab: String, asTab: String): Boolean {
+            calls += "archive:$asTab"
+            return true
+        }
     }
 
     private fun txn(id: String = "t1", minor: Long = -1250) = Transaction(
@@ -111,13 +116,56 @@ class DerivedTabsTest {
     }
 
     @Test
-    fun `an unusable shape is never forced past`() = runTest {
-        // force answers "whose version wins". A header the app cannot read is
-        // not that question, so the answer does not apply to it.
+    fun `an unreadable shape is archived and rewritten rather than frozen`() = runTest {
+        // §2.8's archive-then-replace, run without asking. The plan offers
+        // three choices, which is right for a tab somebody built; this one the
+        // app renders, so a copy loses nothing. Set against that, asking means
+        // the tab stops updating until a line in Settings is noticed and
+        // understood — and that will happen to everybody at once the day a
+        // column is added in an update.
         val port = FakePort(listOf(listOf("Date", "Date"), listOf("x", "y")))
-        val outcome = DerivedTabs.refresh(port, "s", listOf(txn()), names, force = true)
-        assertTrue(outcome is DerivedTabs.Outcome.Held)
-        assertEquals(listOf("read"), port.calls)
+        val outcome = DerivedTabs.refresh(
+            port, "s", listOf(txn()), names,
+            today = Civil.toDays(2026, 9, 23),
+        )
+        assertEquals(
+            DerivedTabs.Outcome.Migrated("Transactions_2026-09-23", 1),
+            outcome,
+        )
+        assertEquals(
+            listOf("read", "archive:Transactions_2026-09-23", "replace:Transactions"),
+            port.calls,
+        )
+    }
+
+    @Test
+    fun `the archive is taken before anything is written over`() = runTest {
+        // The order is the guarantee. Writing first and copying after copies
+        // the new thing.
+        val port = FakePort(listOf(listOf("Date", "Date"), listOf("x", "y")))
+        DerivedTabs.refresh(port, "s", listOf(txn()), names, today = 1)
+        assertTrue(port.calls.indexOf("archive:Transactions_1970-01-02") < port.calls.indexOf("replace:Transactions"))
+    }
+
+    @Test
+    fun `an archive is named for the day it was taken`() {
+        // A person opening the file months later needs to know when the old
+        // one was set aside; a _v2 tells them nothing they can match against
+        // their own memory.
+        assertEquals(
+            "Transactions_2026-09-23",
+            DerivedTabs.archiveName("Transactions", Civil.toDays(2026, 9, 23)),
+        )
+    }
+
+    @Test
+    fun `a missing column is a shape problem rather than a question`() = runTest {
+        // The near-term case: an update adds a column, and every existing
+        // spreadsheet has the old header.
+        val header = DerivedTransactions.COLUMNS - "Category"
+        val port = FakePort(listOf(header, header.map { "x" }))
+        val outcome = DerivedTabs.refresh(port, "s", listOf(txn()), names, today = 1)
+        assertTrue(outcome is DerivedTabs.Outcome.Migrated)
     }
 
     @Test
@@ -209,6 +257,8 @@ class SummaryRefreshTest {
         override suspend fun ensureTab(spreadsheetId: String, tab: String) {
             calls += "ensure:$tab"
         }
+
+        override suspend fun archive(spreadsheetId: String, tab: String, asTab: String) = true
     }
 
     private fun txn(id: String, year: Int) = Transaction(

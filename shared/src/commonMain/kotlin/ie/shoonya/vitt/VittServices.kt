@@ -469,6 +469,7 @@ class VittServices(
             spreadsheetId = id,
             transactions = all,
             accountName = names::get,
+            today = today(),
         )
         // Regardless of what the Transactions tab did. The summaries are
         // computed from the same local fold rather than from that tab, so a
@@ -492,6 +493,7 @@ class VittServices(
             transactions = ledger.transactions(),
             accountName = names::get,
             force = true,
+            today = today(),
         ).also { derivedTabs.value = it }
     }
 

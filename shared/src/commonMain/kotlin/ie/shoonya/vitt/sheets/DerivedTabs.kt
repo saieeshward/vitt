@@ -24,6 +24,9 @@ interface DerivedTabPort {
 
     /** Creates the tab if it is not already there. */
     suspend fun ensureTab(spreadsheetId: String, tab: String)
+
+    /** Copies a tab aside under a new name. False when there was nothing to copy. */
+    suspend fun archive(spreadsheetId: String, tab: String, asTab: String): Boolean
 }
 
 /**
@@ -58,6 +61,9 @@ object DerivedTabs {
          * the choice cannot be offered by code that already picked a side.
          */
         data class Held(val verdict: SheetDrift.Verdict) : Outcome
+
+        /** The old tab was copied aside under [archivedAs] and a fresh one written. */
+        data class Migrated(val archivedAs: String, val rows: Int) : Outcome
     }
 
     /**
@@ -74,6 +80,8 @@ object DerivedTabs {
         accountName: (String) -> String? = { null },
         force: Boolean = false,
         tab: String = TRANSACTIONS_TAB,
+        /** Days since the epoch, for naming an archive. */
+        today: Int = 0,
     ): Outcome {
         val existing = port.read(spreadsheetId, tab)
         val desired = DerivedTransactions.table(transactions, accountName)
@@ -81,16 +89,44 @@ object DerivedTabs {
         val verdict = SheetDrift.compare(existing, desired)
         when (verdict) {
             is SheetDrift.Verdict.Clean -> Unit
-            // A shape the app cannot read is never forced past: `force` answers
-            // "whose version wins", and this is not that question.
-            is SheetDrift.Verdict.Unusable -> return Outcome.Held(verdict)
             is SheetDrift.Verdict.Drifted -> if (!force) return Outcome.Held(verdict)
+            // §2.8's archive-then-replace, and it runs without asking.
+            //
+            // The plan offers three choices here, which is right for a tab
+            // whose contents somebody built. This one the app renders, so the
+            // archive loses nothing — it is a copy, the original stays, and
+            // every reference to it still resolves. Set against that, the cost
+            // of asking is a tab frozen until somebody notices a line in
+            // Settings and understands what it wants. That will happen the day
+            // a column is added in an update, to everybody at once, and
+            // "your spreadsheet stopped updating" is not a thing to say to a
+            // person who did nothing wrong.
+            is SheetDrift.Verdict.Unusable -> {
+                val archivedAs = archiveName(tab, today)
+                port.archive(spreadsheetId, tab, archivedAs)
+                val fresh = DerivedTransactions.table(transactions, accountName)
+                port.replace(spreadsheetId, tab, fresh, lastColumn(fresh.first().size))
+                return Outcome.Migrated(archivedAs, fresh.size - 1)
+            }
         }
 
         val shaped = inTheShapeOf(existing, desired)
         port.replace(spreadsheetId, tab, shaped, lastColumn(shaped.first().size))
         return Outcome.Written(shaped.size - 1)
     }
+
+    /**
+     * What an archived copy is called.
+     *
+     * Dated rather than numbered, because a person opening the file months
+     * later needs to know *when* the old one was set aside, and a `_v2` tells
+     * them nothing they can match against their own memory. Dated rather than
+     * timestamped for the same reason in the other direction: two archives in
+     * one day is a migration that went wrong twice, and the second overwriting
+     * the first is the correct outcome rather than a third tab.
+     */
+    internal fun archiveName(tab: String, today: Int): String =
+        tab + "_" + ie.shoonya.vitt.time.Civil.isoDate(today)
 
     /**
      * Rewrites `Summary_YYYY` for every year the ledger touches.
