@@ -1,5 +1,10 @@
 package ie.shoonya.vitt.ui
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,6 +13,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -30,6 +40,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.focusable
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -78,6 +95,7 @@ import ie.shoonya.vitt.ui.screens.SettingsSheet
 import ie.shoonya.vitt.ui.screens.SetupScreen
 import ie.shoonya.vitt.ui.screens.SheetActions
 import ie.shoonya.vitt.sync.SyncStatus
+import ie.shoonya.vitt.ui.screens.SortSheet
 import ie.shoonya.vitt.ui.screens.SplitSheet
 import ie.shoonya.vitt.ui.screens.TransferSheet
 import ie.shoonya.vitt.ui.theme.AccentChoice
@@ -111,6 +129,8 @@ private sealed interface Sheet {
     data object Settings : Sheet
     data object Habit : Sheet
     data object PickGrain : Sheet
+    data class Review(val currency: Currency, val month: YearMonth) : Sheet
+    data object Sort : Sheet
 }
 
 /**
@@ -156,9 +176,13 @@ fun VittApp(
      */
     remoteRevision: Int = 0,
     now: () -> Long = { 0L },
+    /** The tab to open on, by name, from a debug launch variable. */
+    startTab: String? = null,
     modifier: Modifier = Modifier,
 ) {
-    var tab by remember { mutableStateOf(Tab.Ledgers) }
+    var tab by remember {
+        mutableStateOf(Tab.entries.firstOrNull { it.name.equals(startTab, ignoreCase = true) } ?: Tab.Ledgers)
+    }
     var sheet by remember { mutableStateOf<Sheet?>(null) }
     // Bumped after a write so the screens re-read the log.
     var localRevision by remember { mutableStateOf(0) }
@@ -277,6 +301,16 @@ fun VittApp(
     val balances = remember(revision) { repository.accountBalances(includeArchived = true) }
     val transfers = remember(revision) { repository.transfers() }
     val participants = remember(revision) { repository.openSplitParticipants() }
+    // Read here, once a revision, and handed down as data. The People list
+    // called the repository from inside each card, and a card whose inputs
+    // had not changed was never recomposed: after "paid back" the figure
+    // stayed on screen until something else redrew the list.
+    val owedBy = remember(revision) { participants.associateWith { repository.outstandingBy(it) } }
+    val splitsBy = remember(revision) {
+        participants.associateWith { who ->
+            repository.openSplits().filter { (it.outstandingFor(who)?.minor ?: 0L) > 0 }
+        }
+    }
     val indexOf: (Currency) -> Int = { c -> ledgers.firstOrNull { it.currency == c }?.index ?: 0 }
     // Resolved against `balances` rather than `accounts`, so a transfer into an
     // account that was later archived still names it. Archiving is not deleting,
@@ -378,11 +412,13 @@ fun VittApp(
     // sheet closes: reaching the sheet from anywhere else must not inherit
     // somebody's earlier intention to split.
     var splitFromPeople by remember { mutableStateOf(false) }
+    /** Why the last Save was refused. Cleared whenever the sheet opens or closes. */
+    var saveError by remember { mutableStateOf<String?>(null) }
     // Skips the initial composition: a counter starting at zero must not open
     // a sheet on every launch.
     LaunchedEffect(openAddTick) {
         if (openAddTick > 0) {
-            capturePrefill = null; splitFromPeople = false
+            capturePrefill = null; splitFromPeople = false; saveError = null
             sheet = Sheet.Add
         }
     }
@@ -438,13 +474,44 @@ fun VittApp(
                 repository.setChoice(Choice.SETUP_DONE, Choice.SETUP_YES)
                 localRevision++
             },
-            modifier = modifier.fillMaxSize().background(Vitt.colors.ground),
+            modifier = modifier
+                .fillMaxSize()
+                .background(Vitt.colors.ground)
+                .windowInsetsPadding(WindowInsets.safeDrawing),
         )
         return
     }
 
     CompositionLocalProvider(LocalNudgeAnchors provides anchors) {
-    Box(modifier = modifier.fillMaxSize()) {
+    // Edge to edge, with the insets applied here once for both platforms. The
+    // ground runs under the status bar and the home indicator (AppRoot's
+    // Surface paints it), so a row scrolling up fades into the same colour
+    // that fills the top of the screen instead of meeting a hard line with a
+    // system-coloured band beyond it. The bottom inset belongs to the tab bar,
+    // which reaches the edge itself.
+    // Cmd+N opens Add from anywhere, with a keyboard attached. Key events go
+    // to whatever has focus, so the root takes it whenever no sheet is open,
+    // and gives it back to a sheet's own keypad when one is.
+    val rootFocus = remember { androidx.compose.ui.focus.FocusRequester() }
+    LaunchedEffect(sheet == null) { if (sheet == null) runCatching { rootFocus.requestFocus() } }
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .focusRequester(rootFocus)
+            .onPreviewKeyEvent { event ->
+                val isAdd = event.type == androidx.compose.ui.input.key.KeyEventType.KeyDown &&
+                    event.key == androidx.compose.ui.input.key.Key.N &&
+                    (event.isMetaPressed || event.isCtrlPressed)
+                if (isAdd && sheet == null) { sheet = Sheet.Add; true } else false
+            }
+            .focusable()
+            .windowInsetsPadding(
+                WindowInsets.safeDrawing.only(
+                    WindowInsetsSides.Top +
+                        WindowInsetsSides.Horizontal,
+                ),
+            ),
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -463,13 +530,41 @@ fun VittApp(
                 }
             },
     ) {
+        // Wider than a phone, or a phone on its side, and the tabs move to a
+        // rail on the leading edge, with the screen beside it capped at a
+        // width a person can read across (docs/ipad-plan.clan, D2 and D3).
+        val layout = LocalWindowLayout.current
+        // An entry edited from Activity on a wide window opens beside the
+        // list rather than over it, and the list moves over to stay whole.
+        val sidePanel = usesSidePanel(layout, tab, sheet)
+        Row(Modifier.fillMaxWidth().weight(1f).padding(end = if (sidePanel) SIDE_PANEL_WIDTH else 0.dp)) {
+        if (layout.useRail) {
+            SideRail(
+                current = tab,
+                onSelect = { tab = it },
+                onAdd = { sheet = Sheet.Add },
+                tabs = listOf(Tab.Ledgers, Tab.Activity, Tab.People, Tab.Reports),
+            )
+        }
         // The fade is on the host rather than on each screen, so every tab
         // gets the same edge and a new one cannot forget it.
         Box(
             Modifier
-                .fillMaxWidth()
                 .weight(1f)
+                .fillMaxHeight()
                 .edgeFade(Vitt.colors.ground),
+            contentAlignment = Alignment.TopCenter,
+        ) {
+        // Lists read best at a measure; Ledgers' grid and Reports' two columns
+        // need the width, so they get more of it on a wide window.
+        val cap = when {
+            layout.maxContentWidthDp == null -> null
+            layout.width == ie.shoonya.vitt.layout.WindowLayout.Width.EXPANDED &&
+                (tab == Tab.Ledgers || tab == Tab.Reports) -> WIDE_CONTENT_WIDTH
+            else -> layout.maxContentWidthDp
+        }
+        Box(
+            cap?.let { Modifier.widthIn(max = it.dp).fillMaxHeight() } ?: Modifier.fillMaxSize(),
         ) {
             when (tab) {
                 Tab.Ledgers -> LedgersScreen(
@@ -522,13 +617,12 @@ fun VittApp(
                     onFilterChange = { activityFilter = it },
                     onPeriodChange = { period = it },
                     onPickGrain = { sheet = Sheet.PickGrain },
+                    onSort = { sheet = Sheet.Sort },
                 )
                 Tab.People -> PeopleScreen(
                     participants = participants,
-                    outstandingFor = { repository.outstandingBy(it) },
-                    splitsFor = { who ->
-                        repository.openSplits().filter { who in it.splitWith }
-                    },
+                    outstandingFor = { owedBy[it].orEmpty() },
+                    splitsFor = { splitsBy[it].orEmpty() },
                     onShare = { who ->
                         SettlementSummary.forParticipant(
                             participant = who,
@@ -537,6 +631,7 @@ fun VittApp(
                         )?.let { sheet = Sheet.Summary(it.subject, it.body) }
                     },
                     onOpenSplit = { sheet = Sheet.Split(it.id) },
+                    onSettleUp = { repository.settleUpWith(it); localRevision++ },
                     onSplitSomething = { splitFromPeople = true; sheet = Sheet.Add },
                     companionInset = if (habitOn && companion != null) 64.dp else 0.dp,
                     formatDay = formatDay,
@@ -573,6 +668,18 @@ fun VittApp(
                             month?.let { Insights.dailyCumulative(all, currency, it, today) } ?: emptyList()
                         },
                         daysInMonth = month?.let { Civil.daysInMonth(it.year, it.month) } ?: 0,
+                        month = month,
+                        daily = remember(revision, currency, period, today) {
+                            month?.let { Insights.dailyTotals(all, currency, it, today) } ?: emptyList()
+                        },
+                        sizes = remember(revision, currency, period) {
+                            Insights.sizes(all, currency, period)
+                        },
+                        review = remember(revision, currency, period, today) {
+                            month?.let { ie.shoonya.vitt.model.MonthReview.of(all, currency, it, today, ledger?.budget) }
+                        },
+                        onOpenReview = { month?.let { sheet = Sheet.Review(currency, it) } },
+                        onSort = { sheet = Sheet.Sort },
                         weekday = remember(revision, currency, period) {
                             Insights.byWeekday(all, currency, period)
                         },
@@ -625,22 +732,41 @@ fun VittApp(
                 }
             }
         }
+        }
+        }
 
         // Her strip: a fixed band that is never over a number or a control, and
         // has nothing interactive behind it. Hidden with the habit layer, since
         // a wandering pet is the loudest thing the layer does.
-        TabBar(
-            current = tab,
-            onSelect = { tab = it },
-            onAdd = { sheet = Sheet.Add },
-            rightTabs = listOf(Tab.People, Tab.Reports),
-        )
+        if (!layout.useRail) {
+            TabBar(
+                current = tab,
+                onSelect = { tab = it },
+                onAdd = { sheet = Sheet.Add },
+                rightTabs = listOf(Tab.People, Tab.Reports),
+            )
+        }
     }
 
     // An overlay, so she consumes no layout and can be anywhere the user drops
     // her. On the home screen only: a pet over a dense transaction list
     // competes with the scanning that list exists for.
-    if (habitOn && companion != null && tab == Tab.Ledgers) {
+    // Not on a short window: her strip would take a sixth of a phone on its
+    // side, and she comes back the moment it is turned upright.
+    if (habitOn && companion != null && tab == Tab.Ledgers && !LocalWindowLayout.current.shortHeight) {
+        // Her layer keeps the area it always had, clear of the home indicator
+        // too: her home is stored relative to it, so a larger layer would move
+        // everybody's companion.
+        Box(
+            Modifier
+                .windowInsetsPadding(
+                    WindowInsets.navigationBars.only(
+                        WindowInsetsSides.Bottom,
+                    ),
+                )
+                // Beside the rail, never on it: she stands on the content.
+                .padding(start = if (LocalWindowLayout.current.useRail) RAIL_ITEM_WIDTH + Vitt.space.snug * 2 else 0.dp),
+        ) {
         CompanionLayer(
             daysRecorded = recorded,
             currencyCount = ledgers.size,
@@ -672,10 +798,10 @@ fun VittApp(
             onNudgeTap = { n ->
                 snoozed[n.kind] = 1L
                 when (n.kind) {
-                    NudgeKind.REVIEW_CATEGORIES -> {
-                        activityFilter = activityFilter.copy(needingCategory = true)
-                        tab = Tab.Activity
-                    }
+                    // Straight to the one-tap pass. The filtered list it used to
+                    // open asked for a sheet per row, which is the effort the
+                    // nudge was there to save.
+                    NudgeKind.REVIEW_CATEGORIES -> sheet = Sheet.Sort
                     NudgeKind.SETTLE_SPLIT -> tab = Tab.People
                     NudgeKind.SET_BUDGET -> sheet = Sheet.SetBudget(n.currency!!)
                     NudgeKind.RECORD_TODAY -> sheet = Sheet.Add
@@ -684,13 +810,15 @@ fun VittApp(
             },
             onNudgeExpired = { n -> snoozed[n.kind] = 1L },
         )
+        }
     }
     }
     }
 
     sheet?.let { open ->
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ModalBottomSheet(
+        SheetHost(
+            side = usesSidePanel(LocalWindowLayout.current, tab, open),
             onDismissRequest = { sheet = null },
             sheetState = sheetState,
             containerColor = Vitt.colors.ground,
@@ -755,17 +883,48 @@ fun VittApp(
                         repository.frequentCategories(today, spending = false)
                     },
                     lastAccountId = remember(revision) { repository.choice(Choice.LAST_ACCOUNT) },
+                    knownPeople = remember(revision) { repository.knownPeople() },
+                    usuals = remember(revision) { repository.usuals(today) },
+                    error = saveError,
                     onSave = { new ->
                         val id = newId()
-                        repository.record(
-                            id = id,
-                            amount = new.amount,
-                            day = today,
-                            category = new.category?.code,
-                            accountId = new.accountId,
-                            totalPaid = new.totalPaid,
-                            note = new.note,
-                        )
+                        // record() refuses anything it cannot write — a zero, a
+                        // split whose currencies disagree, an account in
+                        // another currency — and it refuses by throwing. The
+                        // sheet is the one place that must never let that go
+                        // past: an uncaught throw here takes the app down with
+                        // the figure still untyped-in, and a caught-and-ignored
+                        // one closes the sheet on a transaction that was never
+                        // written. Both read to the person as "I saved it and
+                        // it is not there", which is the single failure a money
+                        // app does not get to have.
+                        //
+                        // Every one of these is a bug rather than a user error,
+                        // so the wording does not pretend otherwise. What it
+                        // does do is keep the sheet open with the amount in it,
+                        // so nothing has to be typed twice.
+                        val failure = try {
+                            repository.record(
+                                id = id,
+                                amount = new.amount,
+                                day = today,
+                                category = new.category?.code,
+                                accountId = new.accountId,
+                                totalPaid = new.totalPaid,
+                                splitWith = new.splitWith,
+                                shares = new.shares,
+                                note = new.note,
+                            )
+                            null
+                        } catch (e: IllegalArgumentException) {
+                            e.message ?: "could not be saved"
+                        }
+                        if (failure != null) {
+                            saveError = "Not saved: $failure. Nothing was lost. " +
+                                "The amount is still here."
+                            return@AddScreen
+                        }
+                        saveError = null
                         // Remembered so the next add starts on the same account.
                         // Only on a change: a choice event per entry would put a
                         // row in the sheet for every coffee.
@@ -775,17 +934,16 @@ fun VittApp(
                             }
                         }
                         localRevision++
-                        // A split is not finished when it is saved: who was in
-                        // on it is still unsaid, and the only place to say it
-                        // was a row tap nobody was told about. Open it now.
-                        capturePrefill = null; splitFromPeople = false
+                        capturePrefill = null; splitFromPeople = false; saveError = null
                         // The reward, spent immediately. Nothing accumulates,
                         // so nothing can be lost and there is no streak to
                         // protect by avoiding the app.
                         justSaved = true
-                        sheet = if (new.totalPaid != null) Sheet.Split(id) else null
+                        // The people and their parts were chosen on the same
+                        // screen, so a split is finished when it is saved.
+                        sheet = null
                     },
-                    onCancel = { capturePrefill = null; splitFromPeople = false; sheet = null },
+                    onCancel = { capturePrefill = null; splitFromPeople = false; saveError = null; sheet = null },
                 )
 
                 Sheet.NewAccount -> AccountSheet(
@@ -910,20 +1068,70 @@ fun VittApp(
                     } else {
                         SplitSheet(
                             split = split,
-                            onAddParticipant = {
-                                repository.addSplitParticipant(open.id, it); localRevision++
-                            },
-                            onRemoveParticipant = {
-                                repository.removeSplitParticipant(open.id, it); localRevision++
-                            },
+                            knownPeople = remember(revision) { repository.knownPeople() },
                             onSettle = { repository.settle(open.id, it); localRevision++ },
                             onSettleInFull = {
                                 repository.settleInFull(open.id); localRevision++; sheet = null
+                            },
+                            onSettlePerson = { who, received ->
+                                repository.settleParticipant(open.id, who, received); localRevision++
+                            },
+                            onEditSplit = { total, yours, others, people ->
+                                // Refusal is the log protecting itself, so it
+                                // is shown rather than thrown: the sheet stays
+                                // open with the figures still in it.
+                                try {
+                                    repository.editSplit(open.id, total, yours, others, people)
+                                    localRevision++
+                                    null
+                                } catch (_: IllegalArgumentException) {
+                                    "Those figures do not add up to the bill."
+                                }
                             },
                             onDone = { sheet = null },
                         )
                     }
                 }
+
+                is Sheet.Review -> {
+                    val all = remember(revision) { repository.transactions() }
+                    val review = remember(revision, open) {
+                        ie.shoonya.vitt.model.MonthReview.of(
+                            all, open.currency, open.month, today,
+                            ledgers.firstOrNull { it.currency == open.currency }?.budget,
+                        )
+                    }
+                    if (review == null) {
+                        sheet = null
+                    } else {
+                        ie.shoonya.vitt.ui.screens.ReviewStory(
+                            review = review,
+                            daily = remember(revision, open) {
+                                Insights.dailyTotals(
+                                    all, open.currency, open.month,
+                                    if (review.complete) open.month.lastDay else today,
+                                )
+                            },
+                            categories = remember(revision, open) {
+                                Insights.foldTail(Insights.byCategory(all, open.currency, open.month))
+                            },
+                            hue = ledgers.firstOrNull { it.currency == open.currency }?.index ?: 0,
+                            today = today,
+                            onDone = { sheet = null },
+                        )
+                    }
+                }
+
+                Sheet.Sort -> SortSheet(
+                    queue = remember(revision) { repository.uncategorised() },
+                    frequentSpending = remember(revision) { repository.frequentCategories(today, spending = true) },
+                    frequentIncome = remember(revision) { repository.frequentCategories(today, spending = false) },
+                    onPick = { id, category ->
+                        repository.categorise(id, category, teach = true, applyToPast = true)
+                        localRevision++
+                    },
+                    onDone = { sheet = null },
+                )
 
                 is Sheet.EditCategory -> {
                     val txn = remember(revision, open.id) {
@@ -949,6 +1157,7 @@ fun VittApp(
                             },
                             onNoteChange = { repository.setNote(open.id, it); localRevision++ },
                             onDone = { sheet = null },
+                            onEditSplit = { sheet = Sheet.Split(open.id) },
                         )
                     }
                 }
@@ -1129,7 +1338,18 @@ private fun TabBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 13.dp, bottom = 32.dp),
+            // Just above the home indicator, where the platform puts tab items.
+            // The inset is the gap, with a floor for a phone that has no
+            // indicator or navigation bar at all, plus a hair so the labels do
+            // not sit on it. The old fixed 32dp stacked on top of the inset
+            // once the app drew to the edge, and left an empty band under the
+            // bar.
+            .windowInsetsPadding(
+                WindowInsets.navigationBars
+                    .union(WindowInsets(bottom = 12.dp))
+                    .only(WindowInsetsSides.Bottom),
+            )
+            .padding(top = 13.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         listOf(Tab.Ledgers, Tab.Activity).forEach {
@@ -1185,6 +1405,49 @@ private fun Modifier.anchorFor(tab: Tab): Modifier = when (tab) {
     else -> this
 }
 
+/**
+ * The tabs on the leading edge, for a window wider than a phone or a phone on
+ * its side: Add first, where a thumb or a pointer finds it, then the four
+ * places. The same items as the bottom bar, so VoiceOver reads them the same.
+ */
+@Composable
+private fun SideRail(
+    current: Tab,
+    onSelect: (Tab) -> Unit,
+    onAdd: () -> Unit,
+    tabs: List<Tab>,
+) {
+    val colors = Vitt.colors
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
+            .padding(horizontal = Vitt.space.snug, vertical = Vitt.space.loose),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Vitt.space.loose),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .nudgeAnchor(Anchor.ADD)
+                .clip(CircleShape)
+                .background(colors.accent)
+                .clickable(onClick = onAdd)
+                .semantics(mergeDescendants = true) {
+                    contentDescription = "Add transaction"
+                    role = Role.Button
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("+", style = Vitt.type.title, color = colors.ground, modifier = Modifier.clearAndSetSemantics {})
+        }
+        tabs.forEach { TabItem(it, current, onSelect, Modifier.width(RAIL_ITEM_WIDTH).anchorFor(it)) }
+    }
+}
+
+/** Wide enough for the longest label, "Activity", at the caption size. */
+private val RAIL_ITEM_WIDTH = 72.dp
+
 @Composable
 private fun TabItem(tab: Tab, current: Tab, onSelect: (Tab) -> Unit, modifier: Modifier) {
     val selected = tab == current
@@ -1219,3 +1482,11 @@ private val EDGE_SWIPE_ZONE = 28.dp
 
 /** How far the finger has to travel before the sheet closes. */
 private val EDGE_SWIPE_DISTANCE = 72.dp
+
+/** How wide the grid and two-column screens may go on a wide window. */
+private const val WIDE_CONTENT_WIDTH = 1100
+
+/** Whether this sheet opens as a panel beside the Activity list rather than over it. */
+private fun usesSidePanel(layout: ie.shoonya.vitt.layout.WindowLayout, tab: Tab, sheet: Sheet?): Boolean =
+    layout.width == ie.shoonya.vitt.layout.WindowLayout.Width.EXPANDED && !layout.shortHeight &&
+        tab == Tab.Activity && (sheet is Sheet.EditCategory || sheet is Sheet.Split)

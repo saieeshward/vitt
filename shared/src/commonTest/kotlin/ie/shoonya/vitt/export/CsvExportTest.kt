@@ -148,6 +148,7 @@ class CsvExportTest {
         // Semicolons inside the field, so a list does not force the whole row
         // into quotes on every export.
         assertEquals("ann@example.com;bea@example.com", cells[columns.indexOf("split_with")])
+        assertEquals("ann@example.com=20.00;bea@example.com=20.00", cells[columns.indexOf("split_shares")])
     }
 
     @Test

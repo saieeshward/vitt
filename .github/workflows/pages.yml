@@ -1,0 +1,44 @@
+# The website, from site/, to GitHub Pages at https://saieeshward.github.io/vitt/.
+#
+# Plain static files, so there is no build step: the privacy page and the pets
+# are generated locally (tools/site-privacy.py, tools/site-pets.py) and
+# committed, which keeps what is reviewed in a PR exactly what is served.
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      # Fails the deploy if the committed privacy page or pets have drifted
+      # from the sources they are generated from.
+      - name: Check generated pages are current
+        run: |
+          pip install --quiet markdown==3.10.2
+          python3 tools/site-privacy.py
+          python3 tools/site-pets.py
+          git diff --exit-code -- site/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4

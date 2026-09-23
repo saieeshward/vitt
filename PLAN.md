@@ -100,7 +100,7 @@ batchUpdate([
 
 Rules:
 - `insertDataOption: INSERT_ROWS` — `OVERWRITE` is the default and will clobber anything below the detected table.
-- `valueInputOption: RAW` for the `Events` log (verbatim, no coercion); `USER_ENTERED` only for `Transactions` where native dates matter. **Pin and record the spreadsheet locale in `_Meta`** — dates are stored as serial decimals, so a locale mis-parse is arithmetic-silent, not an error. Tiller hard-coded US locale and documented it rather than solve this; do the same, but detect and warn on mismatch.
+- `valueInputOption: RAW` everywhere, the derived tabs included. This plan originally had `USER_ENTERED` for `Transactions` so that dates would be native, and that was reversed when the tab was built: `USER_ENTERED` is what turns a merchant called `=cmd|...` into a formula, and merchant names are unbounded input. Under `RAW` an amount still reaches the sheet as a number, because it is sent as an unquoted JSON number rather than a string, so a column of money sums; dates go as ISO text. **Pin and record the spreadsheet locale in `_Meta`** — dates are stored as serial decimals, so a locale mis-parse is arithmetic-silent, not an error. Tiller hard-coded US locale and documented it rather than solve this; do the same, but detect and warn on mismatch. The locale is stamped in `_Meta` once per launch; nothing warns on a mismatch yet, which matters less than it did, since the app no longer asks the locale to parse anything it writes.
 - **Idempotency:** mint the HLC *before* the first attempt. On ambiguous failure, re-read the tail of `Events` and look for that HLC rather than blind-retrying. Duplicates — not corruption — are the failure mode, and this eliminates them.
 - **Never `append` immediately after `deleteDimension`** — a known Sheets bug produces row offsets because the delete isn't fully applied server-side.
 - Retry with truncated exponential backoff + jitter: `min((2^n) + random_ms, 32s)`. Throttle to ~1 write/sec per spreadsheet on 503.
@@ -109,6 +109,7 @@ Rules:
 
 - Poll `drive.files.get(fileId, fields="version,modifiedTime")` — a monotonic counter that "reflects every change made to the file on the server." Cheap; false positives, never false negatives. Adaptive interval: foreground frequent, background rare.
 - On change, re-read only affected ranges. **Closed ranges always** (`A2:G50000`, never `A:G`).
+- Derived tabs are read with `valueRenderOption=UNFORMATTED_VALUE`, the `Events` log formatted. A formatted read returns what a cell displays, so the `-12.50` the app wrote comes back as `-12.5`, and as `€12.50` once somebody formats the column; compared against what was written, the app's own write read as a person's edit and the `Transactions` tab held itself on its second refresh. Unformatted, each cell also keeps its type, which is what lets a person's checkbox and date columns survive a rewrite.
 - `headRevisionId` and `md5Checksum` are null for Sheets — do not build on them.
 - Drive `files.watch` push is infeasible serverless (needs a CA-signed HTTPS webhook plus channel renewal).
 
@@ -145,7 +146,7 @@ Performance discipline, all evidence-backed:
 
 ### 2.8 Schema migration
 
-- `_Meta.schema_version`, plus forward-only idempotent migration steps, each guarded by a check of **actual current state** rather than the recorded version number.
+- `_Meta.schema_version`, plus forward-only idempotent migration steps, each guarded by a check of **actual current state** rather than the recorded version number. The number answers the one question state cannot: whether a newer build has already shaped this file. When it has, an older build leaves the derived tabs alone, because it would read the newer header as unusable and archive it away, and the newer phone would then do the same back.
 - **Data tabs: additive only.** New columns at the right edge, by header name. Never reorder, never delete, never renumber, **never backfill** (Tiller established that users accept this).
 - **New features arrive as new tabs**, not as changes to existing ones.
 - **Derived tabs: archive-then-replace.** Offer "Archive & update" / "Overwrite" / "Keep mine," because users will have customized them.

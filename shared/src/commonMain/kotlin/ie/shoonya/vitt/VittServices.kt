@@ -25,6 +25,8 @@ class VittServices(
     browser: BrowserAuth,
     private val now: () -> Long,
     driver: app.cash.sqldelight.db.SqlDriver,
+    /** The version string the store shows, stamped into the spreadsheet's `_Meta` tab. */
+    private val appVersion: String = "unknown",
     /** Where sync cycles run. Outlives any screen, because a sync must too. */
     private val scope: kotlinx.coroutines.CoroutineScope = kotlinx.coroutines.CoroutineScope(
         kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default,
@@ -175,7 +177,8 @@ class VittServices(
             Triple(day(7), -60000L to inr, "OLA CABS" to null),
             Triple(day(9), -2200L to eur, "AERLINGUS DUBLIN" to null),
             Triple(day(10), -35000L to inr, "AMAZON IN MUMBAI" to null),
-            Triple(day(11), -1180L to eur, "SQ *COFFEE ANGEL" to null),
+            // The same coffee at the same price as day 1: a usual, for the add screen.
+            Triple(day(11), -350L to eur, "SQ *COFFEE ANGEL" to null),
             Triple(day(12), -7250L to eur, "LIDL 0417 CORK" to null),
             Triple(day(13), -420L to eur, "SQ *COFFEE ANGEL" to null),
         )
@@ -459,24 +462,107 @@ class VittServices(
      * includes anything another device just sent. It never forces: a tab
      * somebody has edited is held, and the answer is theirs to give.
      */
+    /**
+     * What this device last knew of the Transactions tab, so an entry added or
+     * changed in the app is not mistaken for somebody's edit. Local, never
+     * synced: each device remembers its own view.
+     */
+    private fun tabMemory(): Map<String, String> =
+        ie.shoonya.vitt.sheets.SheetDrift.decodeMemory(store.get(KEY_TAB_MEMORY))
+
+    private fun rememberTab(memory: Map<String, String>) {
+        // Every refresh that writes calls this, and on most of them nothing
+        // moved, so the encoded memory is compared before it is stored.
+        val encoded = ie.shoonya.vitt.sheets.SheetDrift.encodeMemory(memory)
+        if (encoded != store.get(KEY_TAB_MEMORY)) store.put(KEY_TAB_MEMORY, encoded)
+    }
+
+    /** The spreadsheet locale is looked at once per launch rather than every sync. */
+    private var localeChecked = false
+
+    /** Whether this launch has confirmed the Dashboard's charts against the tab. */
+    private var dashboardChecked = false
+
+    /**
+     * Runs [block], and on failure gives [fallback] instead.
+     *
+     * Each derived tab is allowed to fail without the others: a stale tab is
+     * redrawn on the next sync, and none of them is a reason to leave the rest
+     * stale. Cancellation is the one thing let through.
+     */
+    private suspend fun <T> quietly(fallback: T, block: suspend () -> T): T = try {
+        block()
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+    } catch (_: Throwable) {
+        fallback
+    }
+
+    private suspend fun refreshTransactions(
+        port: ie.shoonya.vitt.sheets.DerivedTabPort,
+        spreadsheetId: String,
+        force: Boolean,
+    ): ie.shoonya.vitt.sheets.DerivedTabs.Outcome {
+        val names = ledger.accounts(includeArchived = true).associate { it.id to it.name }
+        return ie.shoonya.vitt.sheets.DerivedTabs.refresh(
+            port = port,
+            spreadsheetId = spreadsheetId,
+            transactions = ledger.transactions(),
+            accountName = names::get,
+            force = force,
+            today = today(),
+            lastSeen = tabMemory(),
+            remember = ::rememberTab,
+        ).also { derivedTabs.value = it }
+    }
+
     private suspend fun refreshDerivedTabs() {
         val id = store.get(ie.shoonya.vitt.sync.EventStore.KEY_SPREADSHEET_ID) ?: return
-        val names = ledger.accounts(includeArchived = true).associate { it.id to it.name }
-        val port = ie.shoonya.vitt.sheets.SheetsTransport(sheets()).derived
-        val all = ledger.transactions()
-        derivedTabs.value = ie.shoonya.vitt.sheets.DerivedTabs.refresh(
-            port = port,
-            spreadsheetId = id,
-            transactions = all,
-            accountName = names::get,
-            today = today(),
-        )
+        val transport = ie.shoonya.vitt.sheets.SheetsTransport(sheets())
+
+        // _Meta first, because it decides whether the rest is ours to write.
+        // A failure here is not a reason to skip the tabs: the likeliest cause
+        // is a file that predates it, and the next sync stamps it.
+        val standing = quietly<ie.shoonya.vitt.sheets.SheetMeta.Standing>(ie.shoonya.vitt.sheets.SheetMeta.Standing.Current) {
+            ie.shoonya.vitt.sheets.SheetMeta.sync(
+                transport.meta,
+                id,
+                ie.shoonya.vitt.sheets.SheetMeta.Us(
+                    device = store.get(ie.shoonya.vitt.sync.EventStore.KEY_NODE_ID).orEmpty(),
+                    appVersion = appVersion,
+                    nowMillis = now(),
+                ),
+                checkLocale = !localeChecked,
+            ).also { localeChecked = true }
+        }
+        if (standing is ie.shoonya.vitt.sheets.SheetMeta.Standing.Newer) {
+            derivedTabs.value = ie.shoonya.vitt.sheets.DerivedTabs.Outcome.Deferred(standing.sheetSchema)
+            return
+        }
+
+        val port = transport.derived
+        quietly(Unit) { refreshTransactions(port, id, force = false) }
         // Regardless of what the Transactions tab did. The summaries are
         // computed from the same local fold rather than from that tab, so a
         // held rewrite says nothing about whether these are still correct —
         // and leaving the dashboard's only source stale because somebody
         // annotated a transaction row would be the wrong coupling entirely.
+        val all = ledger.transactions()
         ie.shoonya.vitt.sheets.DerivedTabs.refreshSummaries(port, id, all)
+        // Decoration, and last for that reason: it never costs the tabs above it.
+        quietly(Unit) {
+            ie.shoonya.vitt.sheets.DerivedTabs.refreshDashboard(
+                port = port,
+                spreadsheetId = id,
+                transactions = all,
+                budgets = ledger.budgets(),
+                today = today(),
+                charted = ie.shoonya.vitt.sheets.DerivedDashboard.Charted.decode(store.get(KEY_DASHBOARD_CHARTS)),
+                checkCharts = !dashboardChecked,
+                remember = { store.put(KEY_DASHBOARD_CHARTS, it.encode()) },
+            )
+            dashboardChecked = true
+        }
     }
 
     /**
@@ -486,15 +572,7 @@ class VittServices(
      */
     suspend fun overwriteDerivedTabs(): ie.shoonya.vitt.sheets.DerivedTabs.Outcome? {
         val id = store.get(ie.shoonya.vitt.sync.EventStore.KEY_SPREADSHEET_ID) ?: return null
-        val names = ledger.accounts(includeArchived = true).associate { it.id to it.name }
-        return ie.shoonya.vitt.sheets.DerivedTabs.refresh(
-            port = ie.shoonya.vitt.sheets.SheetsTransport(sheets()).derived,
-            spreadsheetId = id,
-            transactions = ledger.transactions(),
-            accountName = names::get,
-            force = true,
-            today = today(),
-        ).also { derivedTabs.value = it }
+        return refreshTransactions(ie.shoonya.vitt.sheets.SheetsTransport(sheets()).derived, id, force = true)
     }
 
     /**
@@ -513,3 +591,9 @@ class VittServices(
         sync.onDisconnected()
     }
 }
+
+/** Local only: this device's fingerprints of the Transactions tab. */
+private const val KEY_TAB_MEMORY = "derived_tab_memory:Transactions"
+
+/** Local only: which currencies have the app's chart on the Dashboard, and in which tab. */
+private const val KEY_DASHBOARD_CHARTS = "dashboard_charts"

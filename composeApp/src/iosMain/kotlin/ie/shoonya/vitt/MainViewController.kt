@@ -25,6 +25,8 @@ fun MainViewController() = ComposeUIViewController {
         browser = BrowserAuth(),
         now = { (NSDate().timeIntervalSince1970 * 1000).toLong() },
         driver = ie.shoonya.vitt.sync.iosDriver(),
+        appVersion = platform.Foundation.NSBundle.mainBundle
+            .objectForInfoDictionaryKey("CFBundleShortVersionString") as? String ?: "unknown",
     )
     val launch =
         if (isDebugBuild) platform.Foundation.NSProcessInfo.processInfo.environment
@@ -67,5 +69,8 @@ private fun AppRootWith(services: VittServices) {
         services,
         verify = env["VITT_VERIFY"] == "1",
         autoRun = env["VITT_AUTORUN"] == "1",
+        // Opens on a tab, so store screenshots can be taken with simctl alone
+        // and no synthesized taps: ledgers, activity, people or reports.
+        startTab = env["VITT_TAB"] as? String,
     )
 }

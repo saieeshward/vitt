@@ -30,6 +30,28 @@ class LedgerRepository(
 ) {
 
     /**
+     * The mapped lists, memoised on the same per-type version the store's folds
+     * are.
+     *
+     * The folds were already cached, so an edit cost one query. What it still
+     * cost was the mapping: a redraw asks for the transactions about fifteen
+     * times over (directly, and through ledgers, byDay, owed, the habit counts
+     * and the rest), and each call turned the whole fold into a fresh sorted
+     * list of [Transaction]s. Now that happens once per write to the type.
+     *
+     * Copy-on-write for the reason [EventStore] gives: a sync writing on another
+     * thread and a screen reading on this one each see a whole map.
+     */
+    private var memos: Map<String, Pair<List<Long>, Any>> = emptyMap()
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <T : Any> memo(key: String, vararg entities: String, compute: () -> T): T {
+        val versions = entities.map(store::versionOf)
+        memos[key]?.let { (at, value) -> if (at == versions) return value as T }
+        return compute().also { memos = memos + (key to (versions to it)) }
+    }
+
+    /**
      * Records a transaction locally and queues it for the sheet.
      *
      * @param amount signed: negative is money out. The caller decides the sign,
@@ -47,16 +69,28 @@ class LedgerRepository(
         note: String? = null,
         /** True only for a row read out of a file. See [Transaction.imported]. */
         imported: Boolean = false,
+        /**
+         * Each other person's amount, as magnitudes, when the split was not
+         * equal. Must name exactly [splitWith] and add up, with the user's own
+         * share, to [totalPaid]. Null for equal.
+         */
+        shares: Map<String, Money>? = null,
     ) {
         // The sheet is append-only, so a zero row can never be taken back. The
         // keypad refuses it too; this is for every other caller.
-        require(amount.minor != 0L) { "a zero transaction records nothing" }
+        // A zero share of a real bill is the exception: a ticket bought for a
+        // friend is a split where the user's own part is nothing and the whole
+        // bill is owed back. Everything else that is zero records nothing.
+        require(amount.minor != 0L || (totalPaid != null && totalPaid.minor != 0L)) {
+            "a zero transaction records nothing"
+        }
         require(totalPaid == null || totalPaid.currency == amount.currency) {
             "a split cannot cross currencies"
         }
         require(splitWith.isEmpty() || totalPaid != null) {
             "naming who a expense was split with needs the total that was paid"
         }
+        if (shares != null) requireShares(shares, splitWith, amount.abs(), totalPaid!!.abs())
         // An account this device has not seen yet is not an error: its event may
         // still be in flight from another device, and refusing would lose the
         // transaction outright. Only a *known* mismatch is a caller bug.
@@ -97,6 +131,7 @@ class LedgerRepository(
             splitWith = splitWith,
             note = note,
             imported = imported,
+            shares = shares,
             issue = store::issue,
         )
         val at = now()
@@ -135,6 +170,16 @@ class LedgerRepository(
         // deterministic with no history at all.
         return offered.sortedByDescending { counts[it] ?: 0 }.take(limit)
     }
+
+    /** What this person logs again and again, for one-tap repeats. See [Usuals]. */
+    fun usuals(today: Int): List<Usual> = Usuals.of(transactions(), today)
+
+    /**
+     * Entries with no category, newest first: the queue for sorting them one
+     * tap each. Transfers are excluded, since they already say what they are.
+     */
+    fun uncategorised(): List<Transaction> =
+        transactions().filter { it.movesMoney && it.category == null }.sortedByDescending { it.day }
 
     /**
      * Records how much of a split has been repaid.
@@ -179,11 +224,99 @@ class LedgerRepository(
         )
     }
 
-    /** Marks a split fully repaid, whatever it was owed. */
+    /**
+     * Marks a split fully repaid, whatever it was owed.
+     *
+     * Per person when there are people, so the record says who paid rather
+     * than that a sum turned up.
+     */
     fun settleInFull(id: String) {
-        val owed = transactions().firstOrNull { it.id == id }?.owed() ?: return
-        settle(id, owed)
+        val split = transactions().firstOrNull { it.id == id } ?: return
+        if (split.splitWith.isEmpty()) {
+            settle(id, split.owed() ?: return)
+            return
+        }
+        split.shares().forEach { (who, share) -> settleParticipant(id, who, share) }
     }
+
+    /**
+     * How much one person has paid back of this split, as a running total.
+     *
+     * Absolute for the same reason [settle] is. Recording more than their share
+     * is allowed and floors at nothing owed, because somebody rounding up is not
+     * the user owing them money.
+     */
+    fun settleParticipant(id: String, participant: String, received: Money) {
+        require(received.minor >= 0) { "a repayment cannot be negative" }
+        store.append(
+            Event(
+                store.issue(),
+                Transaction.ENTITY,
+                id,
+                Transaction.settledByKey(participant),
+                TaggedValue.Num(received.minor),
+            ),
+            now(),
+        )
+    }
+
+    /**
+     * Rewrites what a split's figures are: the whole bill, the user's share,
+     * and, when [others] is given, each other person's amount.
+     *
+     * All of it in one go and all of it every time, so what lands is one
+     * consistent edit. Refuses anything that does not add up, because the
+     * shares are written to an append-only log and a split whose parts exceed
+     * its whole would be there for good. [others] null means an equal split,
+     * and clears any amounts set before.
+     */
+    fun editSplit(
+        id: String,
+        total: Money,
+        yours: Money,
+        others: Map<String, Money>?,
+        /** Who is on it after the edit. Null keeps the people as they are. */
+        people: Set<String>? = null,
+    ) {
+        val split = requireNotNull(transactions().firstOrNull { it.id == id }) { "no such split" }
+        val currency = split.amount.currency
+        require(total.currency == currency && yours.currency == currency) { "a split cannot cross currencies" }
+        require(yours.minor >= 0) { "your share cannot be negative" }
+        require(total.minor > 0) { "a split needs a bill" }
+        require(yours.minor <= total.minor) { "your share cannot be more than the bill" }
+        val after = people?.map { it.trim().lowercase() }?.filter { it.isNotEmpty() }?.toSet() ?: split.splitWith
+        if (others != null) requireShares(others, after, yours, total)
+        // The sign follows the entry: money out stays out. The bill carries it
+        // when the user's own share is zero and so has no sign of its own.
+        val sign = if ((split.totalPaid ?: split.amount).isOutflow) -1 else 1
+        val at = now()
+        fun put(field: String, value: TaggedValue) =
+            store.append(Event(store.issue(), Transaction.ENTITY, id, field, value), at)
+        // People first and one field each, as [addSplitParticipant] writes them,
+        // so a concurrent add from another device still merges.
+        (after - split.splitWith).forEach { put(Transaction.splitKey(it), TaggedValue.Bool(true)) }
+        (split.splitWith - after).forEach { put(Transaction.splitKey(it), TaggedValue.Bool(false)) }
+        put(Transaction.FIELD_TOTAL_PAID, TaggedValue.Num(sign * total.minor))
+        put(Transaction.FIELD_AMOUNT, TaggedValue.Num(sign * yours.minor))
+        put(Transaction.FIELD_SHARES, TaggedValue.Str(others?.let(Transaction::encodeShares).orEmpty()))
+    }
+
+    /** The one rule about per-person amounts: they name the people and add up. */
+    private fun requireShares(shares: Map<String, Money>, people: Set<String>, yours: Money, total: Money) {
+        require(shares.keys.map { it.trim().lowercase() }.toSet() == people.map { it.trim().lowercase() }.toSet()) {
+            "amounts must name exactly the people on the split"
+        }
+        require(shares.values.all { it.currency == total.currency && it.minor >= 0 }) { "a share cannot be negative" }
+        require(yours.minor + shares.values.sumOf { it.minor } == total.minor) { "the shares must add up to the bill" }
+    }
+
+    /**
+     * Everybody the user has ever split with, most recent first: the one-tap
+     * rows on a new split, so the people who come up every week need no
+     * keyboard at all.
+     */
+    fun knownPeople(): List<String> =
+        transactions().flatMap { it.splitWith.sorted() }.distinct()
 
     /** Adds someone to a split. Their own field, so concurrent adds cannot collide. */
     fun addSplitParticipant(id: String, participant: String) =
@@ -195,6 +328,15 @@ class LedgerRepository(
 
     private fun putSplitParticipant(id: String, participant: String, present: Boolean) {
         require(participant.isNotBlank()) { "a participant needs a label" }
+        // Amounts set for the old group are wrong for the new one. Cleared
+        // rather than left to be ignored, so removing the newcomer again does
+        // not quietly bring back numbers nobody is looking at.
+        if (transactions().firstOrNull { it.id == id }?.customShares?.isNotEmpty() == true) {
+            store.append(
+                Event(store.issue(), Transaction.ENTITY, id, Transaction.FIELD_SHARES, TaggedValue.Str("")),
+                now(),
+            )
+        }
         store.append(
             Event(
                 store.issue(),
@@ -205,6 +347,22 @@ class LedgerRepository(
             ),
             now(),
         )
+    }
+
+    /**
+     * Everything [participant] owes, marked paid back: on each open split
+     * with them, their outstanding part is added to what they had already
+     * repaid. For "Anya paid me back" as one tap, instead of a repayment typed
+     * into every split she was on. Other people on the same splits are not
+     * touched.
+     */
+    fun settleUpWith(participant: String) {
+        val key = Transaction.splitKey(participant).removePrefix(Transaction.FIELD_SPLIT_PREFIX)
+        openSplits().filter { key in it.splitWith }.forEach { split ->
+            val left = split.outstandingFor(key) ?: return@forEach
+            if (left.minor == 0L) return@forEach
+            settleParticipant(split.id, key, (split.settledBy[key] ?: Money(0, left.currency)) + left)
+        }
     }
 
     /** Splits with anything still outstanding, newest first. */
@@ -236,7 +394,10 @@ class LedgerRepository(
 
     /** Everyone who appears in an unsettled split, in a stable order. */
     fun openSplitParticipants(): List<String> =
-        openSplits().flatMap { it.splitWith }.distinct().sorted()
+        // Per person, not per split: somebody who paid their part back is
+        // done, even while the split stays open for the others on it.
+        openSplits().flatMap { split -> split.splitWith.filter { (split.outstandingFor(it)?.minor ?: 0L) > 0 } }
+            .distinct().sorted()
 
     /** Soft-deletes. The row stays in the log so other devices learn about it. */
     fun delete(id: String) {
@@ -323,11 +484,15 @@ class LedgerRepository(
     }
 
     /** Every live account, in creation order, archived ones last. */
-    fun accounts(includeArchived: Boolean = false): List<Account> = store.foldOf(Account.ENTITY)
-        .mapNotNull { (key, entity) -> Account.from(key, entity) }
-        .filterNot { it.deleted }
-        .filter { includeArchived || !it.archived }
-        .sortedWith(compareBy<Account> { it.archived }.thenBy { it.id })
+    fun accounts(includeArchived: Boolean = false): List<Account> {
+        val all = memo("accounts", Account.ENTITY) {
+            store.foldOf(Account.ENTITY)
+                .mapNotNull { (key, entity) -> Account.from(key, entity) }
+                .filterNot { it.deleted }
+                .sortedWith(compareBy<Account> { it.archived }.thenBy { it.id })
+        }
+        return if (includeArchived) all else all.filterNot { it.archived }
+    }
 
     /**
      * Each account with its balance, folded out of the transactions assigned to it.
@@ -498,10 +663,12 @@ class LedgerRepository(
     }
 
     /** Every preference the user has explicitly set. */
-    fun preferences(): Map<String, Boolean> = store.foldOf(Preference.ENTITY)
-        .mapNotNull { (key, entity) -> Preference.from(key, entity) }
-        .filterNot { it.deleted }
-        .associate { it.key to it.enabled }
+    fun preferences(): Map<String, Boolean> = memo("preferences", Preference.ENTITY) {
+        store.foldOf(Preference.ENTITY)
+            .mapNotNull { (key, entity) -> Preference.from(key, entity) }
+            .filterNot { it.deleted }
+            .associate { it.key to it.enabled }
+    }
 
     /**
      * Whether the gamification layer runs.
@@ -522,10 +689,12 @@ class LedgerRepository(
      * Values are returned exactly as stored, including one this build does not
      * recognise. See [Choice] for why that is deliberate.
      */
-    fun choices(): Map<String, String> = store.foldOf(Choice.ENTITY)
-        .mapNotNull { (key, entity) -> Choice.from(key, entity) }
-        .filterNot { it.deleted }
-        .associate { it.key to it.value }
+    fun choices(): Map<String, String> = memo("choices", Choice.ENTITY) {
+        store.foldOf(Choice.ENTITY)
+            .mapNotNull { (key, entity) -> Choice.from(key, entity) }
+            .filterNot { it.deleted }
+            .associate { it.key to it.value }
+    }
 
     /** One choice, or null when the user has not made it. Null means the default. */
     fun choice(key: String): String? = choices()[key]
@@ -555,10 +724,12 @@ class LedgerRepository(
     }
 
     /** Every live transaction, newest first. */
-    fun transactions(): List<Transaction> = store.foldOf(Transaction.ENTITY)
-        .mapNotNull { (key, entity) -> Transaction.from(key, entity) }
-        .filterNot { it.deleted }
-        .sortedWith(compareByDescending<Transaction> { it.day }.thenByDescending { it.id })
+    fun transactions(): List<Transaction> = memo("transactions", Transaction.ENTITY) {
+        store.foldOf(Transaction.ENTITY)
+            .mapNotNull { (key, entity) -> Transaction.from(key, entity) }
+            .filterNot { it.deleted }
+            .sortedWith(compareByDescending<Transaction> { it.day }.thenByDescending { it.id })
+    }
 
     /**
      * One ledger per currency the user actually has, in a stable order.
@@ -636,10 +807,12 @@ class LedgerRepository(
     }
 
     /** Every live budget, by currency. */
-    fun budgets(): Map<Currency, Budget> = store.foldOf(Budget.ENTITY)
-        .mapNotNull { (key, entity) -> Budget.from(key, entity) }
-        .filterNot { it.deleted }
-        .associateBy { it.currency }
+    fun budgets(): Map<Currency, Budget> = memo("budgets", Budget.ENTITY) {
+        store.foldOf(Budget.ENTITY)
+            .mapNotNull { (key, entity) -> Budget.from(key, entity) }
+            .filterNot { it.deleted }
+            .associateBy { it.currency }
+    }
 
     /**
      * Records money moved between two of the user's own accounts.
@@ -707,10 +880,12 @@ class LedgerRepository(
     }
 
     /** Every live transfer, newest first. */
-    fun transfers(): List<Transfer> = store.foldOf(Transfer.ENTITY)
-        .mapNotNull { (key, entity) -> Transfer.from(key, entity) }
-        .filterNot { it.deleted }
-        .sortedWith(compareByDescending<Transfer> { it.day }.thenByDescending { it.id })
+    fun transfers(): List<Transfer> = memo("transfers", Transfer.ENTITY) {
+        store.foldOf(Transfer.ENTITY)
+            .mapNotNull { (key, entity) -> Transfer.from(key, entity) }
+            .filterNot { it.deleted }
+            .sortedWith(compareByDescending<Transfer> { it.day }.thenByDescending { it.id })
+    }
 
     /**
      * Every rate this user's own money actually moved at, newest first.
@@ -812,8 +987,9 @@ class LedgerRepository(
      * A day holding both a hand-logged and an imported entry still counts: the
      * person was there.
      */
-    private fun allRecordedDays(): Set<Int> =
+    private fun allRecordedDays(): Set<Int> = memo("recordedDays", Transaction.ENTITY, NoSpend.ENTITY) {
         transactions().filterNot { it.imported }.map { it.day }.toSet() + noSpendDays()
+    }
 
     /**
      * Marks a day as one with nothing to record.

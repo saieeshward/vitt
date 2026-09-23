@@ -47,6 +47,12 @@ fun CategorySheet(
     /** Called with the edited note, or null to clear it. Only fires on a change. */
     onNoteChange: (String?) -> Unit,
     onDone: () -> Unit,
+    /**
+     * Opens the split editor, for an entry that is a split. The row in Activity
+     * opens this sheet, and without a way through from here a group expense
+     * could be edited only by finding it again under People.
+     */
+    onEditSplit: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val merchantKey = transaction.merchant?.let { MerchantName.key(it) }
@@ -98,6 +104,15 @@ fun CategorySheet(
             color = Vitt.colors.ink,
         )
 
+        if (onEditSplit != null && transaction.isSplit) {
+            val bill = transaction.totalPaid?.abs()
+            val people = transaction.splitWith.size + 1
+            androidx.compose.material3.TextButton(onClick = onEditSplit) {
+                Text(
+                    if (bill == null) "Edit the split" else "Split: ${bill.displayUnsigned()} between $people. Edit",
+                )
+            }
+        }
         OutlinedTextField(
             value = note,
             onValueChange = { note = it.takeChars(Transaction.MAX_NOTE) },

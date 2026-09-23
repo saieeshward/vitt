@@ -52,6 +52,141 @@ class SheetsClientTest {
     }
 
     @Test
+    fun `a derived tab is read unformatted so a number is its value`() = runTest {
+        // A formatted read returns what the column displays, and a column of
+        // money formatted as currency would read as every row edited.
+        val (sheets, engine) = client {
+            respond("""{"values":[["Amount"],[-12.5]]}""", HttpStatusCode.OK, jsonHeaders())
+        }
+        val rows = sheets.readCells("sheet-1", "Transactions!A1:A2")
+
+        val url = engine.requestHistory.single().url.toString()
+        assertTrue("valueRenderOption=UNFORMATTED_VALUE" in url, url)
+        assertEquals(listOf(listOf(Cell.Text("Amount")), listOf(Cell.Number("-12.5"))), rows)
+    }
+
+    @Test
+    fun `a derived tab somebody deleted is created again and reads empty`() = runTest {
+        val (sheets, engine) = client { request ->
+            if (":batchUpdate" in request.url.toString()) {
+                respond("""{"spreadsheetId":"sheet-1"}""", HttpStatusCode.OK, jsonHeaders())
+            } else {
+                respond(
+                    """{"error":{"code":400,"message":"Unable to parse range: Transactions!A1:Z5000","status":"INVALID_ARGUMENT"}}""",
+                    HttpStatusCode.BadRequest,
+                    jsonHeaders(),
+                )
+            }
+        }
+        val rows = SheetsTransport(sheets).derived.read("sheet-1", "Transactions")
+
+        assertTrue(rows.isEmpty())
+        val body = (engine.requestHistory.last().body as TextContent).text
+        assertTrue("addSheet" in body && "Transactions" in body, body)
+    }
+
+    @Test
+    fun `a new year's summary tab is created by the write that finds it missing`() = runTest {
+        var created = false
+        val (sheets, engine) = client { request ->
+            val url = request.url.toString()
+            when {
+                ":batchUpdate" in url -> {
+                    created = true
+                    respond("""{"spreadsheetId":"sheet-1"}""", HttpStatusCode.OK, jsonHeaders())
+                }
+                !created -> respond(
+                    """{"error":{"code":400,"message":"Unable to parse range: Summary_2027!A1:F2","status":"INVALID_ARGUMENT"}}""",
+                    HttpStatusCode.BadRequest,
+                    jsonHeaders(),
+                )
+                else -> respond("""{}""", HttpStatusCode.OK, jsonHeaders())
+            }
+        }
+        SheetsTransport(sheets).derived.replace("sheet-1", "Summary_2027", listOf(listOf(Cell.Text("Month"))), 'F')
+
+        val kinds = engine.requestHistory.map { r ->
+            val u = r.url.toString()
+            when { ":batchUpdate" in u -> "create"; ":clear" in u -> "clear"; else -> "write" }
+        }
+        assertEquals(listOf("write", "create", "write", "clear"), kinds)
+    }
+
+    @Test
+    fun `blocks go out as one request with one range per block`() = runTest {
+        val (sheets, engine) = client { respond("""{"totalUpdatedCells":4}""", HttpStatusCode.OK, jsonHeaders()) }
+        SheetsTransport(sheets).derived.writeBlocks(
+            "sheet-1",
+            "Transactions",
+            listOf(
+                DerivedTabs.Block(0, 2, listOf(listOf(Cell.Text("a"), Cell.Text("b")), listOf(Cell.Text("c"), Cell.Text("d")))),
+                DerivedTabs.Block(27, 2, listOf(listOf(Cell.Number("-12.50")), listOf(Cell.Blank))),
+            ),
+        )
+        val request = engine.requestHistory.single()
+        val body = (request.body as TextContent).text
+        assertTrue("values:batchUpdate" in request.url.toString())
+        assertTrue(""""valueInputOption":"RAW"""" in body, body)
+        assertTrue("Transactions!A2:B3" in body && "Transactions!AB2:AB3" in body, body)
+        assertTrue("-12.50" in body && "\"-12.50\"" !in body, "the amount must go out as a number: $body")
+    }
+
+    @Test
+    fun `a tab id is asked for with every field the answer is decoded into`() = runTest {
+        // Google returns only what the mask names. Answer here exactly as it
+        // did on the first live run for the old mask, and the call must still
+        // decode, because the mask now asks for spreadsheetId.
+        val (sheets, engine) = client { request ->
+            val fields = request.url.parameters["fields"].orEmpty().split(',')
+            val body = buildString {
+                append("{")
+                if ("spreadsheetId" in fields) append(""""spreadsheetId":"sheet-1",""")
+                append(""""sheets":[{"properties":{"title":"Transactions","sheetId":7}}]}""")
+            }
+            respond(body, HttpStatusCode.OK, jsonHeaders())
+        }
+        assertEquals(7, sheets.sheetId("sheet-1", "Transactions"))
+        assertTrue("spreadsheetId" in engine.requestHistory.single().url.parameters["fields"].orEmpty())
+    }
+
+    @Test
+    fun `rows are deleted bottom-up in one request`() = runTest {
+        val (sheets, engine) = client { request ->
+            if (request.url.toString().contains("fields=")) {
+                respond("""{"spreadsheetId":"sheet-1","sheets":[{"properties":{"title":"Transactions","sheetId":7}}]}""", HttpStatusCode.OK, jsonHeaders())
+            } else {
+                respond("""{"spreadsheetId":"sheet-1"}""", HttpStatusCode.OK, jsonHeaders())
+            }
+        }
+        sheets.deleteRows("sheet-1", "Transactions", listOf(3, 9, 5))
+        val body = (engine.requestHistory.last().body as TextContent).text
+        val starts = Regex(""""startIndex":(\d+)""").findAll(body).map { it.groupValues[1].toInt() }.toList()
+        assertEquals(listOf(8, 4, 2), starts, body)
+        assertTrue(""""sheetId":7""" in body, body)
+    }
+
+    @Test
+    fun `a bad read of a tab that exists is not swallowed`() = runTest {
+        // addTab answering "already exists" means the 400 was about something
+        // else, and an empty table here would read as every row removed.
+        val (sheets, _) = client { request ->
+            val already = ":batchUpdate" in request.url.toString()
+            respond(
+                if (already) {
+                    """{"error":{"code":400,"message":"A sheet with the name \"Transactions\" already exists.","status":"INVALID_ARGUMENT"}}"""
+                } else {
+                    """{"error":{"code":400,"message":"Range too wide","status":"INVALID_ARGUMENT"}}"""
+                },
+                HttpStatusCode.BadRequest,
+                jsonHeaders(),
+            )
+        }
+        assertFailsWith<SheetsError.BadRequest> {
+            SheetsTransport(sheets).derived.read("sheet-1", "Transactions")
+        }
+    }
+
+    @Test
     fun `requests carry the bearer token`() = runTest {
         val (sheets, engine) = client { respond("""{"values":[]}""", HttpStatusCode.OK, jsonHeaders()) }
         sheets.read("sheet-1", "Events!A2:F10")

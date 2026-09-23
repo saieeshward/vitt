@@ -115,6 +115,31 @@ confused. Taken from a seeded simulator, in the order that tells the story:
 Re-capture with `SIMCTL_CHILD_VITT_SEED=1` on a 16 Pro Max, stacked card
 layout, so the Ledgers shot shows two currencies rather than one and a peek.
 
+### iPad, 13-inch
+
+In `screenshots/13/`: four of them, 2064x2752, which is the 13" size the store
+requires of any build that claims iPad. They show the iPad layouts rather than
+the phone's stretched: the rail on the leading edge, both currencies side by
+side on Ledgers, Activity at a readable width, and Reports in two columns.
+
+1. Ledgers, two currencies across.
+2. Activity, the list at a readable width.
+3. Reports, two columns with the ring and the calendar of dots.
+4. People.
+
+Taken on a simulator of its own, with no taps, so they can be re-taken the same
+way: seed it, open each tab with the debug-only `VITT_TAB` launch variable, and
+screenshot with `simctl io`. The status bar is overridden to 9:41 and full.
+
+```bash
+xcrun simctl status_bar <udid> override --time "9:41" --batteryState charged --batteryLevel 100
+SIMCTL_CHILD_VITT_SEED=1 SIMCTL_CHILD_VITT_TAB=reports xcrun simctl launch --terminate-running-process <udid> ie.shoonya.vitt
+xcrun simctl io <udid> screenshot screenshots/13/03-reports.png
+```
+
+A new simulator shows a one-time system banner on first boot. Take the set
+after it has gone.
+
 ## App privacy (the nutrition card)
 
 Answer: **Data Not Collected.** Every question, every category.

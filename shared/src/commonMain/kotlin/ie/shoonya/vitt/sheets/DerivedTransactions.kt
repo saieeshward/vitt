@@ -28,6 +28,56 @@ sealed interface Cell {
 
     /** An empty cell. Distinct from "0" and from the string "". */
     data object Blank : Cell
+
+    /**
+     * A checkbox, or anything else the sheet holds as TRUE or FALSE.
+     *
+     * The app never writes one of its own. It exists so a read can say what a
+     * cell holds: a checkbox read as the text "TRUE" and sent back as text stops
+     * being a checkbox and fails its own validation.
+     */
+    data class Bool(val value: Boolean) : Cell
+}
+
+/**
+ * The cell as text: what a header or an id is looked up by, and what a change
+ * is described with.
+ */
+internal fun Cell.asText(): String = when (this) {
+    is Cell.Text -> value.trim()
+    is Cell.Number -> plain
+    Cell.Blank -> ""
+    is Cell.Bool -> if (value) "TRUE" else "FALSE"
+}
+
+/** The cell's value in one spelling, so equal values give equal text. */
+internal fun Cell.canonicalText(): String = asText().let { canonicalDecimal(it) ?: it }
+
+/**
+ * Whether two cells hold the same value, however each spells it.
+ *
+ * The app writes `-12.50` and the sheet hands back `-12.5`, because a number
+ * has no trailing zeros once it is stored. Those are one amount, and treating
+ * them as two is what froze the tab on its second refresh. A decimal is
+ * compared by its digits, never through a Double.
+ */
+internal fun Cell.sameValueAs(other: Cell): Boolean {
+    val a = asText()
+    val b = other.asText()
+    return a == b || (canonicalDecimal(a) ?: return false) == canonicalDecimal(b)
+}
+
+private val PLAIN_DECIMAL = Regex("""-?\d+(\.\d+)?""")
+
+/** `-12.50` and `-12.5` to the same string; null for anything not a plain decimal. */
+private fun canonicalDecimal(s: String): String? {
+    if (!PLAIN_DECIMAL.matches(s)) return null
+    val negative = s.startsWith("-")
+    val (whole, fraction) = s.removePrefix("-").split('.').let { it[0] to it.getOrElse(1) { "" } }
+    val w = whole.trimStart('0').ifEmpty { "0" }
+    val f = fraction.trimEnd('0')
+    val body = if (f.isEmpty()) w else "$w.$f"
+    return if (negative && body != "0") "-$body" else body
 }
 
 /**
@@ -48,12 +98,11 @@ sealed interface Cell {
  *
  * ## Derived, and therefore disposable
  *
- * Every row here is recomputed from the local fold and written wholesale. That
- * is safe *only* because the app wrote it: §0.5 forbids editing a row the app
- * did not write, and forbids trusting anything the sheet computed. Nothing here
- * is ever read back. A person who edits this tab is editing a rendering, and
- * their edit is gone at the next write — which is why the write archives first
- * rather than assuming nobody has.
+ * Every row here is recomputed from the local fold and written over the app's
+ * own columns. That is safe *only* because the app wrote it: §0.5 forbids
+ * editing a row the app did not write, and forbids trusting anything the sheet
+ * computed. The tab is read back, but only to notice a person's edit before
+ * writing over it ([SheetDrift]); nothing read here ever becomes a transaction.
  */
 object DerivedTransactions {
 
@@ -121,7 +170,9 @@ object DerivedTransactions {
                 // column that is either "the same again" or "different" is read
                 // by scanning for the difference, and filling it destroys that.
                 if (t.isSplit) number(t.amount.toPlainString()) else Cell.Blank,
-                text(t.splitWith.sorted().joinToString(", ").ifEmpty { null }),
+                // Each person with their amount, so the sheet says who owes
+                // what rather than only who was there.
+                text(t.shares().entries.joinToString(", ") { (who, m) -> "$who ${m.toPlainString()}" }.ifEmpty { null }),
                 // Only when it is not already the description, or the same
                 // words appear twice on one line.
                 text(t.note?.takeIf { t.merchantLabel != null }),

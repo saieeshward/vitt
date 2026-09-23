@@ -1,78 +1,89 @@
-# VITT
+<p align="center">
+  <img src="site/assets/img/icon-256.png" width="88" height="88" alt="VITT">
+</p>
 
-*Very Interesting Transaction Tracking*
+<h1 align="center">VITT</h1>
 
-A free, open-source expense and net-worth tracker for people whose money lives
-in more than one currency.
+<p align="center">
+  Money in more than one currency, kept apart.<br>
+  <a href="https://saieeshward.github.io/vitt/"><b>Website</b></a> ·
+  <a href="https://saieeshward.github.io/vitt/privacy/">Privacy</a> ·
+  <a href="https://github.com/saieeshward/vitt/issues">Report a problem</a>
+</p>
 
-> **Status: pre-alpha.** Nothing is shippable yet. See [PLAN.md](PLAN.md) for the
-> engineering plan and [docs/phase-0-checklist.md](docs/phase-0-checklist.md) for
-> what is in flight.
+<p align="center">
+  <img src="site/assets/img/add.webp" width="190" alt="Logging an expense">
+  <img src="site/assets/img/ledgers.webp" width="190" alt="One card per currency">
+  <img src="site/assets/img/split.webp" width="190" alt="A bill split three ways">
+  <img src="site/assets/img/story-2.webp" width="190" alt="The month told back">
+</p>
 
-## What makes it different
+## What it is
 
-- **No exchange-rate blending, ever.** Balances are shown natively per currency
-  — "EUR €X, INR ₹Y" — never merged into one estimated total. Your net worth
-  does not appear to change because a rate moved. The single exception is a real
-  cross-border transfer, which records the rate actually used, because that is a
-  fact rather than an estimate.
-- **Your data is a spreadsheet you own.** VITT stores everything in a Google
-  Sheet in your own Drive. You can open it, read it, edit it, export it, or stop
-  using VITT entirely and keep every row.
-- **Offline-first.** The app works with no network. Nothing waits on a sync.
-- **No accounts, no server.** VITT has no backend. There is no VITT account to
-  create and no VITT database holding your spending.
-- **No bank logins.** No aggregator, no credential sharing, no OTP walls.
+VITT is an open-source expense tracker for iPhone and Android, for people whose
+money lives in more than one currency. Balances are kept per currency and never
+converted into one blended total, so nothing you see changes because an exchange
+rate moved. The one rate it ever records is the one a real transfer between your
+own accounts used, because that is a fact rather than an estimate.
 
-## How it works
+There is no VITT account and no VITT server. Everything lives in a database on
+your phone and, if you choose to connect Google, in a spreadsheet VITT creates in
+your own Drive. The app only appends to that sheet, which is why two phones or a
+week offline merge without losing anything, and why every row is still yours if
+you stop using VITT.
 
-The app keeps a local database as its source of truth and appends every change to
-an event log in your spreadsheet. Because the log is append-only, edits made on
-two devices — or made offline for a week — merge without conflict or data loss.
+## What it asks for
 
-Google's Sheets API offers no compare-and-swap, so an append-only log is not
-merely tidy here; it is the only design that is safe. See [PLAN.md](PLAN.md) §2–3.
+Two Google scopes, and only if you connect Drive: `drive.file`, which covers the
+one sheet VITT made or a file you pick, and `openid email profile`, to show which
+account the sheet belongs to. It never asks for `drive` or `spreadsheets`, and it
+does not read your texts or notifications or ask for a bank login. There is no
+analytics, advertising or crash-reporting SDK in the app.
 
-## Permissions
+## Status
 
-VITT requests exactly two OAuth scopes:
+The code is feature-complete for 1.0 and the app is not in either store yet. What
+is left needs the maintainer's accounts rather than code; `vitt.clan` has the
+current list.
 
-| Scope | Why |
-|---|---|
-| `drive.file` | Create and edit **only** the spreadsheet VITT made, or one you explicitly pick. VITT cannot see anything else in your Drive. |
-| `openid email profile` | Identify which Google account the spreadsheet belongs to. |
+## Build it
 
-VITT does **not** request `drive` or `spreadsheets`, which would grant access to
-your whole Drive or all of your spreadsheets.
+JDK 17 or later, the Android SDK, and for iOS a Mac with Xcode and
+[XcodeGen](https://github.com/yonaskolb/XcodeGen).
 
-VITT does **not** read your SMS or your notifications.
-
-## Platforms
-
-Android and iOS, from one Kotlin Multiplatform codebase with a shared Compose
-Multiplatform UI.
-
-## Building
-
-Requires JDK 17+, Android Studio, and — for the iOS target — macOS with Xcode.
-
-```
-./gradlew :composeApp:assembleDebug        # Android
-./gradlew :shared:allTests                 # shared logic tests
-open iosApp/iosApp.xcodeproj               # iOS
+```bash
+./gradlew :shared:jvmTest                 # the shared logic, fast
+./gradlew :androidApp:assembleDebug       # Android
+cd iosApp && xcodegen generate            # then open VITT.xcodeproj
 ```
 
-## Distribution
+[docs/running-locally.md](docs/running-locally.md) covers the simulator, sample
+data and the rest. The website is plain files in [`site/`](site); GitHub Pages
+serves it from `main`.
 
-Play Store and App Store builds are signed by the maintainers. GitHub Releases
-carry a self-signed universal APK for sideloading, also available through
-[Obtainium](https://github.com/ImranR98/Obtainium).
+## For AI agents
 
-**A GitHub APK and a Play install use different signing keys and cannot update
-each other.** Pick one and stay on it. Certificate fingerprints are published in
-[docs/verifying-builds.md](docs/verifying-builds.md).
+If someone handed you this README or `vitt.clan`, start with these two, in this
+order, before answering or changing anything:
+
+1. **The website, <https://saieeshward.github.io/vitt/>**, for what the product
+   is and the rules it keeps.
+2. **The repository, <https://github.com/saieeshward/vitt>**, for the code, open
+   issues and history.
+
+Then read `CLAUDE.md` for how to work in the repo and its closed decisions, and
+run `clan read agent vitt.clan` for the current phase, next tasks and blockers.
+Do not propose anything `CLAUDE.md` lists as a hard constraint. Working on Android? Section 10 of the
+`vitt.clan` handoff is written for that, and starts with a prompt to paste into
+your agent.
+
+## Authors
+
+Built by [Sai Eeshwar D](https://github.com/saieeshward)
+([@saieeshward](https://github.com/saieeshward)) and
+[Shreyansh Soni](https://github.com/batunii) ([@batunii](https://github.com/batunii)).
 
 ## Licence
 
-[Apache-2.0](LICENSE). The name and icon are not covered — see
+[Apache-2.0](LICENSE). The name and icon are not covered; see
 [TRADEMARK.md](TRADEMARK.md).

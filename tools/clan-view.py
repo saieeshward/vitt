@@ -16,6 +16,7 @@ that are.
 """
 import html
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -29,6 +30,7 @@ work = tempfile.mkdtemp(prefix="clan-view-")
 with zipfile.ZipFile(clan_file) as z:
     z.extractall(work)
 
+context = open(f"{work}/agent/context.md").read()
 data = yaml.safe_load(open(f"{work}/shared/data.yaml"))
 chain = yaml.safe_load(open(f"{work}/agent/decision-chain.yaml"))["decisions"]
 manifest = yaml.safe_load(open(f"{work}/manifest.yaml"))
@@ -47,6 +49,133 @@ stage, _, detail = phase.partition(" — ")
 detail = detail[:1].upper() + detail[1:]
 
 RECENT = 11  # the entries from the latest session, shown open
+
+
+def inline(text):
+    """Bold, inline code and links, on already-escaped text."""
+    out = e(text)
+    out = re.sub(r"`([^`]+)`", r"<code>\1</code>", out)
+    out = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", out)
+    # Single asterisks after the double ones, or the emphasis inside a bold run
+    # would be eaten first and the asterisks left on screen.
+    out = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"<em>\1</em>", out)
+    return out
+
+
+def markdown(src):
+    """Enough Markdown for the handoff page: headings, lists, tables, fences.
+
+    Deliberately small rather than a dependency. The input is one file written
+    in this repo, so the subset it uses is known — and a renderer that silently
+    handles more than it is given is a renderer nobody checks.
+    """
+    out = []
+    lines = src.split("\n")
+    i = 0
+    mode = None  # "ul", "ol", "table", "pre", or None
+
+    def close():
+        nonlocal mode
+        if mode == "ul":
+            out.append("</ul>")
+        elif mode == "ol":
+            out.append("</ol>")
+        elif mode == "table":
+            out.append("</tbody></table>")
+        elif mode == "pre":
+            out.append("</code></pre>")
+        mode = None
+
+    while i < len(lines):
+        line = lines[i]
+
+        if mode == "pre":
+            if line.strip().startswith("```"):
+                close()
+            else:
+                out.append(e(line))
+            i += 1
+            continue
+
+        if line.strip().startswith("```"):
+            close()
+            out.append("<pre><code>")
+            mode = "pre"
+            i += 1
+            continue
+
+        stripped = line.strip()
+
+        if not stripped:
+            close()
+            i += 1
+            continue
+
+        if stripped.startswith("#"):
+            close()
+            level = len(stripped) - len(stripped.lstrip("#"))
+            out.append(f"<h{min(level + 1, 6)} class='md'>{inline(stripped.lstrip('# '))}</h{min(level + 1, 6)}>")
+            i += 1
+            continue
+
+        if stripped == "---":
+            close()
+            out.append("<hr>")
+            i += 1
+            continue
+
+        # A table: a header row, a separator, then body rows.
+        # A separator has to actually be one. Testing only that the next line is
+        # a subset of "|-: " made the *blank* line after the final row qualify —
+        # the empty set is a subset of everything — so the last row of every
+        # table started a new table and rendered as its header.
+        nxt = lines[i + 1].strip() if i + 1 < len(lines) else ""
+        if stripped.startswith("|") and "-" in nxt and set(nxt) <= set("|-: "):
+            close()
+            cells = [c.strip() for c in stripped.strip("|").split("|")]
+            out.append("<table><thead><tr>")
+            out += [f"<th>{inline(c)}</th>" for c in cells]
+            out.append("</tr></thead><tbody>")
+            mode = "table"
+            i += 2
+            continue
+
+        if mode == "table" and stripped.startswith("|"):
+            cells = [c.strip() for c in stripped.strip("|").split("|")]
+            out.append("<tr>" + "".join(f"<td>{inline(c)}</td>" for c in cells) + "</tr>")
+            i += 1
+            continue
+
+        ordered = re.match(r"^(\d+)\. +(.*)", stripped)
+        if stripped.startswith("- ") or ordered:
+            want = "ol" if ordered else "ul"
+            if mode != want:
+                close()
+                out.append(f"<{want}class>".replace("class", f" class='md'"))
+                mode = want
+            body = ordered.group(2) if ordered else stripped[2:]
+            # Continuation lines of the same bullet are indented.
+            while i + 1 < len(lines) and lines[i + 1].startswith("  ") and lines[i + 1].strip() \
+                    and not lines[i + 1].strip().startswith(("- ", "|")) \
+                    and not re.match(r"^\s*\d+\. ", lines[i + 1]):
+                i += 1
+                body += " " + lines[i].strip()
+            out.append(f"<li>{inline(body)}</li>")
+            i += 1
+            continue
+
+        close()
+        para = [stripped]
+        while i + 1 < len(lines) and lines[i + 1].strip() and not lines[i + 1].strip().startswith(
+            ("#", "-", "|", "```", "---")
+        ) and not re.match(r"^\s*\d+\. ", lines[i + 1]):
+            i += 1
+            para.append(lines[i].strip())
+        out.append(f"<p>{inline(' '.join(para))}</p>")
+        i += 1
+
+    close()
+    return "\n".join(out)
 
 
 def items(key):
@@ -155,6 +284,43 @@ details[open] summary::before { content: "▾ "; }
 .decisions .why { color: var(--muted); font-size: 14px; margin-top: 4px; }
 .decisions .when { color: var(--faint); font-size: 12px; font-variant-numeric: tabular-nums; }
 .pin { color: var(--accent); font-size: 12px; font-weight: 600; }
+.doc { margin-top: 8px; }
+.doc h2.md {
+  font-size: 22px; letter-spacing: -.01em; text-transform: none;
+  color: var(--ink); margin: 36px 0 10px; font-weight: 650;
+}
+.doc h3.md {
+  font-size: 16px; text-transform: none; letter-spacing: 0;
+  color: var(--ink); margin: 26px 0 8px; font-weight: 650;
+}
+.doc p { margin: 0 0 14px; }
+.doc ul.md, .doc ol.md { padding-left: 22px; margin: 0 0 14px; }
+.doc ul.md { list-style: disc; }
+.doc ol.md { list-style: decimal; }
+.doc ul.md li, .doc ol.md li {
+  border: 0; background: none; border-radius: 0;
+  padding: 0 0 8px; margin: 0; display: list-item;
+}
+.doc ul.md li::before, .doc ol.md li::before { content: none; }
+.doc code {
+  background: var(--surface); border-radius: 4px; padding: 1px 5px;
+  font-size: .88em;
+}
+.doc pre {
+  background: var(--surface); border-radius: 10px; padding: 14px 16px;
+  overflow-x: auto; margin: 0 0 16px;
+}
+.doc pre code { background: none; padding: 0; font-size: 13px; line-height: 1.6; }
+.doc table { width: 100%; border-collapse: collapse; margin: 0 0 18px; font-size: 15px; }
+.doc th {
+  text-align: left; font-size: 11px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted); font-weight: 600;
+  padding: 0 12px 8px 0; border-bottom: 1px solid var(--line);
+}
+.doc td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.doc hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+.doc strong { font-weight: 650; }
+details.handoff > summary { font-size: 15px; }
 footer {
   margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--line);
   color: var(--faint); font-size: 13px;
@@ -222,6 +388,15 @@ out.append('<ul class="plain">')
 for t in earlier:
     out.append(li(t))
 out.append("</ul>")
+out.append("</details>")
+
+out.append("<h2>Handoff</h2>")
+out.append(
+    '<p class="note">The orientation page a new agent starts from. '
+    "Written to <code>agent/context.md</code>; this is the same text.</p>"
+)
+out.append('<details class="handoff"><summary>Read the handoff</summary>')
+out.append(f'<div class="doc">{markdown(context)}</div>')
 out.append("</details>")
 
 out.append("<h2>Decision chain</h2>")

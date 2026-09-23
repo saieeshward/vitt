@@ -107,11 +107,6 @@ in your Drive. Access it by opening the app or the spreadsheet; export it via
 Reports → Export everything as CSV; erase it as described above. No request to us is needed, and we
 could not fulfil one, as we hold nothing.
 
-For the optional parser diagnostics, we act as controller for anonymised text
-fragments that contain no identifier and cannot be traced to you — which also
-means we cannot locate or delete an individual submission. Disable the setting to
-stop further submissions.
-
 ## Changes
 
 Material changes will be noted in the app's release notes and in this document's

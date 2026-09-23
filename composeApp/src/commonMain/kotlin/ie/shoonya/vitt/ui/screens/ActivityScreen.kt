@@ -48,6 +48,8 @@ fun ActivityScreen(
     onFilterChange: (ActivityFilter) -> Unit,
     onPeriodChange: (Period?) -> Unit,
     onPickGrain: () -> Unit,
+    /** Opens the one-tap-each pass over entries with no category. */
+    onSort: (() -> Unit)? = null,
     /** Room kept at the foot for the companion's band, so the last rows never sit under her. */
     companionInset: androidx.compose.ui.unit.Dp = 0.dp,
     modifier: Modifier = Modifier,
@@ -81,6 +83,19 @@ fun ActivityScreen(
                 needingCategory = needingCategory,
                 onChange = onFilterChange,
             )
+        }
+
+        // Filtered to what needs a category, the list is a to-do; this does it
+        // a tap an entry instead of a sheet an entry.
+        if (filter.needingCategory && days.isNotEmpty() && onSort != null) {
+            item {
+                ie.shoonya.vitt.ui.VittChip(
+                    selected = false,
+                    onClick = onSort,
+                    label = { Text("Sort them, one tap each", style = Vitt.type.label) },
+                    modifier = Modifier.padding(top = Vitt.space.tight),
+                )
+            }
         }
 
         if (days.isEmpty()) {

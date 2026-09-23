@@ -170,4 +170,86 @@ class SyncControllerTest {
         val failed = assertIs<SyncStatus.Failed>(controller.status.value)
         assertEquals(1L, failed.pending)
     }
+
+    private fun kotlinx.coroutines.test.TestScope.throttled(
+        sheet: Sheet,
+        store: EventStore,
+        onRefresh: () -> Unit,
+    ) = SyncController(
+        scope = backgroundScope,
+        isConnected = { true },
+        syncer = { Syncer(store, sheet, now = { 1L }) },
+        store = store,
+        now = { 1L },
+        debounceMillis = 2_000,
+        refreshDerived = { onRefresh() },
+        derivedCooldownMillis = 30_000,
+    ).also { controller -> store.onLocalWrite = { controller.onLocalWrite() } }
+
+    @Test
+    fun `a burst of entries redraws the tabs twice — not once per entry`() = runTest {
+        // Each redraw is about eight requests against sixty a minute. Five
+        // entries a few seconds apart were five redraws and most of the quota.
+        val sheet = Sheet()
+        val store = store()
+        var refreshes = 0
+        throttled(sheet, store) { refreshes++ }
+
+        repeat(5) { i ->
+            store.write("t$i")
+            advanceTimeBy(3_000); runCurrent()
+        }
+        assertEquals(5, sheet.appends, "every entry still reaches the sheet on its own cycle")
+        assertEquals(1, refreshes, "the first redraw runs at once and the rest wait")
+
+        advanceTimeBy(30_000); runCurrent()
+        assertEquals(2, refreshes, "what changed during the window is drawn once at its end")
+    }
+
+    @Test
+    fun `a cycle that moved nothing does not redraw`() = runTest {
+        val sheet = Sheet()
+        val store = store()
+        var refreshes = 0
+        val controller = throttled(sheet, store) { refreshes++ }
+
+        controller.onForeground(); runCurrent()
+        assertEquals(1, refreshes, "the first redraw after launch runs, since the sheet may have been edited")
+
+        advanceTimeBy(60_000); runCurrent()
+        controller.onForeground(); runCurrent()
+        assertEquals(1, refreshes)
+    }
+
+    @Test
+    fun `sync now redraws through the cooldown`() = runTest {
+        // Somebody pressed the button and is looking at the spreadsheet.
+        val sheet = Sheet()
+        val store = store()
+        var refreshes = 0
+        val controller = throttled(sheet, store) { refreshes++ }
+
+        store.write("t1"); advanceTimeBy(2_001); runCurrent()
+        store.write("t2")
+        controller.syncNow(); runCurrent()
+        assertEquals(2, refreshes)
+    }
+
+    @Test
+    fun `a failed redraw is tried again after the window rather than at once`() = runTest {
+        val sheet = Sheet()
+        val store = store()
+        var attempts = 0
+        val controller = throttled(sheet, store) {
+            attempts++
+            if (attempts == 1) throw IllegalStateException("tab write failed")
+        }
+
+        controller.onForeground(); runCurrent()
+        assertIs<SyncStatus.Idle>(controller.status.value, "a tab failing is not a sync failing")
+        assertEquals(1, attempts)
+
+        advanceTimeBy(30_001); runCurrent()
+        assertEquals(2, attempts)
+    }
 }

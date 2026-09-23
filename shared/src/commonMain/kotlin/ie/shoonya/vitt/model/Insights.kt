@@ -323,14 +323,8 @@ object Insights {
         month: YearMonth,
         today: Int,
     ): List<Long> {
-        val last = minOf(today, month.lastDay)
-        if (last < month.firstDay) return emptyList()
-        val perDay = LongArray(last - month.firstDay + 1)
-        transactions.outflows(currency, month).forEach { t ->
-            if (t.day <= last) perDay[t.day - month.firstDay] += t.amount.abs().minor
-        }
         var running = 0L
-        return perDay.map { running += it; running }
+        return dailyTotals(transactions, currency, month, today).map { running += it.minor; running }
     }
 
     /**
@@ -349,6 +343,84 @@ object Insights {
             totals[Civil.dayOfWeek(t.day)] += t.amount.abs().minor
         }
         return totals.map { Money(it, currency) }
+    }
+
+    /**
+     * What went out on each day of [month], up to [today]: the calendar
+     * heatmap's cells. Zero on a day nothing went out, which the heatmap shows
+     * as a clear day rather than a missing one.
+     */
+    fun dailyTotals(
+        transactions: List<Transaction>,
+        currency: Currency,
+        month: YearMonth,
+        today: Int,
+    ): List<Money> {
+        val last = minOf(today, month.lastDay)
+        if (last < month.firstDay) return emptyList()
+        val perDay = LongArray(last - month.firstDay + 1)
+        transactions.outflows(currency, month).forEach { t ->
+            if (t.day <= last) perDay[t.day - month.firstDay] += t.amount.abs().minor
+        }
+        return perDay.map { Money(it, currency) }
+    }
+
+    /**
+     * The largest [keep] categories and the rest folded into one, for a chart
+     * that can only tell a handful of slices apart. A donut past six segments
+     * is a colour-matching puzzle, so the tail is summed rather than drawn.
+     * The folded slice has a null category and is always last.
+     */
+    fun foldTail(slices: List<CategorySlice>, keep: Int = 5): List<CategorySlice> {
+        if (slices.size <= keep + 1) return slices
+        val head = slices.filter { it.category != null }.take(keep)
+        val rest = slices - head.toSet()
+        val currency = slices.first().spent.currency
+        return head + CategorySlice(null, rest.fold(Money(0, currency)) { a, s -> a + s.spent }, rest.sumOf { it.count })
+    }
+
+    /**
+     * How big purchases are: how many fall between each pair of round amounts.
+     *
+     * The edges are round figures (1, 2, 5, 10, 20, 50 of the currency's main
+     * unit and so on) chosen to span the middle of the data, so a person reads
+     * "€10 to €20" rather than "€11.37 to €23.91", and yen and euro both get
+     * edges that make sense in their own units. At most [maxBins] bars, the
+     * first open below and the last open above.
+     */
+    fun sizes(
+        transactions: List<Transaction>,
+        currency: Currency,
+        period: Period?,
+        maxBins: Int = 6,
+    ): List<SizeBin> {
+        val amounts = transactions.outflows(currency, period).map { it.amount.abs().minor }.sorted()
+        if (amounts.isEmpty()) return emptyList()
+        val unit = (1..currency.exponent).fold(1L) { acc, _ -> acc * 10 }
+        val round = sequence {
+            var scale = unit
+            while (scale < Long.MAX_VALUE / 10) {
+                yield(scale); yield(scale * 2); yield(scale * 5)
+                scale *= 10
+            }
+        }
+        val low = amounts[amounts.size / 10]
+        val high = amounts[(amounts.size * 9) / 10]
+        var edges = round.dropWhile { it <= low }.takeWhile { it <= maxOf(high, low + 1) }.toList()
+        if (edges.isEmpty()) edges = listOf(round.first { it > low })
+        // Thin to fit, keeping the first and last so the span is unchanged.
+        while (edges.size > maxBins - 1) edges = edges.filterIndexed { i, _ -> i % 2 == 0 || i == edges.lastIndex }.distinct()
+        val bounds = listOf(0L) + edges
+        return bounds.mapIndexed { i, from ->
+            val until = edges.getOrNull(i)
+            val inBin = amounts.filter { it >= from && (until == null || it < until) }
+            SizeBin(
+                from = Money(from, currency),
+                until = until?.let { Money(it, currency) },
+                count = inBin.size,
+                spent = Money(inBin.sum(), currency),
+            )
+        }
     }
 
     /** §5.3: nothing is projected before the 7th. */
@@ -377,6 +449,9 @@ object Insights {
     private fun List<Transaction>.total(currency: Currency) =
         fold(Money(0, currency)) { acc, t -> acc + t.amount.abs() }
 }
+
+/** One bar of [Insights.sizes]: purchases from [from] up to, not including, [until]. */
+data class SizeBin(val from: Money, val until: Money?, val count: Int, val spent: Money)
 
 /**
  * One category's share of a period's spending.

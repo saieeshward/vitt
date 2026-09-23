@@ -38,7 +38,10 @@ object SettlementSummary {
         formatDay: (Int) -> String = { "day $it" },
     ): Message? {
         val theirs = splits
-            .filter { it.isSplit && !it.isSettled && participant.lowercase() in it.splitWith }
+            // What this person still owes, not whether the split as a whole is
+            // settled: with repayments per person, Bea can have paid her part
+            // of a dinner Cal still owes on, and her summary should not list it.
+            .filter { it.isSplit && (it.outstandingFor(participant)?.minor ?: 0L) > 0L }
             .sortedBy { it.day }
         if (theirs.isEmpty()) return null
 

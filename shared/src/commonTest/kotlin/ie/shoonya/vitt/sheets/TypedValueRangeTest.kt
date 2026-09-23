@@ -53,4 +53,34 @@ class TypedValueRangeTest {
     fun `a date stays text so no locale gets to reinterpret it`() {
         assertTrue(""""2026-04-03"""" in encode(Cell.Text("2026-04-03")))
     }
+
+    @Test
+    fun `a checkbox goes onto the wire as a boolean`() {
+        assertTrue("""[true]""" in encode(Cell.Bool(true)), encode(Cell.Bool(true)))
+    }
+
+    @Test
+    fun `an unformatted read keeps each cell's type`() {
+        val read = SheetsClient.lenientJson.decodeFromString<TypedValueRangeResponse>(
+            """{"range":"Transactions!A1:E1","values":[["Tesco",-12.5,true,"",90071992547409.91]]}""",
+        )
+        assertEquals(
+            listOf(
+                Cell.Text("Tesco"),
+                Cell.Number("-12.5"),
+                Cell.Bool(true),
+                Cell.Blank,
+                // Taken as Google spelled it, never through a Double.
+                Cell.Number("90071992547409.91"),
+            ),
+            read.values.single().map(::cellOf),
+        )
+    }
+
+    @Test
+    fun `text that looks like a boolean stays text`() {
+        // A merchant called "true" under RAW is a string, and must come back one.
+        val read = SheetsClient.lenientJson.decodeFromString<TypedValueRangeResponse>("""{"values":[["true"]]}""")
+        assertEquals(Cell.Text("true"), cellOf(read.values.single().single()))
+    }
 }

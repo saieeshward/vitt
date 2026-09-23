@@ -9,6 +9,13 @@ package ie.shoonya.vitt.money
  *
  * Amounts are signed: negative is money out, positive is money in.
  */
+/**
+ * The total of [amount] over these, in [currency]. Zero when empty, and a
+ * mixed-currency input throws in [Money.plus] rather than blending.
+ */
+inline fun <T> Iterable<T>.sumMoney(currency: Currency, amount: (T) -> Money): Money =
+    fold(Money(0, currency)) { acc, item -> acc + amount(item) }
+
 data class Money(val minor: Long, val currency: Currency) {
 
     operator fun plus(other: Money): Money {

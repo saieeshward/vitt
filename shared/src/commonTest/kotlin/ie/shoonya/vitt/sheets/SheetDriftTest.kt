@@ -25,12 +25,13 @@ class SheetDriftTest {
         "id" to "t1",
     )
 
-    /** The same table as the sheet would hand it back: strings, blanks empty. */
+    /** The same table as the sheet would hand it back, with blanks blank. */
     private fun asRead(
         columns: List<String> = DerivedTransactions.COLUMNS,
         vararg rows: Map<String, String>,
-    ): List<List<String>> =
-        listOf(columns) + rows.map { row -> columns.map { row[it].orEmpty() } }
+    ): List<List<Cell>> =
+        listOf(columns.map { Cell.Text(it) }) +
+            rows.map { row -> columns.map { row[it]?.let { v -> Cell.Text(v) } ?: Cell.Blank } }
 
     @Test
     fun `an empty tab is clean rather than a problem`() {
@@ -68,7 +69,11 @@ class SheetDriftTest {
     fun `a row deleted from the sheet is drift too`() {
         // Somebody deliberately removed it. Putting it straight back would be
         // the app arguing with them.
-        val verdict = SheetDrift.compare(asRead(rows = arrayOf()), desired(one))
+        val verdict = SheetDrift.compare(
+            asRead(rows = arrayOf()),
+            desired(one),
+            lastSeen = SheetDrift.memoryOf(desired(one)),
+        )
         assertEquals(
             listOf(SheetDrift.Change.Removed("t1")),
             (verdict as SheetDrift.Verdict.Drifted).changes,
@@ -97,12 +102,11 @@ class SheetDriftTest {
 
     @Test
     fun `somebody's own column is left out of the comparison`() {
-        // Not the app's to have an opinion about — but it is the reason the
-        // write cannot be a whole-tab replace.
+        // Not the app's to have an opinion about, and never written either.
         val withMine = listOf("Reviewed?") + DerivedTransactions.COLUMNS
         assertEquals(
-            listOf("Reviewed?"),
-            SheetDrift.extraColumns(asRead(withMine, one + ("Reviewed?" to "yes"))),
+            SheetDrift.Verdict.Clean,
+            SheetDrift.compare(asRead(withMine, one + ("Reviewed?" to "yes")), desired(one)),
         )
     }
 
@@ -133,6 +137,71 @@ class SheetDriftTest {
     }
 
     @Test
+    fun `an amount the sheet stores without its trailing zero is the same amount`() {
+        // What the app writes and what a read returns differ in spelling only.
+        val table = desired(one)
+        val wrote = listOf(table.first()) + table.drop(1).map { row ->
+            row.mapIndexed { i, cell ->
+                if (DerivedTransactions.COLUMNS[i] == "Amount" && cell is Cell.Text) Cell.Number(cell.value) else cell
+            }
+        }
+        val stored = asRead(rows = arrayOf(one + ("Amount" to "-12.5")))
+        assertEquals(SheetDrift.Verdict.Clean, SheetDrift.compare(stored, wrote))
+    }
+
+    @Test
+    fun `a changed amount is still an edit`() {
+        val verdict = SheetDrift.compare(asRead(rows = arrayOf(one + ("Amount" to "-12.51"))), desired(one))
+        val change = (verdict as SheetDrift.Verdict.Drifted).changes.single()
+        assertEquals(SheetDrift.Change.Edited("t1", "Amount", "-12.50", "-12.51"), change)
+    }
+
+    @Test
+    fun `decimals compare by value and never through a float`() {
+        assertTrue(Cell.Number("10.00").sameValueAs(Cell.Number("10")))
+        assertTrue(Cell.Number("-0.50").sameValueAs(Cell.Number("-0.5")))
+        assertTrue(Cell.Number("-0").sameValueAs(Cell.Number("0")))
+        // Past 2^53, where a Double would call these equal.
+        assertTrue(!Cell.Number("9007199254740993").sameValueAs(Cell.Number("9007199254740992")))
+        assertTrue(!Cell.Text("Tesco").sameValueAs(Cell.Text("Tesco 2")))
+    }
+
+    @Test
+    fun `a row missing and never seen is new rather than deleted`() {
+        // Not in the sheet because the sheet has not been given it yet.
+        assertEquals(SheetDrift.Verdict.Clean, SheetDrift.compare(asRead(rows = arrayOf()), desired(one)))
+    }
+
+    @Test
+    fun `a fingerprint ignores how a decimal is spelled`() {
+        assertEquals(
+            SheetDrift.fingerprint(listOf(Cell.Text("a"), Cell.Number("-12.50"))),
+            SheetDrift.fingerprint(listOf(Cell.Text("a"), Cell.Number("-12.5"))),
+        )
+        assertTrue(
+            SheetDrift.fingerprint(listOf(Cell.Text("a"), Cell.Blank, Cell.Text("b"))) !=
+                SheetDrift.fingerprint(listOf(Cell.Text("a"), Cell.Text("b"), Cell.Blank)),
+            "a value moving between columns is a change",
+        )
+    }
+
+    @Test
+    fun `memory survives its own encoding`() {
+        val memory = mapOf("t1" to "00ff", "0190a8b2-7c3e-7000-8000-000000000001" to "abcd")
+        assertEquals(memory, SheetDrift.decodeMemory(SheetDrift.encodeMemory(memory)))
+        assertEquals(emptyMap(), SheetDrift.decodeMemory(null))
+    }
+
+    @Test
+    fun `their own subtotal row is not reported as an addition`() {
+        // Nothing in any of the app's columns, so not the app's to report,
+        // and the write never touches it.
+        val withMine = listOf("Notes") + DerivedTransactions.COLUMNS
+        val read = asRead(withMine, one) + listOf(listOf(Cell.Text("Total so far")))
+        assertEquals(SheetDrift.Verdict.Clean, SheetDrift.compare(read, desired(one)))
+    }
+
+    @Test
     fun `a short row is ordinary rather than malformed`() {
         // Sheets trims trailing empty cells, so a row is routinely narrower
         // than its header. Reading past the end has to give a blank rather
@@ -140,14 +209,14 @@ class SheetDriftTest {
         // header reversed, which puts the always-filled id first and the
         // blank-prone columns at the end where the trimming happens.
         val idFirst = listOf("id") + (DerivedTransactions.COLUMNS - "id")
-        val trimmed = asRead(idFirst, one).map { it.dropLastWhile(String::isEmpty) }
+        val trimmed = asRead(idFirst, one).map { it.dropLastWhile { c -> c == Cell.Blank } }
         assertTrue(trimmed.last().size < idFirst.size, "the row under test is not actually short")
         assertEquals(SheetDrift.Verdict.Clean, SheetDrift.compare(trimmed, desired(one)))
     }
 
     @Test
     fun `a spacer row is skipped rather than reported as an addition`() {
-        val withSpacer = asRead(rows = arrayOf(one)) + listOf(List(DerivedTransactions.COLUMNS.size) { "" })
+        val withSpacer = asRead(rows = arrayOf(one)) + listOf(List(DerivedTransactions.COLUMNS.size) { Cell.Blank })
         assertEquals(SheetDrift.Verdict.Clean, SheetDrift.compare(withSpacer, desired(one)))
     }
 }

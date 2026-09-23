@@ -20,6 +20,11 @@ kotlin {
         minSdk = libs.versions.androidMinSdk.get().toInt()
     }
 
+    // Tests only. The UI tests run on the JVM with Compose's desktop test host,
+    // because the alternatives are a device or an emulator per run. The four
+    // platform calls get stand-ins in jvmMain; nothing ships from this target.
+    jvm()
+
     listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
         target.binaries.framework {
             baseName = "ComposeApp"
@@ -37,6 +42,19 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
+        }
+
+        jvmTest.dependencies {
+            implementation(kotlin("test"))
+            // A real SQLite in memory, so the whole app can be rendered at
+            // several window sizes with sample data in it.
+            implementation(libs.sqldelight.driver.jvm)
+            // VittServices builds an HTTP client on construction; nothing here
+            // signs in, so no request is made, but the client needs an engine.
+            implementation(libs.ktor.client.okhttp)
+            implementation(compose.desktop.currentOs)
+            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+            implementation(compose.uiTest)
         }
 
         androidMain.dependencies {

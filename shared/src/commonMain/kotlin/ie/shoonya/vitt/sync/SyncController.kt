@@ -71,6 +71,18 @@ class SyncController(
      * authoritative-looking one.
      */
     private val refreshDerived: suspend () -> Unit = {},
+    /**
+     * The shortest gap between two derived-tab refreshes.
+     *
+     * A refresh is about eight requests (the `_Meta` read, the Transactions
+     * read, write and clear, and a write and clear per year of summaries) against
+     * a quota of sixty a minute per user. With a sync after every pause in
+     * typing, somebody entering a week of receipts would spend the whole quota
+     * redrawing tabs nobody is looking at, and the event appends that actually
+     * matter would start coming back 429. So the first refresh runs at once and
+     * the rest wait out this window, folded into one at the end of it.
+     */
+    private val derivedCooldownMillis: Long = 30_000,
 ) {
     private val _status = MutableStateFlow<SyncStatus>(if (isConnected()) idle(null) else SyncStatus.Off)
     val status: StateFlow<SyncStatus> = _status
@@ -86,6 +98,14 @@ class SyncController(
     private val gate = Mutex()
     private var debounced: Job? = null
     private var lastSyncedAt: Long? = null
+
+    /**
+     * Whether the tabs are behind the fold. True at launch, because a person
+     * may have edited the sheet while the app was closed and only a refresh
+     * finds out.
+     */
+    private var derivedStale = true
+    private var derivedCooling: Job? = null
 
     /** A local write happened. Coalesces with any other in the debounce window. */
     fun onLocalWrite() {
@@ -107,7 +127,9 @@ class SyncController(
     suspend fun syncNow(): SyncOutcome? {
         if (!isConnected()) { _status.value = SyncStatus.Off; return null }
         debounced?.cancel()
-        return runCycle()
+        // The one trigger that skips the cooldown: somebody pressed a button
+        // and is looking at the spreadsheet to see it work.
+        return runCycle(forceDerived = true)
     }
 
     /** Reflects a disconnect. The outbox is kept: it drains on the next connect. */
@@ -116,7 +138,7 @@ class SyncController(
         _status.value = SyncStatus.Off
     }
 
-    private suspend fun runCycle(): SyncOutcome = gate.withLock {
+    private suspend fun runCycle(forceDerived: Boolean = false): SyncOutcome = gate.withLock {
         _status.value = SyncStatus.Syncing
         // sync() reports its own failures in the outcome, but a bug or a
         // transport that throws something unexpected must not leave the status
@@ -133,23 +155,43 @@ class SyncController(
         if (outcome.pulled > 0) _remoteChanges.value++
         val error = outcome.error
         if (error == null) {
-            // Swallowed deliberately. The events are in the sheet, which is the
-            // thing that must not be lost; a tab that failed to redraw is
-            // redrawn on the next cycle. Reporting this as a sync failure would
-            // put an error in front of somebody whose data is perfectly safe,
-            // and — worse — leave the outbox looking undrained.
-            try {
-                refreshDerived()
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                throw e
-            } catch (_: Throwable) {
-            }
+            // A cycle that moved nothing leaves the fold where it was, so the
+            // tabs are exactly as current as they were.
+            if (outcome.pushed > 0 || outcome.pulled > 0) derivedStale = true
+            if (forceDerived) derivedCooling?.cancel()
+            if (derivedStale && (forceDerived || derivedCooling?.isActive != true)) refreshDerivedNow()
             lastSyncedAt = now()
             _status.value = idle(lastSyncedAt)
         } else {
             _status.value = SyncStatus.Failed(error, store.pendingCount(), lastSyncedAt)
         }
         outcome
+    }
+
+    /**
+     * Refreshes and starts the cooldown. Called with [gate] held, so a refresh
+     * never overlaps a cycle.
+     *
+     * Failures are swallowed deliberately. The events are in the sheet, which
+     * is the thing that must not be lost; a tab that failed to redraw is redrawn
+     * later. Reporting this as a sync failure would put an error in front of
+     * somebody whose data is perfectly safe, and leave the outbox looking
+     * undrained.
+     */
+    private suspend fun refreshDerivedNow() {
+        derivedStale = false
+        try {
+            refreshDerived()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (_: Throwable) {
+            derivedStale = true
+        }
+        derivedCooling = scope.launch {
+            delay(derivedCooldownMillis)
+            // Whatever changed during the window, drawn once at its end.
+            gate.withLock { if (derivedStale) refreshDerivedNow() }
+        }
     }
 
     private fun idle(at: Long?) = SyncStatus.Idle(

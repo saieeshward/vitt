@@ -11,10 +11,18 @@ import ie.shoonya.vitt.model.Transaction
  * and a live call cannot.
  */
 interface DerivedTabPort {
-    /** The whole tab as strings, header row included. Empty when the tab is empty. */
-    suspend fun read(spreadsheetId: String, tab: String): List<List<String>>
+    /**
+     * The whole tab, header row included, each cell with its type. Empty when
+     * the tab is empty, or was missing and has just been created: somebody may
+     * have deleted or renamed it, and it is the app's own rendering, so it
+     * comes back rather than every later refresh dying on the read.
+     */
+    suspend fun read(spreadsheetId: String, tab: String): List<List<Cell>>
 
-    /** Replaces the tab from A1 and clears whatever was below. */
+    /**
+     * Replaces the tab from A1 and clears whatever was below. A tab that is not
+     * there yet is created first, which is how a new year's summary appears.
+     */
     suspend fun replace(
         spreadsheetId: String,
         tab: String,
@@ -22,11 +30,19 @@ interface DerivedTabPort {
         lastColumn: Char,
     )
 
-    /** Creates the tab if it is not already there. */
-    suspend fun ensureTab(spreadsheetId: String, tab: String)
-
     /** Copies a tab aside under a new name. False when there was nothing to copy. */
     suspend fun archive(spreadsheetId: String, tab: String, asTab: String): Boolean
+
+    /** Writes each block at its place, in one request. See [DerivedTabs.Block]. */
+    suspend fun writeBlocks(spreadsheetId: String, tab: String, blocks: List<DerivedTabs.Block>)
+
+    /** Deletes whole rows by 1-based number, so the sheet shifts what is below. */
+    suspend fun deleteRows(spreadsheetId: String, tab: String, rows: List<Int>)
+
+    /** The tab's numeric id, which a chart needs and A1 notation does not. */
+    suspend fun sheetId(spreadsheetId: String, tab: String): Int? = null
+
+    suspend fun addCharts(spreadsheetId: String, charts: List<EmbeddedChart>) = Unit
 }
 
 /**
@@ -37,14 +53,25 @@ interface DerivedTabPort {
  * single time. Writing first and asking later is not a shortcut here; it is the
  * loss of the only copy of whatever somebody typed.
  *
- * ## Their columns survive
+ * ## Their columns are never written
  *
  * Somebody will add a `Reviewed?` column, or `Business expense`, and §2.6 says
- * plainly that they expect it kept. So the tab is rewritten *in the shape it
- * already has* — their header order, their extra columns, their values carried
- * across by row id — rather than in the app's own shape. The alternative, a
- * blanket refusal to write once an extra column exists, would mean the tab
- * silently stops updating for exactly the people who use it most.
+ * plainly that they expect it kept. The first version rewrote each row whole
+ * and carried their cells across by row id, which kept a checkbox only once
+ * reads were typed and could never keep a formula: a read returns a formula's
+ * value, and writing that back replaced `=F2*0.23` with `2.88` for good.
+ *
+ * So the write now covers only the app's own columns, one block per run of
+ * adjacent ones, and a column somebody inserted is in no block at all. Rows
+ * stay where they are, found by id, which is also what keeps a formula in
+ * their column pointing at its own row. A new entry goes below the last row,
+ * and an entry deleted in the app has its row deleted in the sheet, natively,
+ * so Sheets moves everything up and adjusts every reference as it does.
+ *
+ * The cost is order. A fresh tab is written oldest first, and after that an
+ * entry backdated to last month lands at the bottom with today's. Sorting the
+ * tab is one menu item for a person and safe here, since rows are found by id;
+ * moving somebody's formulas out from under them has no undo.
  */
 object DerivedTabs {
 
@@ -64,6 +91,12 @@ object DerivedTabs {
 
         /** The old tab was copied aside under [archivedAs] and a fresh one written. */
         data class Migrated(val archivedAs: String, val rows: Int) : Outcome
+
+        /**
+         * A newer version of the app has shaped this file, so nothing was
+         * written. See [SheetMeta] for why an older build stands back.
+         */
+        data class Deferred(val sheetSchema: Int) : Outcome
     }
 
     /**
@@ -82,11 +115,15 @@ object DerivedTabs {
         tab: String = TRANSACTIONS_TAB,
         /** Days since the epoch, for naming an archive. */
         today: Int = 0,
+        /** This device's memory of the tab. See [SheetDrift.compare]. */
+        lastSeen: Map<String, String> = emptyMap(),
+        /** Called with the new memory once a write has landed, to be kept. */
+        remember: (Map<String, String>) -> Unit = {},
     ): Outcome {
         val existing = port.read(spreadsheetId, tab)
         val desired = DerivedTransactions.table(transactions, accountName)
 
-        val verdict = SheetDrift.compare(existing, desired)
+        val verdict = SheetDrift.compare(existing, desired, lastSeen)
         when (verdict) {
             is SheetDrift.Verdict.Clean -> Unit
             is SheetDrift.Verdict.Drifted -> if (!force) return Outcome.Held(verdict)
@@ -104,15 +141,130 @@ object DerivedTabs {
             is SheetDrift.Verdict.Unusable -> {
                 val archivedAs = archiveName(tab, today)
                 port.archive(spreadsheetId, tab, archivedAs)
-                val fresh = DerivedTransactions.table(transactions, accountName)
-                port.replace(spreadsheetId, tab, fresh, lastColumn(fresh.first().size))
-                return Outcome.Migrated(archivedAs, fresh.size - 1)
+                port.replace(spreadsheetId, tab, desired, lastColumn(desired.first().size))
+                remember(SheetDrift.memoryOf(desired))
+                return Outcome.Migrated(archivedAs, desired.size - 1)
             }
         }
 
-        val shaped = inTheShapeOf(existing, desired)
-        port.replace(spreadsheetId, tab, shaped, lastColumn(shaped.first().size))
-        return Outcome.Written(shaped.size - 1)
+        if (existing.none { row -> row.any { it.asText().isNotEmpty() } }) {
+            port.replace(spreadsheetId, tab, desired, lastColumn(desired.first().size))
+            remember(SheetDrift.memoryOf(desired))
+            return Outcome.Written(desired.size - 1)
+        }
+        val plan = place(existing, desired, force)
+        port.writeBlocks(spreadsheetId, tab, plan.blocks)
+        // After the write, whose positions were worked out on the tab as read.
+        // A delete first would move every row under it out of the place the
+        // write is about to put something.
+        port.deleteRows(spreadsheetId, tab, plan.deletions)
+        remember(SheetDrift.memoryOf(desired))
+        return Outcome.Written(desired.size - 1)
+    }
+
+    /**
+     * Rewrites the `Dashboard` and adds a chart for any currency that has not
+     * had one. No drift check, for the reason [refreshSummaries] gives: it is
+     * arithmetic, and a number typed over it was always going to be redrawn.
+     *
+     * The chart step costs a request to learn the tab's id, so it runs only
+     * when [checkCharts] asks (once a launch) or a currency has appeared that
+     * [charted] does not cover; every other refresh is the one write.
+     */
+    suspend fun refreshDashboard(
+        port: DerivedTabPort,
+        spreadsheetId: String,
+        transactions: List<Transaction>,
+        budgets: Map<ie.shoonya.vitt.money.Currency, ie.shoonya.vitt.model.Budget>,
+        today: Int,
+        charted: DerivedDashboard.Charted?,
+        checkCharts: Boolean,
+        remember: (DerivedDashboard.Charted) -> Unit = {},
+    ) {
+        val currencies = DerivedDashboard.currencies(transactions)
+        if (currencies.isEmpty()) return
+        val table = DerivedDashboard.table(transactions, budgets, today)
+        port.replace(spreadsheetId, DerivedDashboard.TAB, table, lastColumn(DerivedDashboard.WIDTH))
+
+        val codes = currencies.map { it.code }
+        if (!checkCharts && charted != null && charted.currencies.containsAll(codes)) return
+        val sheetId = port.sheetId(spreadsheetId, DerivedDashboard.TAB) ?: return
+        val known = if (charted?.sheetId == sheetId) charted.currencies else emptySet()
+        val missing = currencies.withIndex().filter { it.value.code !in known }
+        port.addCharts(spreadsheetId, missing.map { (i, c) -> DerivedDashboard.chart(sheetId, i, c) })
+        remember(DerivedDashboard.Charted(sheetId, known + missing.map { it.value.code }))
+    }
+
+    /**
+     * A rectangle of cells to write, placed by zero-based column and 1-based
+     * row, as a person reads a sheet.
+     */
+    data class Block(val firstColumn: Int, val firstRow: Int, val rows: List<List<Cell>>)
+
+    data class Plan(val blocks: List<Block>, val deletions: List<Int>)
+
+    /**
+     * Where each of the app's cells goes in a tab that already has rows.
+     *
+     * [existing] must have passed [SheetDrift.compare] as clean, or have been
+     * forced: this puts the app's values over whatever is in its own columns.
+     */
+    internal fun place(existing: List<List<Cell>>, desired: List<List<Cell>>, force: Boolean = false): Plan {
+        val header = existing.first().map { it.asText() }
+        val ours = desired.first().map { it.asText() }
+        // Where each of the app's columns sits in their header, in their order.
+        val columns = ours.mapNotNull { name -> header.indexOf(name).takeIf { it >= 0 }?.let { name to it } }
+            .sortedBy { it.second }
+        val ourIndex = ours.withIndex().associate { (i, name) -> name to i }
+        val idAt = header.indexOf("id")
+        val idInOurs = ourIndex.getValue("id")
+
+        val rowOf = mutableMapOf<String, Int>()
+        val deletions = mutableListOf<Int>()
+        existing.drop(1).forEachIndexed { offset, row ->
+            val number = offset + 2
+            val id = row.getOrNull(idAt)?.asText().orEmpty()
+            val oursBlank = columns.all { (_, at) -> row.getOrNull(at)?.asText().isNullOrEmpty() }
+            when {
+                id.isNotEmpty() -> rowOf[id] = number
+                // Typed in by hand. Only reachable when forced: the person
+                // chose this phone's version, which does not have this row.
+                force && !oursBlank -> deletions += number
+            }
+        }
+
+        val want = desired.drop(1)
+        val wanted = want.map { it[idInOurs].asText() }.toSet()
+        rowOf.forEach { (id, number) -> if (id !in wanted) deletions += number }
+
+        var next = existing.size + 1
+        val target = mutableMapOf<Int, List<Cell>>()
+        want.forEach { row -> target[rowOf[row[idInOurs].asText()] ?: next++] = row }
+
+        val lastRow = maxOf(existing.size, next - 1)
+        // A run of adjacent columns is one block from row 2 down. A row with
+        // nothing new keeps what it has, written back as read, so a block can
+        // be one rectangle instead of a range per cell.
+        val runs = columns.fold(mutableListOf<MutableList<Pair<String, Int>>>()) { acc, column ->
+            val last = acc.lastOrNull()?.last()
+            if (last != null && last.second + 1 == column.second) acc.last() += column else acc += mutableListOf(column)
+            acc
+        }
+        val blocks = runs.map { run ->
+            Block(
+                firstColumn = run.first().second,
+                firstRow = 2,
+                rows = (2..lastRow).map { number ->
+                    val mine = target[number]
+                    run.map { (name, at) ->
+                        mine?.get(ourIndex.getValue(name))
+                            ?: existing.getOrNull(number - 1)?.getOrNull(at)
+                            ?: Cell.Blank
+                    }
+                },
+            )
+        }
+        return Plan(blocks, deletions.distinct().sorted())
     }
 
     /**
@@ -151,7 +303,6 @@ object DerivedTabs {
         DerivedSummary.years(transactions).forEach { year ->
             val tab = DerivedSummary.tabFor(year)
             try {
-                port.ensureTab(spreadsheetId, tab)
                 val table = DerivedSummary.table(transactions, year)
                 port.replace(spreadsheetId, tab, table, lastColumn(DerivedSummary.COLUMNS.size))
                 written += year
@@ -164,50 +315,6 @@ object DerivedTabs {
     }
 
     /**
-     * The desired table, rewritten into the column order the tab already has,
-     * with anything the app does not own carried across by row id.
-     *
-     * A tab the app has never written has no shape of its own, so it gets the
-     * app's.
-     */
-    internal fun inTheShapeOf(
-        existing: List<List<String>>,
-        desired: List<List<Cell>>,
-    ): List<List<Cell>> {
-        val header = existing.firstOrNull()?.map { it.trim() }?.takeIf { row ->
-            row.any { it.isNotEmpty() }
-        } ?: return desired
-
-        val ours = desired.first().map { (it as Cell.Text).value }
-        val idAt = header.indexOf("id")
-        if (idAt < 0) return desired
-
-        // Their cells, by row id, so a row that moved still finds its own.
-        val theirs = existing.drop(1)
-            .filter { it.getOrNull(idAt)?.isNotBlank() == true }
-            .associateBy { it[idAt].trim() }
-
-        val wantAt = ours.withIndex().associate { (i, name) -> name to i }
-        val idInOurs = wantAt.getValue("id")
-
-        val rows = desired.drop(1).map { want ->
-            val id = (want[idInOurs] as Cell.Text).value
-            val mine = theirs[id]
-            header.mapIndexed { column, name ->
-                wantAt[name]
-                    // A column the app owns: its value, freshly computed.
-                    ?.let { want[it] }
-                    // A column it does not: whatever was there, untouched. A row
-                    // the sheet has never seen leaves it blank rather than
-                    // inventing one.
-                    ?: mine?.getOrNull(column)?.takeIf { it.isNotEmpty() }?.let(Cell::Text)
-                    ?: Cell.Blank
-            }
-        }
-        return listOf(header.map(Cell::Text)) + rows
-    }
-
-    /**
      * The last column letter of a table this wide.
      *
      * Single letters only, which covers 26 columns — ten of ours plus sixteen
@@ -217,5 +324,17 @@ object DerivedTabs {
      * columns going untouched rather than the whole refresh dying.
      */
     internal fun lastColumn(width: Int): Char =
-        ('A' + (width - 1).coerceIn(0, 25))
+        columnName((width - 1).coerceIn(0, 25)).single()
+
+    /** `A` for 0, `Z` for 25, `AA` for 26: the A1 name of a zero-based column. */
+    internal fun columnName(index: Int): String {
+        var n = index + 1
+        val out = StringBuilder()
+        while (n > 0) {
+            val r = (n - 1) % 26
+            out.insert(0, 'A' + r)
+            n = (n - 1) / 26
+        }
+        return out.toString()
+    }
 }

@@ -1,5 +1,17 @@
 package ie.shoonya.vitt.ui
 
+import androidx.compose.foundation.focusable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,8 +58,29 @@ fun AmountKeypad(
     onEntryChange: (AmountEntry) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        AmountDisplay(entry)
+    // A hardware keyboard types into the drawn keypad: an iPad with a Magic
+    // Keyboard, a Chromebook, a phone with a Bluetooth keyboard. Key presses,
+    // not the system keyboard, so the rule this keypad exists for (the IME is
+    // never summoned) still holds. The keypad takes focus when it appears so the
+    // keys have somewhere to go; with no keyboard attached nothing changes.
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .focusRequester(focus)
+            .onKeyEvent { event ->
+                if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
+                val next = keyToEntry(event, entry) ?: return@onKeyEvent false
+                onEntryChange(next)
+                true
+            }
+            .focusable(),
+    ) {
+        // Shorter keys on a short window, a phone on its side, so all four
+        // rows fit beside the choices instead of the bottom one scrolling off.
+        val short = LocalWindowLayout.current.shortHeight
+        AmountDisplay(entry, compact = short)
 
         // The bottom row is the one every money app shares: point, zero,
         // delete. A currency with no minor units (yen) gets a blank where the
@@ -62,7 +95,7 @@ fun AmountKeypad(
 
         rows.forEach { row ->
             Row(
-                modifier = Modifier.fillMaxWidth().height(60.dp),
+                modifier = Modifier.fillMaxWidth().height(if (short) 46.dp else 60.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 row.forEach { label ->
@@ -90,11 +123,11 @@ fun AmountKeypad(
 }
 
 @Composable
-private fun AmountDisplay(entry: AmountEntry) {
+private fun AmountDisplay(entry: AmountEntry, compact: Boolean = false) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 24.dp)
+            .padding(vertical = if (compact) 8.dp else 24.dp)
             // One node, not two: with a plain description on the Box and a
             // Text child, a screen reader announced the amount twice. The
             // directional isolates around an Arabic symbol are stripped, since
@@ -172,3 +205,23 @@ private fun KeypadKey(
         )
     }
 }
+
+/** What a key does to the amount, or null for a key the keypad does not use. */
+internal fun keyToEntry(event: KeyEvent, entry: AmountEntry): AmountEntry? {
+    val digit = DIGITS[event.key]
+    return when {
+        digit != null -> entry.press(digit)
+        event.key == Key.Period || event.key == Key.NumPadDot || event.key == Key.Comma ->
+            if (entry.currency.exponent > 0) entry.press('.') else entry
+        event.key == Key.Backspace && event.isMetaPressed -> entry.clear()
+        event.key == Key.Backspace || event.key == Key.Delete -> entry.backspace()
+        else -> null
+    }
+}
+
+private val DIGITS = mapOf(
+    Key.Zero to '0', Key.One to '1', Key.Two to '2', Key.Three to '3', Key.Four to '4',
+    Key.Five to '5', Key.Six to '6', Key.Seven to '7', Key.Eight to '8', Key.Nine to '9',
+    Key.NumPad0 to '0', Key.NumPad1 to '1', Key.NumPad2 to '2', Key.NumPad3 to '3', Key.NumPad4 to '4',
+    Key.NumPad5 to '5', Key.NumPad6 to '6', Key.NumPad7 to '7', Key.NumPad8 to '8', Key.NumPad9 to '9',
+)

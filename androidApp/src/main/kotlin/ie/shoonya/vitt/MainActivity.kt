@@ -4,9 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import ie.shoonya.vitt.auth.BrowserAuth
 import ie.shoonya.vitt.auth.TokenStore
 import ie.shoonya.vitt.ui.AppRoot
@@ -106,6 +103,7 @@ class MainActivity : ComponentActivity() {
             browser = BrowserAuth(applicationContext),
             now = { System.currentTimeMillis() },
             driver = ie.shoonya.vitt.sync.androidDriver(applicationContext),
+            appVersion = BuildConfig.VERSION_NAME,
         )
         this.services = services
         //
@@ -123,24 +121,22 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            // `enableEdgeToEdge` means this window draws behind the status and
-            // navigation bars, and nothing in the shared UI applies an inset:
-            // the "Ledgers" title sat at the same height as the clock. iOS
-            // never showed it because Compose Multiplatform applies the safe
-            // area there itself, so this is the one place the two platforms
-            // genuinely differ and it belongs here rather than in commonMain,
-            // where it would pad iOS twice.
+            // Edge to edge, like iOS: the shared UI applies the status-bar and
+            // navigation-bar insets itself (VittApp), so nothing is padded here.
+            // Padding here as well would inset Android twice.
             //
-            // Status bar only. The bottom is the tab bar's own generous
-            // padding, and insetting the root would also inset the bottom
-            // sheets, which are meant to reach the edge.
-            androidx.compose.foundation.layout.Box(
-                modifier = androidx.compose.ui.Modifier.windowInsetsPadding(
-                    WindowInsets.statusBars,
-                ),
-            ) {
-                AppRoot(services)
-            }
+            // The live Google checks, as VITT_VERIFY and VITT_AUTORUN are on
+            // iOS, and gated the same way: a release build has no route to
+            // them at all.
+            //
+            //   adb shell am start -n ie.shoonya.vitt/.MainActivity --ez autorun true
+            //
+            // Results go to logcat as VITT-CHECK lines.
+            AppRoot(
+                services,
+                verify = BuildConfig.DEBUG && intent?.getBooleanExtra("verify", false) == true,
+                autoRun = BuildConfig.DEBUG && intent?.getBooleanExtra("autorun", false) == true,
+            )
         }
     }
 }

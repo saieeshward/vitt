@@ -112,7 +112,8 @@ class DerivedTransactionsTest {
         val t = txn(amount = eur(-2000), totalPaid = eur(-6000), splitWith = setOf("bea", "ali"))
         assertEquals(Cell.Number("-60.00"), column("Amount", t))
         assertEquals(Cell.Number("-20.00"), column("Your share", t))
-        assertEquals(Cell.Text("ali, bea"), column("Split with", t))
+        // €40 owed between two, equally, and named with their amounts.
+        assertEquals(Cell.Text("ali 20.00, bea 20.00"), column("Split with", t))
     }
 
     @Test

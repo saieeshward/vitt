@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>VITT · brag</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* Geist, shipped locally: the Latin file carries € and −, the Latin
+         Extended file carries ₹. One variable font covers every weight. */
+      @font-face {
+        font-family: "Geist";
+        font-weight: 100 900;
+        src: url("assets/fonts/geist-latin.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "Geist";
+        font-weight: 100 900;
+        src: url("assets/fonts/geist-latin-ext.woff2") format("woff2");
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1EFF, U+20A0-20AB, U+20AD-20C0, U+2113;
+      }
+
+      :root {
+        --ground: #fffdf7;
+        --surface: #f2efe7;
+        --card: #ffffff;
+        --ink: #241f33;
+        --muted: #5f5970;
+        --faint: #8d879b;
+        --hairline: rgba(36, 31, 51, 0.1);
+        --accent: #6b5bff;
+        --accent-soft: rgba(107, 91, 255, 0.14);
+        --eur: #2d9d75;
+        --inr: #bb7f0f;
+        --usd: #2c8cf6;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--ground); }
+      #root {
+        position: relative; width: 100%; height: 100%; overflow: hidden;
+        background: var(--ground); color: var(--ink);
+        font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+        font-variant-numeric: tabular-nums;
+        -webkit-font-smoothing: antialiased;
+      }
+      .scene { position: absolute; inset: 0; }
+      .inner { position: absolute; inset: 0; }
+      .display { font-weight: 600; letter-spacing: -0.03em; line-height: 1.05; }
+      .line { font-size: 56px; font-weight: 500; letter-spacing: -0.02em; color: var(--ink); }
+      .quiet { color: var(--muted); }
+
+      /* Scene 1: three balances */
+      #s1 .figs {
+        position: absolute; left: 0; right: 0; top: 330px;
+        display: flex; justify-content: center; gap: 110px;
+      }
+      .fig { display: flex; flex-direction: column; gap: 18px; }
+      .fig .code { display: flex; align-items: center; gap: 12px; font-size: 26px; letter-spacing: 0.1em; color: var(--muted); }
+      .fig .code i { display: block; width: 16px; height: 16px; border-radius: 50%; }
+      .fig .num { font-size: 104px; }
+      #s1 .line { position: absolute; left: 0; right: 0; top: 640px; text-align: center; }
+
+      /* Scene 2: three stacks, one per currency */
+      #s2 .line { position: absolute; left: 0; right: 0; top: 118px; text-align: center; font-size: 64px; }
+      .stack { position: absolute; top: 0; width: 240px; height: 1080px; }
+      .tube {
+        position: absolute; left: 22px; width: 196px; top: 400px; height: 470px;
+        border-left: 2px solid var(--hairline); border-right: 2px solid var(--hairline);
+      }
+      .tube .glass { position: absolute; inset: 0; opacity: 0.05; }
+      .rim {
+        position: absolute; left: 22px; width: 196px; height: 44px; border-radius: 50%;
+        border: 4px solid; background: transparent;
+      }
+      .rim.top { top: 378px; }
+      .base { position: absolute; left: 0; width: 240px; height: 64px; top: 846px; border-radius: 50%; background: var(--surface); }
+      .rim.bottom { top: 850px; opacity: 0.8; }
+      .coin {
+        position: absolute; left: 25px; width: 190px; height: 58px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 30px; font-weight: 600;
+      }
+      .coin::before {
+        content: ""; position: absolute; inset: 7px 22px; border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.55);
+      }
+      .label {
+        position: absolute; left: 0; width: 240px; top: 944px; text-align: center;
+        font-size: 34px; font-weight: 500; color: var(--ink);
+      }
+
+      /* Scene 3: the Add sheet, then Activity */
+      #s3 .copy { position: absolute; left: 180px; top: 380px; width: 760px; }
+      #s3 .copy .display { font-size: 120px; }
+      #s3 .copy .sub { margin-top: 36px; font-size: 44px; line-height: 1.3; color: var(--muted); max-width: 720px; }
+      .phone {
+        position: absolute; left: 1180px; top: 80px; width: 440px; height: 920px;
+        border-radius: 66px; padding: 12px; background: #0f0d14;
+        box-shadow: 0 40px 80px rgba(36, 31, 51, 0.18);
+      }
+      .screen { position: relative; width: 416px; height: 896px; border-radius: 54px; overflow: hidden; background: var(--ground); }
+      .abs { position: absolute; }
+      .chip {
+        position: absolute; height: 50px; border-radius: 14px; padding: 0 18px;
+        display: flex; align-items: center; font-size: 19px; color: var(--ink);
+        border: 1.5px solid rgba(36, 31, 51, 0.22); background: var(--ground);
+      }
+      .chip.on { border-color: transparent; background: #e6e1fb; }
+      .key {
+        position: absolute; width: 116px; height: 64px; border-radius: 16px; background: var(--surface);
+        display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--ink);
+      }
+      .caption { position: absolute; font-size: 16px; color: var(--muted); letter-spacing: 0.02em; }
+      .sheet { position: absolute; inset: 0; background: var(--ground); }
+      .activity { position: absolute; inset: 0; background: var(--ground); }
+      .row { position: absolute; left: 0; right: 0; height: 80px; }
+      .ring {
+        position: absolute; left: 26px; top: 12px; width: 56px; height: 56px; border-radius: 50%;
+        border: 2.5px solid var(--eur); display: flex; align-items: center; justify-content: center;
+        font-size: 17px; color: var(--muted); letter-spacing: 0.04em;
+      }
+      .row .name { position: absolute; left: 100px; top: 12px; font-size: 24px; color: var(--ink); }
+      .row .sub { position: absolute; left: 100px; top: 44px; font-size: 17px; color: var(--muted); }
+      .row .amt { position: absolute; right: 28px; top: 22px; font-size: 25px; color: var(--ink); }
+      .row .wash { position: absolute; inset: 0 12px; border-radius: 18px; background: var(--accent-soft); }
+      .cursor {
+        position: absolute; left: 0; top: 0; width: 46px; height: 46px; margin: -23px 0 0 -23px;
+        border-radius: 50%; background: rgba(36, 31, 51, 0.16); border: 2px solid rgba(36, 31, 51, 0.35);
+      }
+
+      /* Scene 4: the Transactions tab */
+      #s4 .copy { position: absolute; left: 150px; top: 330px; width: 620px; }
+      #s4 .copy .display { font-size: 88px; }
+      #s4 .copy .sub { margin-top: 30px; font-size: 48px; color: var(--muted); font-weight: 500; letter-spacing: -0.02em; }
+      .sheetcard {
+        position: absolute; left: 860px; top: 250px; width: 920px;
+        background: var(--card); border-radius: 22px; border: 1px solid var(--hairline);
+        box-shadow: 0 30px 70px rgba(36, 31, 51, 0.12); overflow: hidden;
+      }
+      .sheetcard .bar { display: flex; align-items: center; gap: 12px; height: 70px; padding: 0 28px; font-size: 22px; color: var(--muted); border-bottom: 1px solid var(--hairline); }
+      .sheetcard .bar i { display: block; width: 14px; height: 14px; border-radius: 4px; background: var(--eur); }
+      .grid { display: grid; grid-template-columns: 180px 260px 170px 130px 1fr; }
+      .grid div { height: 66px; display: flex; align-items: center; padding: 0 24px; font-size: 22px; border-bottom: 1px solid var(--hairline); }
+      .grid.head div { height: 56px; background: var(--surface); color: var(--muted); font-size: 18px; letter-spacing: 0.04em; }
+      .grid div.r { justify-content: flex-end; }
+      .grid .cur { gap: 10px; }
+      .grid .cur i { display: block; width: 10px; height: 10px; border-radius: 50%; }
+      .newrow { position: relative; }
+      .newrow .wash { position: absolute; inset: 0; background: var(--accent-soft); }
+      .newrow .grid { position: relative; }
+
+      /* Scene 5: the name */
+      #s5 .lockup { position: absolute; left: 0; right: 0; top: 330px; display: flex; justify-content: center; align-items: center; gap: 70px; }
+      #s5 .pet { display: block; width: 288px; height: 240px; }
+      #s5 .name { font-size: 210px; }
+      #s5 .tag { margin-top: 18px; font-size: 44px; color: var(--muted); font-weight: 500; letter-spacing: -0.015em; }
+      #s5 .url { margin-top: 22px; font-size: 30px; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="22" data-width="1920" data-height="1080">
+
+      <!-- Scene 1 — Three balances -->
+      <section id="s1" class="scene clip" data-start="0" data-duration="4.8" data-track-index="0">
+        <div class="inner" id="s1-inner">
+          <div class="figs">
+            <div class="fig" id="f-eur"><div class="code"><i style="background: var(--eur)"></i>EUR</div><div class="num display">€1,877.74</div></div>
+            <div class="fig" id="f-inr"><div class="code"><i style="background: var(--inr)"></i>INR</div><div class="num display">₹12,000.00</div></div>
+            <div class="fig" id="f-usd"><div class="code"><i style="background: var(--usd)"></i>USD</div><div class="num display">$240.00</div></div>
+          </div>
+          <p class="line quiet" id="s1-line">Most apps add these up.</p>
+        </div>
+      </section>
+
+      <!-- Scene 2 — Kept apart -->
+      <section id="s2" class="scene clip" data-start="4.0" data-duration="5.2" data-track-index="1">
+        <div class="inner" id="s2-inner">
+          <p class="line" id="s2-line">VITT keeps them apart.</p>
+          <div class="stack" style="left: 480px">
+            <div class="base"></div><div class="rim bottom" style="border-color: var(--eur)"></div>
+            <div class="tube"><div class="glass" style="background: var(--eur)"></div></div>
+            <div class="coin" data-layout-allow-overlap data-layout-allow-occlusion style="top: 796px; background: var(--eur); box-shadow: 0 12px 0 #1f7457">€</div>
+            <div class="coin" data-layout-allow-overlap data-layout-allow-occlusion style="top: 770px; background: var(--eur); box-shadow: 0 12px 0 #1f7457">€</div>
+            <div class="coin" data-layout-allow-overlap data-layout-allow-occlusion id="c-eur-2" style="top: 744px; background: var(--eur); box-shadow: 0 12px 0 #1f7457">€</div>
+            <div class="coin" data-layout-allow-overlap data-layout-allow-occlusion id="c-eur-3" style="top: 718px; background: var(--eur); box-shadow: 0 12px 0 #1f7457">€</div>
+            <div class="rim top" style="border-color: var(--eur)"></div>
+            <div class="label">€1,877.74</div>
+          </div>
+          <div class="stack" style="left: 840px">
+            <div class="base"></div><div class="rim bottom" style="border-color: var(--inr)"></div>
+            <div class="tube"><div class="glass" style="background: var(--inr)"></div></div>
+            <div class="coin" data-layout-allow-overlap data-layout-allow-occlusion style="top: 796px; background: var(--inr); box-shadow: 0 12px 0 #8a5d09">₹</div>
+            <div class="coin" data-layout-allow-overlap data-layout-allow-occlusion style="top: 770px; background: var(--inr); box-shadow: 0 12px 0 #8a5d09">₹</div>
+            <div class="coin" data-layout-allow-overlap data-layout-allow-occlusion id="c-inr-2" style="top: 744px; background: var(--inr); box-shadow: 0 12px 0 #8a5d09">₹</div>
+            <div class="coin" data-layout-allow-overlap data-layout-allow-occlusion id="c-inr-3" style="top: 718px; background: var(--inr); box-shadow: 0 12px 0 #8a5d09">₹</div>
+            <div class="rim top" style="border-color: var(--inr)"></div>
+            <div class="label">₹12,000.00</div>
+          </div>
+          <div class="stack" style="left: 1200px">
+            <div class="base"></div><div class="rim bottom" style="border-color: var(--usd)"></div>
+            <div class="tube"><div class="glass" style="background: var(--usd)"></div></div>
+            <div class="coin" data-layout-allow-overlap data-layout-allow-occlusion style="top: 796px; background: var(--usd); box-shadow: 0 12px 0 #1c64b8">$</div>
+            <div class="coin" data-layout-allow-overlap data-layout-allow-occlusion style="top: 770px; background: var(--usd); box-shadow: 0 12px 0 #1c64b8">$</div>
+            <div class="coin" data-layout-allow-overlap data-layout-allow-occlusion id="c-usd-2" style="top: 744px; background: var(--usd); box-shadow: 0 12px 0 #1c64b8">$</div>
+            <div class="coin" data-layout-allow-overlap data-layout-allow-occlusion id="c-usd-3" style="top: 718px; background: var(--usd); box-shadow: 0 12px 0 #1c64b8">$</div>
+            <div class="rim top" style="border-color: var(--usd)"></div>
+            <div class="label">$240.00</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 3 — Two taps -->
+      <section id="s3" class="scene clip" data-start="8.4" data-duration="7.2" data-track-index="0">
+        <div class="inner" id="s3-inner">
+          <div class="copy">
+            <div class="display" id="s3-title">Two taps.</div>
+            <p class="sub" id="s3-sub">Account and category fill themselves in.</p>
+          </div>
+          <div class="phone" id="phone">
+            <div class="screen">
+              <!-- Underneath: Activity, with the new entry on top -->
+              <div class="activity" id="activity">
+                <div class="abs display" style="left: 28px; top: 70px; font-size: 40px">Activity</div>
+                <div class="caption" style="left: 28px; top: 146px">Today</div>
+                <div class="row" id="new-row" style="top: 170px">
+                  <div class="wash" id="new-wash"></div>
+                  <div class="ring">CA</div><div class="name">Coffee Angel</div><div class="sub">Dining</div><div class="amt">€3.50</div>
+                </div>
+                <div class="caption" style="left: 28px; top: 268px">14 September</div>
+                <div class="row" style="top: 292px"><div class="ring">CA</div><div class="name">Coffee Angel</div><div class="sub">Dining</div><div class="amt">€4.20</div></div>
+                <div class="caption" style="left: 28px; top: 390px">13 September</div>
+                <div class="row" style="top: 414px"><div class="ring">L</div><div class="name">Lidl</div><div class="sub">Groceries</div><div class="amt">€72.50</div></div>
+                <div class="caption" style="left: 28px; top: 512px">11 September</div>
+                <div class="row" style="top: 536px"><div class="ring" style="border-color: var(--inr)">A</div><div class="name">Amazon</div><div class="sub">Shopping</div><div class="amt">₹350.00</div></div>
+                <div class="caption" style="left: 28px; top: 634px">10 September</div>
+                <div class="row" style="top: 658px"><div class="ring">A</div><div class="name">Aer Lingus</div><div class="sub">Travel</div><div class="amt">€22.00</div></div>
+              </div>
+              <!-- On top: the Add sheet -->
+              <div class="sheet" id="add-sheet" data-layout-allow-occlusion>
+                <div class="abs" style="left: 180px; top: 18px; width: 56px; height: 6px; border-radius: 3px; background: #6e6782"></div>
+                <div class="abs" style="left: 28px; top: 50px; font-size: 22px; color: var(--accent)">Cancel</div>
+                <div class="abs" style="left: 0; right: 0; top: 48px; text-align: center; font-size: 24px; font-weight: 600">New</div>
+                <div class="abs" id="save" style="left: 292px; top: 36px; width: 104px; height: 50px; border-radius: 25px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 21px; color: var(--muted)">Save</div>
+                <div class="chip on" style="left: 24px; top: 116px">Expense</div>
+                <div class="chip" style="left: 154px; top: 116px">Income</div>
+                <div class="chip" id="usual" style="left: 24px; top: 184px">Coffee Angel €3.50</div>
+                <div class="abs display" id="amt-empty" data-layout-allow-overlap style="left: 0; right: 0; top: 262px; text-align: center; font-size: 72px; color: var(--faint)">€0.00</div>
+                <div class="abs display" id="amt-full" data-layout-allow-overlap style="left: 0; right: 0; top: 262px; text-align: center; font-size: 72px">€3.50</div>
+                <div class="key" style="left: 24px; top: 372px">1</div><div class="key" style="left: 150px; top: 372px">2</div><div class="key" style="left: 276px; top: 372px">3</div>
+                <div class="key" style="left: 24px; top: 446px">4</div><div class="key" style="left: 150px; top: 446px">5</div><div class="key" style="left: 276px; top: 446px">6</div>
+                <div class="key" style="left: 24px; top: 520px">7</div><div class="key" style="left: 150px; top: 520px">8</div><div class="key" style="left: 276px; top: 520px">9</div>
+                <div class="key" style="left: 24px; top: 594px">.</div><div class="key" style="left: 150px; top: 594px">0</div><div class="key" style="left: 276px; top: 594px">⌫</div>
+                <div class="caption" style="left: 26px; top: 680px">From</div>
+                <div class="chip on" style="left: 24px; top: 706px">AIB current</div>
+                <div class="chip" style="left: 176px; top: 706px">Revolut</div>
+                <div class="caption" style="left: 26px; top: 772px">Category</div>
+                <div class="chip" id="dining" style="left: 24px; top: 798px">Dining</div>
+                <div class="chip" style="left: 128px; top: 798px">Groceries</div>
+                <div class="chip" style="left: 262px; top: 798px">Transport</div>
+              </div>
+              <div class="cursor" id="cursor"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 4 — Your sheet -->
+      <section id="s4" class="scene clip" data-start="14.8" data-duration="4.6" data-track-index="1">
+        <div class="inner" id="s4-inner">
+          <div class="copy">
+            <div class="display" id="s4-title">A spreadsheet you own.</div>
+            <p class="sub" id="s4-sub">No account, no server.</p>
+          </div>
+          <div class="sheetcard" id="sheetcard">
+            <div class="bar"><i></i>VITT · Transactions</div>
+            <div class="grid head"><div>Date</div><div>Description</div><div>Category</div><div>Currency</div><div class="r">Amount</div></div>
+            <div class="grid"><div>2026-09-01</div><div>Salary</div><div>Income</div><div class="cur"><i style="background: var(--eur)"></i>EUR</div><div class="r">3,410.00</div></div>
+            <div class="grid"><div>2026-09-02</div><div>Tesco</div><div>Groceries</div><div class="cur"><i style="background: var(--eur)"></i>EUR</div><div class="r">−68.20</div></div>
+            <div class="grid"><div>2026-09-04</div><div>Swiggy</div><div>Dining</div><div class="cur"><i style="background: var(--inr)"></i>INR</div><div class="r">−180.00</div></div>
+            <div class="grid"><div>2026-09-12</div><div>Coffee Angel</div><div>Dining</div><div class="cur"><i style="background: var(--eur)"></i>EUR</div><div class="r">−3.50</div></div>
+            <div class="newrow" id="sheet-new">
+              <div class="wash" id="sheet-wash"></div>
+              <div class="grid"><div>2026-09-23</div><div>Coffee Angel</div><div>Dining</div><div class="cur"><i style="background: var(--eur)"></i>EUR</div><div class="r">−3.50</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 5 — VITT -->
+      <section id="s5" class="scene clip" data-start="18.6" data-duration="3.4" data-track-index="0">
+        <div class="inner" id="s5-inner">
+          <div class="lockup">
+            <img class="pet" id="pet" src="assets/penny-stand.svg" alt="Penny, VITT's companion" />
+            <div>
+              <div class="name display" id="s5-name">VITT</div>
+              <p class="tag" id="s5-tag">Money in more than one currency, kept apart.</p>
+              <p class="url" id="s5-url">saieeshward.github.io/vitt</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Audio: a low bed and a handful of dry cues, each on its own track -->
+      <audio id="music" src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3"
+        data-start="0" data-duration="22" data-track-index="10" data-volume="0.16"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0.16},{"t":20.8,"v":0.16},{"t":22,"v":0}]}]}'></audio>
+      <audio id="sfx-fig-1" src="assets/sfx/casino/chip-lay-1.ogg" data-start="0.62" data-duration="0.2" data-track-index="11" data-volume="0.45"></audio>
+      <audio id="sfx-fig-2" src="assets/sfx/casino/chip-lay-2.ogg" data-start="1.07" data-duration="0.25" data-track-index="12" data-volume="0.45"></audio>
+      <audio id="sfx-fig-3" src="assets/sfx/casino/chip-lay-3.ogg" data-start="1.52" data-duration="0.27" data-track-index="13" data-volume="0.45"></audio>
+      <audio id="sfx-coin-first" src="assets/sfx/casino/chips-stack-2.ogg" data-start="5.34" data-duration="0.2" data-track-index="14" data-volume="0.55"></audio>
+      <audio id="sfx-coin-last" src="assets/sfx/casino/chips-stack-5.ogg" data-start="8.19" data-duration="0.21" data-track-index="15" data-volume="0.55"></audio>
+      <audio id="sfx-tap-usual" src="assets/sfx/interface/click_003.ogg" data-start="10.30" data-duration="0.05" data-track-index="16" data-volume="0.6"></audio>
+      <audio id="sfx-tap-save" src="assets/sfx/interface/click_003.ogg" data-start="12.20" data-duration="0.05" data-track-index="17" data-volume="0.6"></audio>
+      <audio id="sfx-row" src="assets/sfx/interface/drop_001.ogg" data-start="17.42" data-duration="0.13" data-track-index="18" data-volume="0.5"></audio>
+      <audio id="sfx-name" src="assets/sfx/interface/bong_001.ogg" data-start="19.62" data-duration="0.15" data-track-index="19" data-volume="0.45"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const E = "power3.out";
+
+      // ── Scene 1: three balances land one by one, then the observation ──
+      [["#f-eur", 0.30], ["#f-inr", 0.75], ["#f-usd", 1.20]].forEach(([el, t]) => {
+        tl.fromTo(el, { y: 36, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, t);
+      });
+      tl.fromTo("#s1-line", { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: E }, 2.0);
+      tl.to("#s1-inner", { opacity: 0, duration: 0.8, ease: "power1.inOut" }, 4.0);
+
+      // ── Scene 2: coins drop, each into its own stack and no other ──
+      tl.fromTo("#s2-inner", { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "power1.inOut" }, 4.0);
+      // beat-grid: coins land at 5.34, 6.00, 6.56, 7.09, 7.64, 8.19
+      [["#c-eur-2", 5.34], ["#c-inr-2", 6.00], ["#c-usd-2", 6.56], ["#c-eur-3", 7.09], ["#c-inr-3", 7.64], ["#c-usd-3", 8.19]].forEach(([el, land]) => {
+        tl.fromTo(el, { y: -520 }, { y: 0, duration: 0.42, ease: "power2.in" }, land - 0.42);
+        tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, land - 0.42);
+        tl.fromTo(el, { scaleY: 0.86 }, { scaleY: 1, duration: 0.18, ease: "power2.out" }, land);
+      });
+      tl.fromTo("#s2-line", { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: E }, 5.9);
+      tl.to("#s2-inner", { opacity: 0, duration: 0.8, ease: "power1.inOut" }, 8.4);
+
+      // ── Scene 3: tap the usual, tap Save, the entry is in Activity ──
+      tl.fromTo("#s3-inner", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power1.inOut" }, 8.4);
+      // beat-locked: 8.74s — the phone lands on the strong cue
+      tl.fromTo("#phone", { y: 70 }, { y: 0, duration: 0.34, ease: E }, 8.40);
+      tl.fromTo("#s3-title", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: E }, 9.1);
+      tl.fromTo("#cursor", { x: 250, y: 560, opacity: 0 }, { x: 250, y: 560, opacity: 1, duration: 0.2 }, 9.5);
+      tl.to("#cursor", { x: 139, y: 209, duration: 0.6, ease: "power2.inOut" }, 9.7);
+      tl.to("#cursor", { scale: 0.8, duration: 0.08, ease: "power1.in" }, 10.30);
+      tl.to("#cursor", { scale: 1, duration: 0.16, ease: "power1.out" }, 10.38);
+      tl.to("#usual", { backgroundColor: "#e6e1fb", borderColor: "rgba(36, 31, 51, 0)", duration: 0.15 }, 10.32);
+      tl.to("#amt-empty", { opacity: 0, duration: 0.2 }, 10.34);
+      tl.fromTo("#amt-full", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 10.34);
+      tl.to("#dining", { backgroundColor: "#e6e1fb", borderColor: "rgba(36, 31, 51, 0)", duration: 0.2 }, 10.40);
+      tl.to("#save", { backgroundColor: "#6b5bff", color: "#ffffff", duration: 0.2 }, 10.40);
+      tl.to("#cursor", { x: 344, y: 61, duration: 0.7, ease: "power2.inOut" }, 11.4);
+      tl.to("#cursor", { scale: 0.8, duration: 0.08, ease: "power1.in" }, 12.20);
+      tl.to("#cursor", { scale: 1, duration: 0.16, ease: "power1.out" }, 12.28);
+      tl.to("#cursor", { opacity: 0, duration: 0.25 }, 12.45);
+      tl.fromTo("#activity", { opacity: 0 }, { opacity: 1, duration: 0.05 }, 12.35);
+      tl.to("#add-sheet", { y: 900, duration: 0.5, ease: "power2.in" }, 12.35);
+      tl.fromTo("#new-row", { y: -24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: E }, 12.8);
+      tl.fromTo("#new-wash", { opacity: 1 }, { opacity: 0, duration: 1.2, ease: "power1.out" }, 13.6);
+      tl.fromTo("#s3-sub", { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: E }, 12.9);
+      tl.to("#s3-inner", { opacity: 0, duration: 0.8, ease: "power1.inOut" }, 14.8);
+
+      // ── Scene 4: the row appends to the user's own sheet ──
+      tl.fromTo("#s4-inner", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power1.inOut" }, 14.8);
+      tl.fromTo("#s4-title", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: E }, 15.2);
+      tl.fromTo("#s4-sub", { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: E }, 15.7);
+      // beat-locked: 17.47s — the new row lands on the strong cue
+      tl.fromTo("#sheet-new", { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: E }, 17.12);
+      tl.fromTo("#sheet-wash", { opacity: 1 }, { opacity: 0, duration: 1.0, ease: "power1.out" }, 17.8);
+      tl.to("#s4-inner", { opacity: 0, duration: 0.8, ease: "power1.inOut" }, 18.6);
+
+      // ── Scene 5: the name, and a long hold ──
+      tl.fromTo("#s5-inner", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power1.inOut" }, 18.6);
+      tl.fromTo("#pet", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 18.9);
+      // beat-locked: 19.66s — the name lands on the strong cue
+      tl.fromTo("#s5-name", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.36, ease: E }, 19.30);
+      tl.fromTo("#s5-tag", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: E }, 20.0);
+      tl.fromTo("#s5-url", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: E }, 20.4);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

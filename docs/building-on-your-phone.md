@@ -39,14 +39,26 @@ cp "$PROF" "$APP/embedded.mobileprovision"
 security cms -D -i "$PROF" > /tmp/prof.plist
 /usr/libexec/PlistBuddy -x -c 'Print :Entitlements' /tmp/prof.plist > /tmp/ent.plist
 
-# 3. Sign the bundle.
-codesign --force --sign "Apple Development: <your-apple-id> (XXXXXXXXXX)" \
-  --entitlements /tmp/ent.plist --timestamp=none "$APP"
+# 3. Sign what is inside first, then the bundle. A Debug build splits the
+#    app into VITT.debug.dylib (and __preview.dylib), and neither the bundle
+#    signature nor --deep reaches them: the app installs, "launches", and dies
+#    at dyld with "missing code signature". Use /usr/bin/find, not a wrapper.
+ID="Apple Development: <your-apple-id> (XXXXXXXXXX)"
+for f in $(/usr/bin/find "$APP" -maxdepth 3 \( -name "*.dylib" -o -name "*.framework" \)); do
+  codesign --force --sign "$ID" --timestamp=none "$f"
+done
+codesign --force --sign "$ID" --entitlements /tmp/ent.plist --timestamp=none "$APP"
 
 # 4. Install and run.
 xcrun devicectl device install app --device <UDID> "$(pwd)/$APP"
 xcrun devicectl device process launch --device <UDID> --terminate-existing ie.shoonya.vitt
 ```
+
+"Launched application" is not proof the app is running. Launch once with
+`--console` and look for a `dyld` line; a signing miss shows there and nowhere
+else. If `project.yml` is edited for the build (the widget lines below), back
+it up and put the backup back afterwards, rather than `git checkout`, which
+also throws away anything uncommitted in it.
 
 **Manual signing with `PROVISIONING_PROFILE_SPECIFIER` does not work here** —
 the profile is Xcode-managed, and `xcodebuild` refuses to use a managed profile
