@@ -54,6 +54,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -211,6 +212,9 @@ fun VittApp(
         repository.needingCategoryCount(period)
     }
     val owed = remember(revision) { repository.owed() }
+    // When logging began, in any currency. Days before it were before the
+    // app, so no chart may count them as days with nothing out.
+    val trackedFrom = remember(revision, today) { repository.transactions().minOfOrNull { it.day } ?: today }
     val habitOn = remember(revision) { repository.gamificationEnabled() }
     val companion = remember(revision) {
         CompanionAnimal.ofCode(repository.choice(Choice.COMPANION))
@@ -364,6 +368,17 @@ fun VittApp(
     // midnight, and a glad face that sat there all evening would be a
     // decoration rather than a reaction. Cleared by the next interaction.
     var justSaved by remember { mutableStateOf(false) }
+    // What was just saved, said back for a few seconds with an Undo. Saving
+    // used to close the sheet and say nothing, on the one action a person
+    // most wants confirmed.
+    var receipt by remember { mutableStateOf<Receipt?>(null) }
+    LaunchedEffect(receipt) {
+        if (receipt != null) {
+            kotlinx.coroutines.delay(RECEIPT_MILLIS)
+            receipt = null
+        }
+    }
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
     val liveliness = remember(revision, today) {
         ie.shoonya.vitt.model.Liveliness.of(
             repository.transactions().maxOfOrNull { it.day }?.let { today - it },
@@ -465,7 +480,9 @@ fun VittApp(
                 ids.firstOrNull()?.let { repository.setChoice(Choice.LAST_ACCOUNT, it) }
                 repository.setChoice(Choice.SETUP_DONE, Choice.SETUP_YES)
                 localRevision++
-                sheet = Sheet.Add
+                // Lands on home, where the welcome card offers the first entry
+                // in one tap. Opening Add here made the first thing after Start
+                // a keypad asking for a figure, over the accounts just named.
             },
             onSkip = {
                 // Marked done even though nothing was named: skipping is an
@@ -584,6 +601,8 @@ fun VittApp(
                     transfers = transfers,
                     onAddAccount = { sheet = Sheet.NewAccount },
             onImport = { sheet = Sheet.Import },
+                    onAdd = { sheet = Sheet.Add },
+                    companion = if (habitOn) companion else null,
                     onEditAccount = { sheet = Sheet.EditAccount(it) },
                     onTransfer = { sheet = Sheet.Transfer },
                     accountName = nameOf,
@@ -604,6 +623,7 @@ fun VittApp(
                     ) 64.dp else 0.dp,
                 )
                 Tab.Activity -> ActivityScreen(
+                    onAdd = { sheet = Sheet.Add },
                     companionInset = if (habitOn && companion != null) 64.dp else 0.dp,
                     days = days,
                     currencyIndex = indexOf,
@@ -676,9 +696,10 @@ fun VittApp(
                             Insights.sizes(all, currency, period)
                         },
                         review = remember(revision, currency, period, today) {
-                            month?.let { ie.shoonya.vitt.model.MonthReview.of(all, currency, it, today, ledger?.budget) }
+                            month?.let { ie.shoonya.vitt.model.MonthReview.of(all, currency, it, today, ledger?.budget, trackedFrom) }
                         },
                         onOpenReview = { month?.let { sheet = Sheet.Review(currency, it) } },
+                        trackedFrom = trackedFrom,
                         onSort = { sheet = Sheet.Sort },
                         weekday = remember(revision, currency, period) {
                             Insights.byWeekday(all, currency, period)
@@ -815,6 +836,27 @@ fun VittApp(
     }
     }
 
+    receipt?.let { r ->
+        val onRail = LocalWindowLayout.current.useRail
+        val petBand = habitOn && companion != null && tab == Tab.Ledgers && !LocalWindowLayout.current.shortHeight
+        Box(
+            Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
+                .padding(bottom = (if (onRail) 24.dp else 84.dp) + (if (petBand) 64.dp else 0.dp)),
+            contentAlignment = Alignment.BottomCenter,
+        ) {
+            ReceiptBar(
+                text = r.text,
+                onUndo = {
+                    repository.delete(r.id)
+                    localRevision++
+                    receipt = null
+                },
+            )
+        }
+    }
+
     sheet?.let { open ->
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         SheetHost(
@@ -939,6 +981,8 @@ fun VittApp(
                         // so nothing can be lost and there is no streak to
                         // protect by avoiding the app.
                         justSaved = true
+                        receipt = Receipt(id, receiptLine(new, accounts.firstOrNull { it.id == new.accountId }?.name))
+                        haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.Confirm)
                         // The people and their parts were chosen on the same
                         // screen, so a split is finished when it is saved.
                         sheet = null
@@ -1099,6 +1143,7 @@ fun VittApp(
                         ie.shoonya.vitt.model.MonthReview.of(
                             all, open.currency, open.month, today,
                             ledgers.firstOrNull { it.currency == open.currency }?.budget,
+                            trackedFrom,
                         )
                     }
                     if (review == null) {
@@ -1490,3 +1535,48 @@ private const val WIDE_CONTENT_WIDTH = 1100
 private fun usesSidePanel(layout: ie.shoonya.vitt.layout.WindowLayout, tab: Tab, sheet: Sheet?): Boolean =
     layout.width == ie.shoonya.vitt.layout.WindowLayout.Width.EXPANDED && !layout.shortHeight &&
         tab == Tab.Activity && (sheet is Sheet.EditCategory || sheet is Sheet.Split)
+
+/** An entry just saved, and the line that says so. */
+private data class Receipt(val id: String, val text: String)
+
+/** Long enough to read and reach Undo, short enough not to linger. */
+private const val RECEIPT_MILLIS = 4_500L
+
+/**
+ * What was saved, in the app's voice: a receipt, not a cheer. The figure is
+ * what the budget counts, so on a split it is the person's own share.
+ */
+private fun receiptLine(new: ie.shoonya.vitt.ui.screens.NewEntry, account: String?): String {
+    val figure = new.amount.abs().displayUnsigned()
+    return when {
+        new.totalPaid != null -> "Saved. Your share is $figure."
+        account == null -> "Saved $figure."
+        new.amount.isInflow -> "Saved $figure into $account."
+        else -> "Saved $figure from $account."
+    }
+}
+
+@Composable
+private fun ReceiptBar(text: String, onUndo: () -> Unit) {
+    val colors = Vitt.colors
+    Row(
+        modifier = Modifier
+            .padding(horizontal = Vitt.space.loose)
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+            .background(colors.ink)
+            .padding(start = Vitt.space.base, end = Vitt.space.hair),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text,
+            style = Vitt.type.body,
+            color = colors.ground,
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite },
+        )
+        androidx.compose.material3.TextButton(onClick = onUndo) {
+            Text("Undo", style = Vitt.type.body, color = colors.ground, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+        }
+    }
+}

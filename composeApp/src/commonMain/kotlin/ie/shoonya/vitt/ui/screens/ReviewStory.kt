@@ -95,7 +95,7 @@ fun ReviewStory(
             Page(
                 big = "${review.entries}",
                 line = "entries in $name, on ${review.daysRecorded} ${plural(review.daysRecorded, "day")}.",
-            ) { DayDots(review.month, daily, if (review.complete) review.month.lastDay else today, hue, interactive = false) }
+            ) { DayDots(review.month, daily, if (review.complete) review.month.lastDay else today, hue, interactive = false, since = review.countedFrom) }
         }
         review.topCategory?.let { top ->
             add {
@@ -119,7 +119,7 @@ fun ReviewStory(
                 Page(
                     big = "${review.clearDays}",
                     line = "${plural(review.clearDays, "day")} with nothing going out, of ${review.daysCounted}.",
-                ) { ie.shoonya.vitt.ui.DayStrip(daily, hue) }
+                ) { ie.shoonya.vitt.ui.DayStrip(daily.drop(review.countedFrom - review.month.firstDay), hue) }
             }
         }
         review.biggestDay?.let { (day, amount) ->
@@ -165,7 +165,17 @@ fun ReviewStory(
             }
         }
         add {
-            Page(big = if (review.complete) "That was $name" else "$name so far", line = "${review.spent.displayUnsigned()} out, ${review.received.displayUnsigned()} in.") {
+            // The story ends on the clean page ahead, not on a verdict: the
+            // next month is a fresh start whatever this one was, and a review
+            // that closes on what is still to come is one people open again.
+            val next = monthName(review.month.next().month)
+            val ahead = when {
+                review.complete -> "$next starts clean."
+                review.daysLeft == 0 -> "Last day. $next starts clean tomorrow."
+                review.daysLeft == 1 -> "A day to go. $next starts clean."
+                else -> "${review.daysLeft} days to go. $next starts clean."
+            }
+            Page(big = if (review.complete) "That was $name" else "$name so far", line = "${review.spent.displayUnsigned()} out, ${review.received.displayUnsigned()} in. $ahead") {
                 ie.shoonya.vitt.ui.CompareLines(review.spent, "Out", review.received, "In", hue)
             }
         }

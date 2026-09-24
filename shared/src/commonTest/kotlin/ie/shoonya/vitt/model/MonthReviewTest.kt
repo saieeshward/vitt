@@ -114,4 +114,23 @@ class MonthReviewTest {
         assertEquals(eur(30000), r.uncategorised)
         assertEquals(Category.ofCode("transport"), r.topCategory?.category)
     }
+
+    @Test
+    fun `days before logging began are not counted as days with nothing out`() {
+        // Started on the 9th: the 1st to the 8th were before the app.
+        val late = august.filter { it.day >= day(8, 9) } + listOf(
+            t("g", 700, 10), t("h", 300, 12), t("i", 900, 15),
+        )
+        val r = MonthReview.of(late, Currency.EUR, aug, today = day(9, 2), trackedFrom = day(8, 9))!!
+        assertEquals(day(8, 9), r.countedFrom)
+        assertEquals(23, r.daysCounted)
+        assertEquals(18, r.clearDays)
+    }
+
+    @Test
+    fun `days left counts to the end of the month and is zero once it is over`() {
+        // The 20th of a 31-day month: eleven days still ahead.
+        assertEquals(11, MonthReview.of(august, Currency.EUR, aug, today = day(8, 20))!!.daysLeft)
+        assertEquals(0, MonthReview.of(august, Currency.EUR, aug, today = day(9, 2))!!.daysLeft)
+    }
 }

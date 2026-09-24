@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Not here · VITT</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="/vitt/assets/img/favicon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vitt/assets/css/site.css">
+  <style>
+    .lost { min-height: 100svh; display: grid; place-content: center; justify-items: start; gap: 18px; padding: 24px var(--gutter); }
+    .lost canvas { width: 144px; height: 120px; image-rendering: pixelated; }
+    .lost h1 { font-size: clamp(34px, 6vw, 56px); }
+    .lost p { color: var(--ink-muted); max-width: 34rem; margin: 0; }
+  </style>
+</head>
+<body>
+  <!-- Absolute paths on purpose: this page is served for any missing path under /vitt/, however deep. -->
+  <main class="lost">
+    <canvas id="pet" width="24" height="20" aria-hidden="true"></canvas>
+    <p class="eyebrow"><span class="dots"><i class="dot-eur"></i><i class="dot-inr"></i><i class="dot-usd"></i></span> 404</p>
+    <h1>Nothing at this address.</h1>
+    <p>The page may have moved, or the link was mistyped. Nothing of yours is lost: VITT keeps no data on this site.</p>
+    <div class="buttons" style="justify-content: flex-start; margin-top: 8px">
+      <a class="btn primary" href="/vitt/">Back to the start</a>
+      <a class="btn ghost" href="https://github.com/saieeshward/vitt/issues">Report a broken link</a>
+    </div>
+  </main>
+  <script type="module">
+    import { PETS } from '/vitt/assets/js/pets.js';
+    import { drawPet } from '/vitt/assets/js/pet.js';
+    const pet = PETS[Math.floor(Math.random() * PETS.length)];
+    drawPet(document.getElementById('pet').getContext('2d'), pet.poses.careful);
+  </script>
+</body>
+</html>

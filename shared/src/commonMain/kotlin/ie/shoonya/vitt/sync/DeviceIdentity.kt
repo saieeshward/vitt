@@ -43,7 +43,7 @@ object DeviceIdentity {
             storedMarker == null ||
             storedMarker != installMarker
 
-        if (!needsMint) return storedNode!!
+        if (!needsMint) return storedNode
 
         // A restored backup arrives with someone else's node id and their
         // install marker. Re-minting here is what stops the two devices from

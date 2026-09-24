@@ -48,6 +48,8 @@ fun ActivityScreen(
     onFilterChange: (ActivityFilter) -> Unit,
     onPeriodChange: (Period?) -> Unit,
     onPickGrain: () -> Unit,
+    /** Opens Add, from the empty state. */
+    onAdd: (() -> Unit)? = null,
     /** Opens the one-tap-each pass over entries with no category. */
     onSort: (() -> Unit)? = null,
     /** Room kept at the foot for the companion's band, so the last rows never sit under her. */
@@ -119,6 +121,14 @@ fun ActivityScreen(
                     color = Vitt.colors.inkMuted,
                     modifier = Modifier.padding(top = Vitt.space.tight),
                 )
+                // An empty list with no way forward is a dead end. Only when no
+                // filter emptied it: otherwise the way out is the filter itself.
+                if (onAdd != null && !filter.needingCategory && filter.currency == null) {
+                    androidx.compose.material3.TextButton(
+                        onClick = onAdd,
+                        contentPadding = PaddingValues(0.dp),
+                    ) { Text("Log something", style = Vitt.type.body) }
+                }
             }
         } else if (filter.currency != null) {
             // A single-currency view can carry a total, because there is only one
@@ -189,7 +199,9 @@ private fun TransactionRow(
                 // Never a bare dash. A row the user typed an amount into and
                 // nothing else still has to say what it is, and "—" says less
                 // than nothing: it reads as a rendering fault.
-                name ?: "No description",
+                // Unnamed says what it is, not what it lacks: "No description"
+                // on a first entry read like a mistake had been made.
+                name ?: if (txn.amount.isInflow) "Income" else "Expense",
                 style = Vitt.type.body,
                 color = if (name == null) colors.inkMuted else colors.ink,
                 maxLines = 1,

@@ -171,7 +171,7 @@ fun CategorySheet(
             VittChip(
                 selected = remember,
                 onClick = { remember = !remember },
-                label = { Text("Remember for “$merchantKey”", style = Vitt.type.label) },
+                label = { Text("Remember for “${transaction.merchantLabel ?: merchantKey}”", style = Vitt.type.label) },
             )
             Text(
                 if (remember) {

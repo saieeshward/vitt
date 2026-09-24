@@ -100,6 +100,8 @@ fun ReportsSheet(
     daily: List<Money> = emptyList(),
     /** How big purchases were, between round amounts. */
     sizes: List<ie.shoonya.vitt.model.SizeBin> = emptyList(),
+    /** The first day anything was recorded; the calendar counts from there. */
+    trackedFrom: Int? = null,
     /** The month told back as a story, when there is one to tell. */
     review: ie.shoonya.vitt.model.MonthReview? = null,
     onOpenReview: () -> Unit = {},
@@ -231,7 +233,7 @@ fun ReportsSheet(
                     currency = currency,
                 )
                 if (month != null && daily.isNotEmpty()) {
-                    ie.shoonya.vitt.ui.DayDots(month = month, daily = daily, today = today, hue = currencyIndex(currency))
+                    ie.shoonya.vitt.ui.DayDots(month = month, daily = daily, today = today, hue = currencyIndex(currency), since = trackedFrom)
                 }
             }
 

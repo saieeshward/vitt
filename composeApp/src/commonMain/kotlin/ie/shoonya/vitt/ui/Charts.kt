@@ -174,13 +174,23 @@ fun DayDots(
     modifier: Modifier = Modifier,
     /** False where a tap means something else, as on a story page that turns. */
     interactive: Boolean = true,
+    /**
+     * The first day anything was recorded. Earlier days were before the app,
+     * so they are drawn as quietly as the future and never counted as days
+     * with nothing out: on a fresh install the calendar used to report ten
+     * clear days that nobody had recorded.
+     */
+    since: Int? = null,
 ) {
     val colors = Vitt.colors
     var picked by remember(month, daily) { mutableStateOf<Int?>(null) }
     val max = daily.maxOfOrNull { it.minor }?.coerceAtLeast(1L) ?: 1L
     val lead = Civil.dayOfWeek(month.firstDay)
     val days = Civil.daysInMonth(month.year, month.month)
-    val clear = daily.count { it.minor == 0L }
+    val firstCounted = ((since ?: month.firstDay) - month.firstDay).coerceAtLeast(0)
+    val counted = daily.drop(firstCounted.coerceAtMost(daily.size))
+    val clear = counted.count { it.minor == 0L }
+    val anyOut = counted.any { it.minor > 0L }
 
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Vitt.space.hair)) {
         Row(Modifier.fillMaxWidth()) {
@@ -193,8 +203,9 @@ fun DayDots(
             Row(Modifier.fillMaxWidth()) {
                 (0 until 7).forEach { col ->
                     val index = week * 7 + col - lead
-                    val amount = daily.getOrNull(index)
-                    val isFuture = index >= 0 && index < days && month.firstDay + index > today
+                    val beforeApp = index in 0 until firstCounted
+                    val amount = if (beforeApp) null else daily.getOrNull(index)
+                    val isFuture = index >= 0 && index < days && (month.firstDay + index > today || beforeApp)
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -239,9 +250,12 @@ fun DayDots(
             // "So far" only while the month is still going; a finished month
             // is described as it was.
             val span = if (today < month.lastDay) " so far" else " in ${monthName(month.month)}"
-            when (clear) {
-                0 -> "Tap a day to see it."
-                1 -> "1 day with nothing out$span."
+            when {
+                // Nothing logged yet: no count of quiet days, which would be a
+                // count of days the app was not there for.
+                !anyOut -> "Days fill in as you log."
+                clear == 0 -> "Tap a day to see it."
+                clear == 1 -> "1 day with nothing out$span."
                 else -> "$clear days with nothing out$span."
             }
         }

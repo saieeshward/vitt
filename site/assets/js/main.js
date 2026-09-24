@@ -170,16 +170,26 @@ function onHeroScroll() {
 addEventListener('scroll', onHeroScroll, { passive: true });
 
 // The 3D scene is ornament: a failure leaves the copy and a still behind.
-import('./coins.js')
-  .then(({ createCoins }) => {
-    coins = createCoins($('#coins'), { still: reduced });
-    if (coins) {
-      document.documentElement.classList.add('has-3d');
-      addEventListener('resize', () => { coins.resize(); onHeroScroll(); });
-      coins.setProgress(reduced ? 1 : heroProgress());
-    }
-  })
-  .catch(() => {});
+// It is also the heaviest thing on the page (three.js is 690 KB before
+// compression), so it loads once the page has settled rather than racing the
+// copy and the fonts for the connection, and not at all when the browser asks
+// for less data.
+function loadScene() {
+  import('./coins.js')
+    .then(({ createCoins }) => {
+      coins = createCoins($('#coins'), { still: reduced });
+      if (coins) {
+        document.documentElement.classList.add('has-3d');
+        addEventListener('resize', () => { coins.resize(); onHeroScroll(); });
+        coins.setProgress(reduced ? 1 : heroProgress());
+      }
+    })
+    .catch(() => {});
+}
+if (!navigator.connection?.saveData) {
+  const whenIdle = () => ('requestIdleCallback' in window ? requestIdleCallback(loadScene, { timeout: 1500 }) : setTimeout(loadScene, 300));
+  if (document.readyState === 'complete') whenIdle(); else addEventListener('load', whenIdle, { once: true });
+}
 
 /* ── Scrollytelling: the step in the middle of the screen drives the phone ── */
 

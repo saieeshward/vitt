@@ -73,6 +73,10 @@ fun LedgersScreen(
     onAddAccount: () -> Unit,
     /** Offered from the empty state, where a person with history is most likely to want it. */
     onImport: () -> Unit,
+    /** Opens Add, for the first-day welcome card. */
+    onAdd: () -> Unit = {},
+    /** Today's companion, or null when the habit layer is off. */
+    companion: ie.shoonya.vitt.ui.CompanionAnimal? = null,
     onEditAccount: (String) -> Unit,
     onTransfer: () -> Unit,
     accountName: (String) -> String,
@@ -140,7 +144,7 @@ fun LedgersScreen(
         // list cannot remeasure the cards below it however far she walks.
 
         if (ledgers.isEmpty()) {
-            item { EmptyLedgers(onImport = onImport) }
+            item { EmptyLedgers(onImport = onImport, onAdd = onAdd, companion = companion, currencies = balances.map { it.account.currency }.distinct().size) }
         } else if (ledgers.size > 1 && across > 1) {
             // Room for every currency at once: a grid, two across on a medium
             // window and three on a wide one, in assignment order. The swipe
@@ -157,6 +161,7 @@ fun LedgersScreen(
                                 ledger = ledger,
                                 onSetBudget = onSetBudget,
                                 periodPhrase = periodPhrase(period, today),
+                                daysLeft = daysLeft(period, today),
                                 canSetBudget = period is ie.shoonya.vitt.time.YearMonth,
                             )
                         }
@@ -175,6 +180,7 @@ fun LedgersScreen(
                     ledgers = ledgers,
                     onSetBudget = onSetBudget,
                     periodPhrase = periodPhrase(period, today),
+                    daysLeft = daysLeft(period, today),
                     canSetBudget = period is ie.shoonya.vitt.time.YearMonth,
                 )
             }
@@ -185,6 +191,7 @@ fun LedgersScreen(
                     ledger = it,
                     onSetBudget = onSetBudget,
                     periodPhrase = periodPhrase(period, today),
+                    daysLeft = daysLeft(period, today),
                     // A monthly limit can only be set against a month, so the
                     // invitation only appears where acting on it makes sense.
                     canSetBudget = period is ie.shoonya.vitt.time.YearMonth,
@@ -227,6 +234,7 @@ private fun LedgerPager(
     ledgers: List<Ledger>,
     onSetBudget: (Currency) -> Unit,
     periodPhrase: String,
+    daysLeft: Int?,
     canSetBudget: Boolean,
 ) {
     val state = rememberPagerState(pageCount = { ledgers.size })
@@ -262,6 +270,7 @@ private fun LedgerPager(
                     ledger = ledgers[page],
                     onSetBudget = onSetBudget,
                     periodPhrase = periodPhrase,
+                    daysLeft = daysLeft,
                     canSetBudget = canSetBudget,
                 )
             }
@@ -324,6 +333,8 @@ private fun LedgerCard(
     ledger: Ledger,
     onSetBudget: (Currency) -> Unit,
     periodPhrase: String,
+    /** Days of the period still ahead, or null when the period is not the current one. */
+    daysLeft: Int?,
     canSetBudget: Boolean,
 ) {
     val colors = Vitt.colors
@@ -401,9 +412,16 @@ private fun LedgerCard(
                     "left of ${ledger.budget!!.displayUnsigned()}"
                 remaining != null ->
                     // Still no verdict and still no minus sign in front of the
-                    // hero: the fact, in the order a person asks for it.
-                    "of ${ledger.budget!!.displayUnsigned()} · " +
-                        "${remaining.abs().displayUnsigned()} over"
+                    // hero. "Over" closes the month; "past" with the days still
+                    // to go leaves it open, which is what stops one bad week
+                    // from writing off the rest of the month.
+                    "${remaining.abs().displayUnsigned()} past ${ledger.budget!!.displayUnsigned()}" +
+                        when (daysLeft) {
+                            null -> ""
+                            0 -> " · last day"
+                            1 -> " · a day to go"
+                            else -> " · $daysLeft days to go"
+                        }
                 // Says which period, because the card no longer only ever shows
                 // a month. A budget line appears only at month grain — the
                 // repository withholds it elsewhere rather than pro-rating it.
@@ -514,15 +532,64 @@ private fun OwedRow(owed: Map<Currency, Money>) {
     }
 }
 
+/**
+ * The first home anybody sees, straight after setup.
+ *
+ * It used to be a line of grey text, and setup used to skip past it by opening
+ * the Add sheet the moment Start was pressed, so the first thing after naming
+ * your accounts was a keypad demanding a figure. Now setup lands here: the
+ * companion says hello, and one button logs the first entry. The same one tap
+ * it always was, but offered rather than imposed, with the accounts just
+ * named visible underneath.
+ */
 @Composable
-private fun EmptyLedgers(onImport: () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(Vitt.space.tight)) {
-        Text("Nothing recorded yet.", style = Vitt.type.title, color = Vitt.colors.ink)
-        Text(
-            "Tap the middle button to log something. Each currency gets its own ledger.",
-            style = Vitt.type.label,
-            color = Vitt.colors.inkMuted,
-        )
+private fun EmptyLedgers(
+    onImport: () -> Unit,
+    onAdd: () -> Unit,
+    companion: ie.shoonya.vitt.ui.CompanionAnimal?,
+    currencies: Int,
+) {
+    val colors = Vitt.colors
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(Vitt.radius.card))
+            .background(colors.card)
+            .padding(Vitt.space.loose),
+        verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Vitt.space.base),
+        ) {
+            if (companion != null) {
+                Box(Modifier.semantics { contentDescription = "${companion.label}, your companion" }) {
+                    ie.shoonya.vitt.ui.CompanionPet(
+                        daysRecorded = 0,
+                        currencyCount = currencies.coerceAtLeast(1),
+                        animal = companion,
+                        mood = null,
+                        pixelSize = 3.dp,
+                        pose = ie.shoonya.vitt.ui.CompanionPose.FRONT,
+                    )
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(Vitt.space.hair)) {
+                Text(
+                    if (companion != null) "Hi, I'm ${companion.label}." else "You're set up.",
+                    style = Vitt.type.title,
+                    color = colors.ink,
+                )
+                Text(
+                    "Log the last thing you paid for. It takes two taps.",
+                    style = Vitt.type.body,
+                    color = colors.inkMuted,
+                )
+            }
+        }
+        androidx.compose.material3.Button(onClick = onAdd, modifier = Modifier.fillMaxWidth()) {
+            Text("Log something")
+        }
         // Import lived only at the foot of the Reports tab, below the charts —
         // which is a fine place to find it again and a hopeless place to find
         // it the first time. Somebody arriving with a year of history has
@@ -544,3 +611,7 @@ private const val MIN_CARD_DP = 340
 /** Room the side rail takes, and the widest the grid screens get (VittApp). */
 private const val RAIL_DP = 100
 private const val WIDE_CONTENT_DP = 1100
+
+/** How many days of [period] remain after [today], or null when today is not in it. */
+private fun daysLeft(period: ie.shoonya.vitt.time.Period?, today: Int): Int? =
+    if (period != null && today in period) period.lastDay - today else null
