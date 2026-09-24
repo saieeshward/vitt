@@ -130,15 +130,22 @@ export function createCoins(canvas, { still = false } = {}) {
   spark.visible = false;
   scene.add(spark);
 
-  // Layout: beside the copy when there is room, under it on a phone.
-  let wide = true;
+  // The canvas is laid out by CSS (beside the copy on a landscape screen,
+  // under it on a portrait one), so the camera frames the scene to whatever
+  // box it is given: far enough back that the three stacks and the transfer
+  // arc fit both across and up, at any size or aspect.
+  const SCENE_HALF_W = spacing + 1.45;   // outer stack edge, plus room for the camera's swing
+  const SCENE_HALF_H = 2.55;             // base to the top of the arc, halved
+  const LOOK_Y = 2.2;                    // the middle of that height
+  let fitDistance = 13;
   function resize() {
     const w = canvas.clientWidth, h = canvas.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    wide = w > 760;
     camera.updateProjectionMatrix();
+    const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    fitDistance = Math.max(SCENE_HALF_H / tanV, SCENE_HALF_W / (tanV * camera.aspect)) * 1.12 + 1.2;
     dirty = true; wake();
   }
 
@@ -146,8 +153,7 @@ export function createCoins(canvas, { still = false } = {}) {
   const spawn = new THREE.Vector3(0, 6.2, 0);
 
   function place(p) {
-    const wx = wide ? 3.7 : 0, wy = 0;
-    world.position.set(wx, wy, 0);
+    const wx = 0, wy = 0;
     for (const c of coins) {
       const t = THREE.MathUtils.clamp((p - c.t0) / 0.1, 0, 1);
       const m = c.mesh;
@@ -169,13 +175,14 @@ export function createCoins(canvas, { still = false } = {}) {
     spark.visible = a > 0 && a < 1;
     if (spark.visible) spark.position.copy(arcCurve.getPoint(a)).add(arc.position);
 
-    // The camera drifts round and up as the stacks fill.
-    const angle = THREE.MathUtils.lerp(-0.4, 0.06, smooth(p));
-    // A narrow screen sees less across, so the camera stands further back and
-    // aims above the stacks, which puts them in the lower half, under the copy.
-    const radius = (wide ? 12.8 : 27) + p * 0.8;
-    camera.position.set(Math.sin(angle) * radius, THREE.MathUtils.lerp(3.6, 5.2, p), Math.cos(angle) * radius);
-    camera.lookAt(wide ? 0.4 : 0, wide ? 1.6 : 5.0, 0);
+    // The camera drifts round and a little up as the stacks fill, always at
+    // the distance that fits the box it is drawing into.
+    const angle = THREE.MathUtils.lerp(-0.34, 0.06, smooth(p));
+    const lift = THREE.MathUtils.lerp(0.16, 0.26, p);
+    const radius = fitDistance * (1 + p * 0.04);
+    const flat = Math.cos(lift) * radius;
+    camera.position.set(Math.sin(angle) * flat, LOOK_Y + Math.sin(lift) * radius, Math.cos(angle) * flat);
+    camera.lookAt(0, LOOK_Y, 0);
   }
 
   function tick(now) {
@@ -194,6 +201,9 @@ export function createCoins(canvas, { still = false } = {}) {
   document.addEventListener('visibilitychange', wake);
 
   resize();
+  // The layout moves the canvas (rotation, a fold opening, a window resize),
+  // so it re-fits whenever its own box changes, not only on window resize.
+  if ('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas);
   return {
     setProgress(p) { target = still ? 1 : p; if (target !== current || dirty) wake(); },
     resize,

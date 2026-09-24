@@ -92,8 +92,19 @@ function wake() { if (!raf) raf = requestAnimationFrame(tick); }
 
 // Centred over the pet, but never past a screen edge; the pointer keeps
 // aiming at her wherever the bubble ends up.
+// On a phone there is no room above her that is not text, so the bubble sits
+// beside her in the strip she walks along, on whichever side has room.
+const phone = matchMedia('(max-width: 560px), (max-height: 520px)');
 function placeBubble() {
-  const w = bubble.offsetWidth, centre = x + walkerWidth() / 2;
+  const w = bubble.offsetWidth, pw = walkerWidth();
+  if (phone.matches) {
+    bubble.classList.add('side');
+    const right = x + pw + 6 + w <= innerWidth - 8;
+    bubble.style.left = (right ? pw + 6 : -w - 6).toFixed(1) + 'px';
+    return;
+  }
+  bubble.classList.remove('side');
+  const centre = x + pw / 2;
   const left = clamp(centre - w / 2, 8, Math.max(8, innerWidth - 8 - w)) - x;
   bubble.style.left = left.toFixed(1) + 'px';
   bubble.style.setProperty('--arrow', (centre - x - left).toFixed(1) + 'px');

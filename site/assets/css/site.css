@@ -3,6 +3,7 @@
    lines, dots and glows, never in a filled block. */
 
 :root {
+  --nav-h: 60px;
   --ground: #FFFDF7;
   --surface: #F2EFE7;
   --card: #FFFFFF;
@@ -96,7 +97,8 @@ a { color: inherit; }
   transition: border-color 200ms ease;
 }
 .nav.scrolled { border-bottom-color: var(--hairline); }
-.nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+.nav { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; height: var(--nav-h); }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 650; letter-spacing: 0.02em; }
 .brand img { width: 28px; height: 28px; border-radius: 8px; box-shadow: 0 0 0 1px var(--hairline); }
 .nav ul { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
@@ -110,19 +112,38 @@ a { color: inherit; }
 
 /* ── Hero: a pinned stage the scroll scrubs ─────────────────────── */
 
+/* The stage is laid out by the screen's shape, not its width alone: side by
+   side when it is wider than tall (desktop, a tablet or phone on its side),
+   copy over scene when it is taller (phones, a tablet upright, an open fold).
+   The coin scene fits itself to whichever box it gets (coins.js). */
 #hero { position: relative; height: 240svh; }
 #hero .stage {
   position: sticky; top: 0; height: 100svh; overflow: hidden;
-  display: grid; align-items: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: center;
+  padding-top: var(--nav-h);
 }
-#coins { position: absolute; inset: 0; width: 100%; height: 100%; }
-#coins-poster {
-  position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none;
-}
+#coins, #coins-poster { grid-column: 2; grid-row: 1; align-self: stretch; width: 100%; height: 100%; min-height: 0; display: block; }
+#coins-poster { pointer-events: none; }
 .has-3d #coins-poster { display: none; }
 
-.hero-copy { position: relative; z-index: 2; pointer-events: none; }
-.hero-copy .wrap { display: grid; }
+.hero-copy { position: relative; z-index: 2; pointer-events: none; grid-column: 1; grid-row: 1; }
+/* Aligned with the page's content edge on the left, however wide the window. */
+.hero-copy .wrap { display: grid; width: auto; margin: 0; padding-left: max(var(--gutter), calc((100vw - var(--max)) / 2)); padding-right: 12px; }
+
+@media (max-aspect-ratio: 5/4), (max-width: 699px) {
+  #hero .stage {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: start;
+    padding-top: calc(var(--nav-h) + clamp(20px, 5svh, 64px));
+  }
+  #coins, #coins-poster { grid-column: 1; grid-row: 2; }
+  .hero-copy { grid-row: 1; }
+  .hero-copy .wrap { padding-right: var(--gutter); }
+}
 .chapter {
   grid-area: 1 / 1; max-width: 38rem;
   opacity: 0; transform: translateY(14px);
@@ -161,10 +182,29 @@ h3 { font-size: 22px; letter-spacing: -0.01em; line-height: 1.25; }
 }
 @keyframes cue { 0%, 100% { transform: translateY(0); opacity: 1; } 60% { transform: translateY(10px); opacity: 0; } }
 
-/* Readable over the scene on a narrow screen: copy up top, coins below. */
-@media (max-width: 760px) {
-  #hero .stage { align-items: start; padding-top: 96px; }
-  .hero-copy .wrap { text-align: left; }
+/* Phones: a headline that fits three lines at 375px, tighter copy, and the
+   buttons on one row, so the scene below gets real room. */
+@media (max-width: 560px) {
+  h1 { font-size: clamp(30px, 8.6vw, 40px); }
+  h2 { font-size: clamp(28px, 7.6vw, 36px); }
+  .eyebrow { font-size: 12px; letter-spacing: 0.06em; margin-bottom: 12px; }
+  .lede { font-size: 16px; margin-top: 14px; }
+  .cue { display: none; }
+}
+
+/* A phone on its side: very little height, so smaller type and no eyebrow,
+   with the scene beside the copy rather than under it. */
+@media (max-height: 520px) and (min-aspect-ratio: 5/4) {
+  :root { --nav-h: 48px; }
+  .hero-copy .eyebrow { display: none; }
+  #hero h1, #hero h2 { font-size: clamp(24px, 7.2svh, 40px); }
+  #hero .lede { font-size: 14px; margin-top: 10px; line-height: 1.45; }
+  .hero-actions { margin-top: 14px; }
+  .hero-actions .btn { height: 40px; padding: 0 14px; font-size: 14px; }
+  @media (pointer: coarse) { .hero-actions .btn { height: 44px; } }
+  .cue { display: none; }
+  .section-head { padding-top: 12vh; }
+  .step { min-height: 0; padding: 10vh 0; }
 }
 
 /* ── Scrollytelling: chapters beside a sticky phone ─────────────── */
@@ -240,6 +280,13 @@ section { position: relative; }
 .sheet tbody tr.in { opacity: 1; transform: none; }
 .sheet tbody tr.fresh td { background: var(--accent-soft); transition: background 1.2s ease; }
 .sheet .cur { display: inline-flex; align-items: center; gap: 6px; }
+@media (max-width: 520px) {
+  .sheet table { min-width: 0; }
+  .sheet th:nth-child(3), .sheet td:nth-child(3) { display: none; }
+  .sheet th, .sheet td { padding: 9px 8px; }
+  .sheet td:nth-child(2) { white-space: normal; }
+  .sheet .y { display: none; }
+}
 .sheet .cur i { width: 7px; height: 7px; border-radius: 50%; }
 .note { font-size: 13px; color: var(--ink-faint); margin-top: 12px; }
 
@@ -265,7 +312,7 @@ section { position: relative; }
   padding: 18px 18px 20px; display: grid; gap: 4px;
   transition: transform 250ms cubic-bezier(.2, .8, .2, 1), border-color 200ms ease;
 }
-.pet:hover { transform: translateY(-3px); }
+@media (hover: hover) { .pet:hover { transform: translateY(-3px); } }
 .pet.today { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .pet canvas { width: 96px; height: 80px; image-rendering: pixelated; margin-bottom: 8px; }
 .pet b { font-weight: 600; }
@@ -295,7 +342,7 @@ section { position: relative; }
 .btn.ghost { background: var(--surface); color: var(--ink); }
 .btn.ghost:hover { background: color-mix(in srgb, var(--surface) 80%, var(--ink) 8%); }
 
-footer { border-top: 1px solid var(--hairline); padding: 28px 0 120px; color: var(--ink-faint); font-size: 14px; }
+footer { border-top: 1px solid var(--hairline); padding: 28px 0 calc(120px + env(safe-area-inset-bottom)); color: var(--ink-faint); font-size: 14px; }
 footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; }
 footer nav { display: flex; gap: 20px; flex-wrap: wrap; }
 footer a { text-decoration: none; }
@@ -309,7 +356,7 @@ footer a:hover { color: var(--ink); }
 /* ── The walker: today's pet, along the foot of the page ────────── */
 
 #walker {
-  position: fixed; left: 0; bottom: 14px; z-index: 40;
+  position: fixed; left: env(safe-area-inset-left); bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 40;
   width: 96px; height: 80px; pointer-events: none;
   will-change: transform;
 }
@@ -347,8 +394,8 @@ footer a:hover { color: var(--ink); }
 @media (prefers-reduced-motion: reduce) {
   #hero { height: auto; }
   #hero .stage { position: relative; height: auto; min-height: 100svh; padding: 110px 0 60px; align-items: start; }
-  /* One still frame, a screen tall, beside the first chapter. */
-  #coins { height: 100svh; bottom: auto; }
+  /* One still frame, sized in either layout. */
+  #coins, #coins-poster { height: min(70svh, 640px); align-self: start; }
   .chapter { grid-area: auto; opacity: 1; transform: none; margin-bottom: 40px; }
   .hero-copy .wrap { gap: 8px; }
   .cue { display: none; }
@@ -372,3 +419,21 @@ code { font-family: "Geist Mono", ui-monospace, monospace; font-size: 0.88em; ba
 .doc code { font-family: "Geist Mono", ui-monospace, monospace; font-size: 0.88em; background: var(--surface); padding: 2px 6px; border-radius: 6px; }
 .doc .meta { color: var(--ink-faint); font-size: 15px; }
 .doc a { color: var(--accent); }
+
+/* ── Touch screens: 44px targets for every control ─────────────────── */
+
+@media (pointer: coarse) {
+  .nav a.link { min-height: 44px; min-width: 44px; justify-content: center; }
+  .brand { min-height: 44px; }
+  footer nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; }
+  .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+}
+
+/* ── Phones: the pet's bubble sits beside it in the bottom strip ────── */
+
+@media (max-width: 560px), (max-height: 520px) {
+  #walker, #walker canvas { width: 56px; height: 47px; }
+  #walker .shadow { left: 10px; right: 10px; }
+  #walker .bubble.side { bottom: 6px; max-width: 170px; font-size: 12.5px; padding: 6px 10px; text-align: left; }
+  #walker .bubble.side::after { display: none; }
+}
