@@ -196,7 +196,6 @@ class VittServices(
                 // so the unassigned case is visible rather than theoretical.
                 accountId = when {
                     currency == inr -> "sample-acc-hdfc"
-                    what.second == "Subscriptions" -> "sample-acc-visa"
                     i % 5 == 3 -> null
                     else -> "sample-acc-aib"
                 },

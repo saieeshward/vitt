@@ -329,7 +329,7 @@ fun CompanionLayer(
                     pose = CompanionPose.FRONT
                     delay(2_200); waited += 2_200
                     pose = CompanionPose.STAND
-                    facingLeft = (nudgeTarget?.center?.x ?: 0f) - layerOrigin.x < homeX + walkedX.value + petW / 2f
+                    facingLeft = nudgeTarget.center.x - layerOrigin.x < homeX + walkedX.value + petW / 2f
                     delay(1_100); waited += 1_100
                 }
                 onNudgeExpired(nudge)
@@ -431,7 +431,7 @@ fun CompanionLayer(
                     if (pointing) {
                         Modifier.semantics {
                             role = Role.Button
-                            contentDescription = nudge!!.label
+                            contentDescription = nudge.label
                             onClick { onNudgeTap(nudge); true }
                         }
                     } else {
@@ -450,7 +450,7 @@ fun CompanionLayer(
                         val up = waitForUpOrCancellation() ?: return@awaitEachGesture
                         val held = up.uptimeMillis - down.uptimeMillis
                         if (pointing && held < viewConfiguration.longPressTimeoutMillis) {
-                            onNudgeTap(nudge!!)
+                            onNudgeTap(nudge)
                         }
                     }
                 }

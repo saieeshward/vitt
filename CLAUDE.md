@@ -6,26 +6,44 @@ about how to work in the repo.
 
 ## Repo state (keep this accurate)
 
-Pre-alpha. Phase 1 (all three spikes) and the OAuth + Sheets write path are done;
-Phase 2's engine exists and Phase 3's app shell is standing. Four modules:
-`:shared`, `:composeApp` (KMP library holding the shared Compose UI), `:androidApp`
-and `iosApp/` (thin shells that only host it). Display name is **VITT**; the package
-namespace stays `ie.shoonya.vitt`.
+Feature-complete for 1.0 and not yet in either store; what remains needs the
+maintainer's accounts (Apple, Play Console) and a teammate's Android hardware
+pass. `vitt.clan` has the live list. Four modules: `:shared`, `:composeApp` (KMP
+library holding the shared Compose UI, with a `jvm()` target for UI tests only),
+`:androidApp` and `iosApp/` (thin shells that only host it). The website lives in
+`site/` and deploys to GitHub Pages from `main`. Display name is **VITT**; the
+package namespace stays `ie.shoonya.vitt`.
 
 ```
 shared/src/commonMain/kotlin/ie/shoonya/vitt/
   auth/      Pkce, AuthFlow, AuthManager, TokenStore, Crypto — drive.file OAuth
-  capture/   AmountParser, CsvImport
-  model/     Transaction, LedgerRepository
-  money/     Money, AmountEntry  — minor-unit integers, never Double
+  capture/   AmountParser, Categoriser, Category, MerchantName, CsvImport, CsvPlan
+  config/    Links — the privacy policy and support URLs the app opens
+  export/    CsvExport
+  layout/    WindowLayout — phone, tablet and landscape breakpoints
+  model/     Transaction, LedgerRepository, Insights, MonthReview, SplitDraft, Usuals,
+             Budget, Nudge, CompanionState, Liveliness, SettlementSummary, Choice
+  money/     Money, AmountEntry, Rate, AccountSuggestions — minor-unit integers, never Double
   net/       HttpClientFactory
+  notify/    Reminder, Reminders
   sheets/    SheetsClient, SheetsWire, SheetsError, SheetsTransport, LiveVerification,
-             DerivedTabs, DerivedTransactions, DerivedSummary, SheetDrift, SheetMeta
-  sync/      Hlc, Iso8601, Event, EventLog, EventStore, Outbox, DeviceIdentity, Bisect
+             DerivedTabs, DerivedTransactions, DerivedSummary, DerivedDashboard, SheetDrift, SheetMeta
+  sync/      Hlc, Iso8601, Event, EventLog, EventStore, Outbox, Syncer, SyncController,
+             DeviceIdentity, InstallMarker, Bisect
+  theme/     Appearance, ThemeTokens, Contrast
+  time/      Civil, Period, PeriodLabels
+  widget/    WidgetSnapshot, WidgetPublisher
 composeApp/src/commonMain/.../ui/
-  VittApp, AppRoot, AmountKeypad, MoneyLine, Pip, Icons, VerifyScreen
-  screens/   AddScreen, ActivityScreen, LedgersScreen, HabitScreen
+  VittApp, AppRoot, AmountKeypad, MoneyLine, Charts, Pip, Companion, CompanionSprites,
+  Icons, VittChip, WindowLayouts, EdgeFade, NudgeAnchors, VerifyScreen
+  screens/   AddScreen, ActivityScreen, LedgersScreen, PeopleScreen, ReportsSheet, ReviewStory,
+             SplitSheet, SplitEditor, SortSheet, CategorySheet, SettingsSheet, SetupScreen,
+             AccountSheet, AccountsScreen, BudgetSheet, TransferSheet, ImportSheet, HabitScreen,
+             SheetSection, AppearanceSection, ActivityFilters, PeriodControl
   theme/     VittTheme, VittColors, Palette
+composeApp/src/jvmTest/   Compose UI tests: AddFlowTest, SplitSheetTest, SortSheetTest,
+             ReviewStoryTest, LayoutSizesTest, FirstRunTourTest, DesignTourTest (screenshots)
+site/        The website; tools/site-pets.py and tools/site-privacy.py generate its pets and privacy page
 ```
 
 Build constraints worth knowing before touching Gradle are in

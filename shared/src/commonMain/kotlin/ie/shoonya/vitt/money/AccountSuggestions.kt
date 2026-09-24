@@ -41,4 +41,10 @@ object AccountSuggestions {
     /** What to offer for a currency: its own names first, then the generic ones. */
     fun forCurrency(currency: Currency): List<String> =
         (byCurrency[currency].orEmpty() + generic).distinct()
+
+    /** The banks people in that currency usually have, for their own row. */
+    fun banks(currency: Currency): List<String> = byCurrency[currency].orEmpty()
+
+    /** Names by kind rather than by bank, offered in every currency. */
+    val kinds: List<String> get() = generic
 }

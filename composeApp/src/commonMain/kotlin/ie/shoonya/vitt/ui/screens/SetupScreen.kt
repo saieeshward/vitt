@@ -215,34 +215,42 @@ private fun NameStep(
                 }
             }
 
-            item {
-                Text(
-                    if (drafts.isEmpty()) "Tap the ones you have" else "Add another",
-                    style = Vitt.type.caption,
-                    color = Vitt.colors.inkMuted,
-                    modifier = Modifier.padding(top = Vitt.space.snug),
-                )
-            }
-            item {
-                // The chips carry the whole screen. Five accounts in twenty
-                // seconds of tapping is the difference between a person who
-                // finishes setup and one who quits partway and never comes back
-                // to it, and typing five bank names on a phone is the slow path
-                // that makes them quit.
-                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
-                androidx.compose.foundation.layout.FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight),
-                    verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
-                ) {
-                    AccountSuggestions.forCurrency(currency).forEach { name ->
-                        val taken = drafts.any { it.name == name && it.currency == currency }
-                        VittChip(
-                            selected = taken,
-                            enabled = !taken,
-                            onClick = { add(name) },
-                            label = { Text(name, style = Vitt.type.label) },
-                        )
+            // Banks and kinds in their own rows. One row mixing "AIB" with
+            // "Savings" read as a single list of the same sort of thing, when
+            // one is a bank and the other is what an account is for.
+            val groups = listOf(
+                (if (drafts.isEmpty()) "Tap the banks you use" else "Add another") to AccountSuggestions.banks(currency),
+                "Or name one by what it is" to AccountSuggestions.kinds,
+            ).filter { it.second.isNotEmpty() }
+            groups.forEach { (caption, names) ->
+                item {
+                    Text(
+                        caption,
+                        style = Vitt.type.caption,
+                        color = Vitt.colors.inkMuted,
+                        modifier = Modifier.padding(top = Vitt.space.snug),
+                    )
+                }
+                item {
+                    // The chips carry the whole screen. Five accounts in twenty
+                    // seconds of tapping is the difference between a person who
+                    // finishes setup and one who quits partway, and typing five
+                    // bank names on a phone is the slow path that makes them quit.
+                    @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                    androidx.compose.foundation.layout.FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+                        verticalArrangement = Arrangement.spacedBy(Vitt.space.tight),
+                    ) {
+                        names.forEach { name ->
+                            val taken = drafts.any { it.name == name && it.currency == currency }
+                            VittChip(
+                                selected = taken,
+                                enabled = !taken,
+                                onClick = { add(name) },
+                                label = { Text(name, style = Vitt.type.label) },
+                            )
+                        }
                     }
                 }
             }

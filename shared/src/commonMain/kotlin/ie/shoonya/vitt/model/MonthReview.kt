@@ -33,8 +33,15 @@ data class MonthReview(
     val daysRecorded: Int,
     /** Days so far with nothing going out. */
     val clearDays: Int,
-    /** Days of the month counted: all of them, or up to today. */
+    /**
+     * Days of the month counted: from the first, or from the day logging
+     * began if that was later, up to the end or to today.
+     */
     val daysCounted: Int,
+    /** The first day counted. Days before it were not recorded, so they say nothing. */
+    val countedFrom: Int,
+    /** Days of the month still ahead of today; zero once the month is complete. */
+    val daysLeft: Int = 0,
     val topCategory: CategorySlice?,
     /** The top category's share of what went out, as a whole percentage. */
     val topShare: Int,
@@ -81,12 +88,21 @@ data class MonthReview(
             month: YearMonth,
             today: Int,
             budget: Money? = null,
+            /**
+             * The first day anything was recorded, in any currency. A day
+             * before it was not a day with nothing out; it was a day before
+             * the app, and counting it as clear would tell a new person a
+             * fact about their month that nobody recorded.
+             */
+            trackedFrom: Int? = null,
         ): MonthReview? {
             val inMonth = transactions.filter { it.amount.currency == currency && !it.deleted && it.day in month }
             if (inMonth.size < MIN_ENTRIES) return null
 
             val complete = today > month.lastDay
             val daily = Insights.dailyTotals(transactions, currency, month, if (complete) month.lastDay else today)
+            val from = maxOf(month.firstDay, trackedFrom ?: month.firstDay)
+            val counted = daily.drop((from - month.firstDay).coerceIn(0, daily.size))
             val categories = Insights.byCategory(transactions, currency, month)
             val spent = categories.sumMoney(currency) { it.spent }
             val top = categories.firstOrNull { it.category != null }
@@ -101,8 +117,10 @@ data class MonthReview(
                 received = inMonth.filter { it.isIncome }.sumMoney(currency) { it.amount },
                 entries = inMonth.size,
                 daysRecorded = inMonth.map { it.day }.distinct().size,
-                clearDays = daily.count { it.minor == 0L },
-                daysCounted = daily.size,
+                clearDays = counted.count { it.minor == 0L },
+                daysCounted = counted.size,
+                countedFrom = from,
+                daysLeft = if (complete) 0 else month.lastDay - today,
                 topCategory = top,
                 topShare = if (top == null || spent.minor == 0L) 0 else ((top.spent.minor * 100) / spent.minor).toInt(),
                 biggestDay = biggest?.let { (i, m) -> (month.firstDay + i) to m },
