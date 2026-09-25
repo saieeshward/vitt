@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,8 +58,8 @@ fun ReviewCard(review: MonthReview, hue: Int, onOpen: () -> Unit, modifier: Modi
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Vitt.space.base),
     ) {
-        // A glow in the currency's hue: the one colour this card is allowed.
-        Box(Modifier.size(10.dp).clip(CircleShape).background(colors.currency(hue)))
+        // The currency's square: the one colour this card is allowed.
+        ie.shoonya.vitt.ui.CurrencyMark(hue, size = 10.dp)
         Column(Modifier.weight(1f)) {
             Text(title(review), style = Vitt.type.body, color = colors.ink)
             Text(
@@ -92,9 +94,12 @@ fun ReviewStory(
     val name = monthName(review.month.month)
     val pages = buildList<@Composable () -> Unit> {
         add {
+            // The first page counts what the person did, not what they spent:
+            // days they logged something. Money comes after the habit.
             Page(
-                big = "${review.entries}",
-                line = "entries in $name, on ${review.daysRecorded} ${plural(review.daysRecorded, "day")}.",
+                big = "${review.daysRecorded} ${plural(review.daysRecorded, "day")}",
+                line = "you logged something, out of ${review.daysCounted}${if (review.complete) "" else " so far"}. " +
+                    "${review.entries} entries in $name.",
             ) { DayDots(review.month, daily, if (review.complete) review.month.lastDay else today, hue, interactive = false, since = review.countedFrom) }
         }
         review.topCategory?.let { top ->
@@ -193,8 +198,18 @@ fun ReviewStory(
             .padding(Vitt.space.loose),
         verticalArrangement = Arrangement.spacedBy(Vitt.space.base),
     ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(title(review), style = Vitt.type.title, color = colors.ink)
+        // The header is printed, not written: the month in the ledger's
+        // small capitals, with a rule under it, so the pages beneath read as
+        // entries on a form.
+        Row(
+            Modifier.fillMaxWidth().drawBehind {
+                val y = size.height - 0.5.dp.toPx()
+                drawLine(colors.hairline, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx())
+            },
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(eyebrow(review), style = Vitt.type.mono, color = colors.inkMuted)
             TextButton(onClick = onDone) { Text("Done") }
         }
         HorizontalPager(state = state, modifier = Modifier.fillMaxWidth().weight(1f)) { page ->
@@ -213,9 +228,11 @@ fun ReviewStory(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
         ) {
+            // Short rules, not dots: the page you are on is the longer line,
+            // the way a ledger's margin marks the open page.
             repeat(pages.size) { i ->
                 Box(
-                    Modifier.size(if (i == state.currentPage) 8.dp else 6.dp).clip(CircleShape)
+                    Modifier.width(if (i == state.currentPage) 16.dp else 8.dp).height(2.dp)
                         .background(colors.currency(hue).copy(alpha = if (i == state.currentPage) 1f else 0.3f)),
                 )
             }
@@ -241,6 +258,9 @@ private fun title(review: MonthReview): String {
     val name = monthName(review.month.month)
     return if (review.complete) "$name in review" else "$name so far"
 }
+
+private fun eyebrow(review: MonthReview): String =
+    monthName(review.month.month).uppercase() + if (review.complete) " · IN REVIEW" else " · SO FAR"
 
 private fun plural(n: Int, word: String) = if (n == 1) word else "${word}s"
 

@@ -1,6 +1,7 @@
 /* VITT site. Tokens are the app's own (docs/design-identity.md): cream ground,
    ink, one violet accent for what is live, and a hue per currency that lives in
-   lines, dots and glows, never in a filled block. */
+   lines, squares and glows, never in a filled block. The square is the coin
+   slot on a companion's back, one per currency. */
 
 :root {
   --nav-h: 60px;
@@ -160,7 +161,7 @@ a { color: inherit; }
   display: inline-flex; align-items: center; gap: 8px; margin: 0 0 18px;
   font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted);
 }
-.eyebrow i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.eyebrow i { width: 8px; height: 8px; display: inline-block; }
 h1, h2, h3 { font-weight: 650; letter-spacing: -0.025em; line-height: 1.06; margin: 0; text-wrap: balance; }
 h1 { font-size: clamp(40px, 5.4vw, 68px); }
 h2 { font-size: clamp(32px, 5vw, 54px); }
@@ -287,7 +288,7 @@ section { position: relative; }
   .sheet td:nth-child(2) { white-space: normal; }
   .sheet .y { display: none; }
 }
-.sheet .cur i { width: 7px; height: 7px; border-radius: 50%; }
+.sheet .cur i { width: 7px; height: 7px; }
 .note { font-size: 13px; color: var(--ink-faint); margin-top: 12px; }
 
 /* ── What it will not do ────────────────────────────────────────── */

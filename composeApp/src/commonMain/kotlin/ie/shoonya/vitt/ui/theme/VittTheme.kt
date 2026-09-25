@@ -36,6 +36,13 @@ data class VittType(
     val label: TextStyle,
     /** Uppercase, tracked. Section headers and provenance. */
     val caption: TextStyle,
+    /**
+     * The ledger's utility face: dates, line numbers, the passbook line under a
+     * receipt, the eyebrow over a figure. Monospaced and small, so it reads as
+     * the printed part of a form and never competes with what is written in.
+     * Nothing else in the scale changes.
+     */
+    val mono: TextStyle,
 ) {
     companion object {
         /**
@@ -73,6 +80,10 @@ data class VittType(
                 caption = TextStyle(
                     fontFamily = sans, fontSize = 10.sp, fontWeight = FontWeight.Medium,
                     letterSpacing = 1.sp,
+                ),
+                mono = TextStyle(
+                    fontFamily = FontFamily.Monospace, fontSize = 11.sp, fontWeight = FontWeight.Medium,
+                    letterSpacing = 0.8.sp, fontFeatureSettings = TABULAR,
                 ),
             )
         }

@@ -15,8 +15,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import ie.shoonya.vitt.model.AccountBalance
@@ -52,6 +54,8 @@ fun LazyListScope.accountsSection(
     onToggleArchived: () -> Unit,
     showAllTransfers: Boolean,
     onToggleTransfers: () -> Unit,
+    /** The hue of each currency, for the square beside its heading; null draws none. */
+    currencyIndex: ((ie.shoonya.vitt.money.Currency) -> Int)? = null,
 ) {
     item {
         Row(
@@ -89,12 +93,17 @@ fun LazyListScope.accountsSection(
         val shown = if (showAllAccounts) live else live.take(ACCOUNTS_FOLDED)
         shown.groupBy { it.account.currency }.forEach { (currency, group) ->
             item {
-                Text(
-                    currency.code,
-                    style = Vitt.type.caption,
-                    color = Vitt.colors.inkMuted,
-                    modifier = Modifier.padding(top = Vitt.space.snug),
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = Vitt.space.base, bottom = Vitt.space.hair),
+                ) {
+                    currencyIndex?.let { ie.shoonya.vitt.ui.CurrencyMark(it(currency), size = 6.dp) }
+                    Text(
+                        (if (currencyIndex != null) "  " else "") + currency.code,
+                        style = Vitt.type.mono,
+                        color = Vitt.colors.inkMuted,
+                    )
+                }
             }
             items(group) { balance ->
                 AccountCard(balance, onEdit = { onEditAccount(balance.account.id) })
@@ -194,7 +203,14 @@ private fun AccountCard(balance: AccountBalance, onEdit: () -> Unit) {
             // with an account here, and a row that opens it is both the larger
             // target and the one that needs no icon explaining itself.
             .clickable(onClick = onEdit)
-            .padding(vertical = Vitt.space.snug)
+            // One ruled line per account, like the Activity page: the rule
+            // is drawn, so the figures never shift for it.
+            .heightIn(min = 48.dp)
+            .drawBehind {
+                val y = size.height - 0.5.dp.toPx()
+                drawLine(colors.hairline, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx())
+            }
+            .padding(vertical = Vitt.space.tight)
             .semantics(mergeDescendants = true) {},
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,

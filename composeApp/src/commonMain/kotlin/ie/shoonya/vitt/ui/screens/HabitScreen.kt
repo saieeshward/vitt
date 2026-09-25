@@ -11,6 +11,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,8 +23,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import ie.shoonya.vitt.ui.CompanionAnimal
 import ie.shoonya.vitt.ui.CompanionPet
 import ie.shoonya.vitt.ui.CompanionPose
@@ -165,7 +165,7 @@ fun HabitScreen(
                     modifier = Modifier.fillMaxWidth().padding(vertical = Vitt.space.hair),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(Modifier.size(8.dp).clip(CircleShape).background(Vitt.colors.currency(currencyIndex(currency))))
+                    ie.shoonya.vitt.ui.CurrencyMark(currencyIndex(currency))
                     Text("  ${currency.code}", style = Vitt.type.body, color = Vitt.colors.ink, modifier = Modifier.weight(1f))
                     Text(
                         when (val ago = today - day) {

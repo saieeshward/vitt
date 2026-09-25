@@ -6,13 +6,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.background
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import ie.shoonya.vitt.money.Money
 import ie.shoonya.vitt.ui.theme.Vitt
 
@@ -37,14 +34,10 @@ fun MoneyLine(
 ) {
     val colors = Vitt.colors
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        // The currency dot: chroma lives in dots and lines, never in a filled
-        // card or a coloured amount.
+        // The currency's square: chroma lives in marks and lines, never in a
+        // filled card or a coloured amount.
         currencyIndex?.let { index ->
-            Spacer(
-                Modifier.size(6.dp())
-                    .clip(CircleShape)
-                    .background(colors.currency(index)),
-            )
+            CurrencyMark(index, size = 6.dp())
             Spacer(Modifier.width(Vitt.space.tight))
         }
         Text(

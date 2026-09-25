@@ -6,6 +6,7 @@ import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isRoot
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -50,7 +51,7 @@ class DesignTourTest {
 
         shot("ledgers")
         tab("Activity"); shot("activity")
-        onNodeWithText("Coffee Angel", substring = true).performClick(); shot("edit-category")
+        onAllNodesWithText("Coffee Angel", substring = true).onFirst().performClick(); shot("edit-category")
         onNodeWithText("Done").performClick()
         tab("People"); shot("people")
         tab("Reports"); shot("reports")

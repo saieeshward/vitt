@@ -608,11 +608,19 @@ private fun CategoryRow(
                 maxLines = 1,
                 modifier = Modifier.fillMaxWidth(0.6f),
             )
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // How many times, as marks beside how much: a category that
+                // is forty small things reads differently from one big one.
+                CountMarks(slice.count, if (slice.category == null) null else hue)
                 Text(
                     slice.spent.displayUnsigned(),
                     style = Vitt.type.money,
                     color = colors.ink,
+                    modifier = Modifier.padding(start = Vitt.space.snug),
                 )
             }
         }
@@ -644,6 +652,22 @@ private fun CategoryRow(
         }
     }
 }
+
+/** One small square per record, up to a handful; past that the number says it. */
+@Composable
+private fun CountMarks(count: Int, hue: Int?) {
+    val colors = Vitt.colors
+    val color = hue?.let { colors.currency(it) } ?: colors.inkFaint
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        if (count > MARKS_SHOWN) {
+            Text("×$count", style = Vitt.type.mono, color = colors.inkMuted, modifier = Modifier.padding(end = 2.dp))
+        } else {
+            repeat(count) { Box(Modifier.size(4.dp).background(color.copy(alpha = 0.7f))) }
+        }
+    }
+}
+
+private const val MARKS_SHOWN = 12
 
 @Composable
 private fun MerchantRow(slice: MerchantSlice) {

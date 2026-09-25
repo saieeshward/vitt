@@ -1,10 +1,7 @@
 package ie.shoonya.vitt.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,12 +9,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import ie.shoonya.vitt.capture.CategorySource
 import ie.shoonya.vitt.model.Transaction
@@ -64,9 +65,8 @@ fun ActivityScreen(
             end = Vitt.space.loose,
             bottom = Vitt.space.loose + companionInset,
         ),
-        verticalArrangement = Arrangement.spacedBy(Vitt.space.hair),
     ) {
-        item { Text("Activity", style = Vitt.type.display, color = Vitt.colors.ink) }
+        item { Text("Activity", style = Vitt.type.display, color = Vitt.colors.ink, modifier = Modifier.padding(bottom = Vitt.space.hair)) }
 
         item {
             PeriodControl(
@@ -149,96 +149,133 @@ fun ActivityScreen(
             }
         }
 
+        // A passbook: the date printed once in the margin, then one ruled line
+        // per record under it. No headings between days, because the margin
+        // already says where one day ends and the next begins.
         days.forEach { (day, transactions) ->
-            item {
-                Text(
-                    relativeDay(day, today),
-                    style = Vitt.type.caption,
-                    color = Vitt.colors.inkMuted,
-                    modifier = Modifier.padding(top = Vitt.space.base),
-                )
-            }
             items(transactions.size) { i ->
-                TransactionRow(transactions[i], currencyIndex, onEdit)
+                TransactionRow(
+                    transactions[i],
+                    dateLabel = if (i == 0) marginDate(day, today) else null,
+                    currencyIndex = currencyIndex,
+                    onEdit = onEdit,
+                )
             }
         }
     }
 }
 
+/** The ruled line every record sits on. Fixed, so the page keeps its rhythm. */
+private val LINE_HEIGHT = 48.dp
+
+/** The margin column holding the date, and its double rule. */
+private val MARGIN_WIDTH = 60.dp
+
 @Composable
 private fun TransactionRow(
     txn: Transaction,
+    /** The date, printed only on the first line of its day. */
+    dateLabel: String?,
     currencyIndex: (Currency) -> Int,
     onEdit: (Transaction) -> Unit,
 ) {
     val colors = Vitt.colors
+    val rule = colors.hairline
+    val margin = colors.accentSoft.copy(alpha = 0.45f)
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .height(LINE_HEIGHT)
             .clickable { onEdit(txn) }
-            .padding(vertical = Vitt.space.hair),
+            // The faint rule under every line and the double rule down the
+            // margin are drawn, not laid out, so they cost nothing and never
+            // shift a figure.
+            .drawBehind {
+                val y = size.height - 0.5.dp.toPx()
+                drawLine(rule, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx())
+                val x = MARGIN_WIDTH.toPx()
+                drawLine(margin, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1.dp.toPx())
+                drawLine(margin, Offset(x + 3.dp.toPx(), 0f), Offset(x + 3.dp.toPx(), size.height), strokeWidth = 1.dp.toPx())
+            },
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Text(
+            dateLabel.orEmpty(),
+            style = Vitt.type.mono,
+            color = colors.inkMuted,
+            textAlign = TextAlign.End,
+            maxLines = 1,
+            modifier = Modifier.width(MARGIN_WIDTH).padding(end = Vitt.space.snug),
+        )
         // What the person wrote beats what the app guessed: a note names the
         // entry better than its category does.
         val name = txn.merchantLabel ?: txn.note ?: txn.categoryOrNull?.label
         // True when the category is doing double duty as the title. An entry
         // typed on the keypad and left unnamed has nothing else to show, and
-        // printing the category again underneath it read "Groceries /
-        // Groceries" on every hand-logged row, next to imported rows that were
-        // properly named. Once is enough.
+        // printing the category again beside it read "Groceries Groceries".
         val titleIsCategory = txn.merchantLabel == null && txn.note == null
-        Monogram(
-            name = name,
-            hue = colors.currency(currencyIndex(txn.amount.currency)),
-        )
+        val detail = buildList {
+            // The label, not the stored code — "groceries" reads as a
+            // database field.
+            if (!titleIsCategory) {
+                txn.categoryOrNull?.let { add(it.label) } ?: txn.category?.let { add(it) }
+            }
+            // Provenance only where it is worth a word: the one tier a user
+            // can fix is the one they taught.
+            if (txn.categorySource == CategorySource.LEARNED) add("you taught me")
+            // The note rides along when a merchant already holds the title.
+            if (txn.merchantLabel != null) txn.note?.let { add(it) }
+            if (txn.isSplit) add("your share")
+            // The way out of an uncategorised row, on the row itself.
+            if (txn.categoryOrNull == null && txn.category == null) add("add a category")
+        }.joinToString(" · ")
+        // The name on the line, the small print under it. Stacked rather than
+        // run on, because a name cut to "Dinner with A..." to make room for
+        // its category has the priorities backwards.
         Column(
-            modifier = Modifier.padding(start = Vitt.space.snug).fillMaxWidth(0.62f),
+            modifier = Modifier.weight(1f).padding(start = Vitt.space.base, end = Vitt.space.snug),
+            verticalArrangement = Arrangement.Center,
         ) {
             Text(
-                // Never a bare dash. A row the user typed an amount into and
-                // nothing else still has to say what it is, and "—" says less
-                // than nothing: it reads as a rendering fault.
-                // Unnamed says what it is, not what it lacks: "No description"
-                // on a first entry read like a mistake had been made.
+                // Never a bare dash. Unnamed says what it is, not what it
+                // lacks: "No description" on a first entry read like a mistake.
                 name ?: if (txn.amount.isInflow) "Income" else "Expense",
                 style = Vitt.type.body,
                 color = if (name == null) colors.inkMuted else colors.ink,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
-            val subtitle = buildList {
-                // The label, not the stored code — "groceries" reads as a
-                // database field.
-                if (!titleIsCategory) {
-                    txn.categoryOrNull?.let { add(it.label) } ?: txn.category?.let { add(it) }
-                }
-                // Provenance, but only where it is worth a word. §6 wants this
-                // as a debugging affordance and it stays one: a wrong category
-                // with nothing here came from the shipped keyword list by
-                // elimination. Printing "seed" on nine rows in ten was jargon
-                // on almost every line of the busiest screen in the app, and
-                // the one tier a user can actually fix is the one they taught.
-                if (txn.categorySource == CategorySource.LEARNED) add("you taught me")
-                // The note rides along when a merchant already holds the title.
-                if (txn.merchantLabel != null) txn.note?.let { add(it) }
-                if (txn.isSplit) add("your share")
-                // The way out of an uncategorised row, on the row itself.
-                if (txn.categoryOrNull == null && txn.category == null) add("add a category")
-            }.joinToString(" · ")
-            if (subtitle.isNotEmpty()) {
-                Text(subtitle, style = Vitt.type.caption, color = colors.inkMuted, maxLines = 1)
+            if (detail.isNotEmpty()) {
+                Text(detail, style = Vitt.type.caption, color = colors.inkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-            Text(
-                txn.amount.display(),
-                style = Vitt.type.money,
-                // Spending is plain text; only income takes colour. Colouring an
-                // expense would be the app passing judgement on it.
-                color = if (txn.amount.isInflow) colors.accentSoft else colors.ink,
-            )
-        }
+        ie.shoonya.vitt.ui.CurrencyMark(currencyIndex(txn.amount.currency), size = 6.dp)
+        Text(
+            txn.amount.display(),
+            style = Vitt.type.money,
+            // Spending is plain text; only income takes colour. Colouring an
+            // expense would be the app passing judgement on it.
+            color = if (txn.amount.isInflow) colors.accentSoft else colors.ink,
+            modifier = Modifier.padding(start = Vitt.space.snug),
+        )
     }
+}
+
+/**
+ * The date as the margin prints it: today and yesterday by name, the rest as
+ * day and month in the ledger's small capitals.
+ */
+internal fun marginDate(epochDay: Int, today: Int): String = when (epochDay) {
+    today -> "TODAY"
+    today - 1 -> "YEST"
+    else -> shortDate(epochDay)
+}
+
+/** "24 SEP": the date in the ledger's small capitals. */
+internal fun shortDate(epochDay: Int): String {
+    val (_, m, d) = ie.shoonya.vitt.time.Civil.fromDays(epochDay)
+    val month = listOf("JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC")[m - 1]
+    return "$d $month"
 }
 
 /**
@@ -269,24 +306,6 @@ internal fun formatDay(epochDay: Int): String {
  * currency: `design-identity.md` puts chroma in lines and dots and never in a
  * filled shape, and a list of filled colour discs would read as a chart.
  */
-@Composable
-private fun Monogram(name: String?, hue: androidx.compose.ui.graphics.Color) {
-    Box(
-        modifier = Modifier
-            .size(34.dp)
-            .clip(CircleShape)
-            .border(1.5.dp, hue, CircleShape),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            initialsOf(name),
-            style = Vitt.type.caption,
-            color = Vitt.colors.inkMuted,
-            maxLines = 1,
-        )
-    }
-}
-
 /**
  * One or two letters, from the words a person would say.
  *

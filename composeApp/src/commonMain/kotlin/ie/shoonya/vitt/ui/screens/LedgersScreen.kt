@@ -1,6 +1,7 @@
 package ie.shoonya.vitt.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,16 +17,14 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -218,6 +217,7 @@ fun LedgersScreen(
             onToggleArchived = { showArchived = !showArchived },
             showAllTransfers = showAllTransfers,
             onToggleTransfers = { showAllTransfers = !showAllTransfers },
+            currencyIndex = { c -> ledgers.firstOrNull { it.currency == c }?.index ?: ledgers.size },
         )
     }
 }
@@ -287,14 +287,10 @@ private fun LedgerPager(
         ) {
             ledgers.forEachIndexed { i, ledger ->
                 val current = i == state.currentPage
-                Box(
-                    Modifier
-                        .size(if (current) 8.dp else 6.dp)
-                        .clip(CircleShape)
-                        .background(
-                            Vitt.colors.currency(ledger.index)
-                                .copy(alpha = if (current) 1f else 0.35f),
-                        ),
+                ie.shoonya.vitt.ui.CurrencyMark(
+                    ledger.index,
+                    size = if (current) 8.dp else 6.dp,
+                    alpha = if (current) 1f else 0.35f,
                 )
             }
         }
@@ -345,18 +341,13 @@ private fun LedgerCard(
         modifier = Modifier
             .fillMaxWidth()
             .nudgeAnchor(ie.shoonya.vitt.ui.Anchor.ledgerCard(ledger.currency.code))
-            // A white card lifted off the cream ground, per the design's own
-            // `box-shadow: 0 2px 10px rgba(36,31,51,0.06)`. A card tinted a
-            // shade of the background instead reads as muddy, which is what an
-            // earlier pass here produced.
-            .shadow(
-                elevation = 6.dp,
-                shape = RoundedCornerShape(Vitt.radius.card),
-                ambientColor = colors.shadow,
-                spotColor = colors.shadow,
-            )
-            .clip(RoundedCornerShape(Vitt.radius.card))
+            // A page, not a tile: white, squared off at 12dp, held by a
+            // hairline rule instead of a shadow. A ledger's card sits flat on
+            // the desk, and the lifted card read as a different product from
+            // the ruled lines under it.
+            .clip(RoundedCornerShape(LEDGER_RADIUS))
             .background(colors.card)
+            .border(1.dp, colors.hairline, RoundedCornerShape(LEDGER_RADIUS))
             // The whole card opens the budget for its currency. Tapping the thing
             // the limit applies to needs no separate affordance, and the card has
             // no other action competing for the gesture.
@@ -371,14 +362,13 @@ private fun LedgerCard(
         verticalArrangement = Arrangement.spacedBy(Vitt.space.hair),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Chroma lives in the dot, never in a filled card.
-            Box(
-                Modifier.size(8.dp).clip(CircleShape)
-                    .background(colors.currency(ledger.index)),
-            )
+            // Chroma lives in the square, never in a filled card. The eyebrow
+            // is printed in the ledger's face and says what the figure is
+            // before the figure says how much.
+            ie.shoonya.vitt.ui.CurrencyMark(ledger.index)
             Text(
-                "  ${ledger.currency.code}",
-                style = Vitt.type.caption,
+                "  ${ledger.currency.code} · " + if (remaining != null && remaining.minor >= 0) "LEFT" else "OUT",
+                style = Vitt.type.mono,
                 color = colors.inkMuted,
             )
         }
@@ -615,3 +605,6 @@ private const val WIDE_CONTENT_DP = 1100
 /** How many days of [period] remain after [today], or null when today is not in it. */
 private fun daysLeft(period: ie.shoonya.vitt.time.Period?, today: Int): Int? =
     if (period != null && today in period) period.lastDay - today else null
+
+/** The card corner: squarer than the rest of the app, as a page is. */
+private val LEDGER_RADIUS = 12.dp

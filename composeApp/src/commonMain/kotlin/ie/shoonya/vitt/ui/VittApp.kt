@@ -848,6 +848,8 @@ fun VittApp(
         ) {
             ReceiptBar(
                 text = r.text,
+                detail = r.detail,
+                hue = r.hue,
                 onUndo = {
                     repository.delete(r.id)
                     localRevision++
@@ -981,7 +983,12 @@ fun VittApp(
                         // so nothing can be lost and there is no streak to
                         // protect by avoiding the app.
                         justSaved = true
-                        receipt = Receipt(id, receiptLine(new, accounts.firstOrNull { it.id == new.accountId }?.name))
+                        receipt = Receipt(
+                            id,
+                            receiptLine(new, accounts.firstOrNull { it.id == new.accountId }?.name),
+                            receiptDetail(repository.transactions(), new.amount.currency, today),
+                            indexOf(new.amount.currency),
+                        )
                         haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.Confirm)
                         // The people and their parts were chosen on the same
                         // screen, so a split is finished when it is saved.
@@ -1537,7 +1544,7 @@ private fun usesSidePanel(layout: ie.shoonya.vitt.layout.WindowLayout, tab: Tab,
         tab == Tab.Activity && (sheet is Sheet.EditCategory || sheet is Sheet.Split)
 
 /** An entry just saved, and the line that says so. */
-private data class Receipt(val id: String, val text: String)
+private data class Receipt(val id: String, val text: String, val detail: String, val hue: Int)
 
 /** Long enough to read and reach Undo, short enough not to linger. */
 private const val RECEIPT_MILLIS = 4_500L
@@ -1556,25 +1563,42 @@ private fun receiptLine(new: ie.shoonya.vitt.ui.screens.NewEntry, account: Strin
     }
 }
 
+/**
+ * The passbook line: the date and which line of the month's ledger this
+ * record is, counted within its currency, since each currency keeps its own
+ * book. The entry just saved is already in [all], so the count includes it.
+ */
+private fun receiptDetail(all: List<ie.shoonya.vitt.model.Transaction>, currency: Currency, today: Int): String {
+    val month = ie.shoonya.vitt.time.YearMonth.of(today)
+    val line = all.count { it.amount.currency == currency && !it.deleted && it.day in month }
+    val name = ie.shoonya.vitt.time.periodLabel(month, today).uppercase()
+    return "${ie.shoonya.vitt.ui.screens.shortDate(today)} · LINE $line OF $name"
+}
+
 @Composable
-private fun ReceiptBar(text: String, onUndo: () -> Unit) {
+private fun ReceiptBar(text: String, detail: String, hue: Int, onUndo: () -> Unit) {
     val colors = Vitt.colors
     Row(
         modifier = Modifier
             .padding(horizontal = Vitt.space.loose)
-            .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
             .background(colors.ink)
-            .padding(start = Vitt.space.base, end = Vitt.space.hair),
+            .padding(start = Vitt.space.loose, end = Vitt.space.hair, top = Vitt.space.snug, bottom = Vitt.space.snug),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text,
-            style = Vitt.type.body,
-            color = colors.ground,
+        // The currency's square, then the sentence, then the passbook line:
+        // where in the month's ledger this record now sits. A receipt that
+        // names its line number is one you can find again.
+        CurrencyMark(hue, size = 10.dp)
+        Column(
             modifier = Modifier
                 .weight(1f, fill = false)
+                .padding(start = Vitt.space.base)
                 .semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite },
-        )
+        ) {
+            Text(text, style = Vitt.type.body, color = colors.ground)
+            Text(detail, style = Vitt.type.mono, color = colors.ground.copy(alpha = 0.7f))
+        }
         androidx.compose.material3.TextButton(onClick = onUndo) {
             Text("Undo", style = Vitt.type.body, color = colors.ground, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
         }
